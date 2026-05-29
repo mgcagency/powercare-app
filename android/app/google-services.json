@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "658053185000",
+    "project_id": "powercare-1f524",
+    "storage_bucket": "powercare-1f524.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658053185000:android:45e1f2e9fbacd3dc9bb85d",
+        "android_client_info": {
+          "package_name": "com.powercare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiP8kNaaMeJnC17gXLf8LmjWUA9lp2C8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658053185000:android:3895d6e3f9ef26589bb85d",
+        "android_client_info": {
+          "package_name": "com.powercare.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiP8kNaaMeJnC17gXLf8LmjWUA9lp2C8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
