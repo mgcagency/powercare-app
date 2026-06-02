@@ -1,92 +1,649 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:rosewood/app/theme/colors.dart';
-import 'package:rosewood/app/theme/text_styles.dart';
-import 'package:rosewood/app/widget/custom_button.dart';
-import 'package:rosewood/app/widget/custom_text.dart';
-import 'package:rosewood/app/widget/custom_outline_button.dart';
-import 'package:rosewood/core/navigation/app_navigator.dart';
-import 'package:rosewood/features/auth/presentation/login_screen.dart';
-import 'package:rosewood/features/landing/login_user.dart';
+import 'package:flutter/services.dart';
+import 'package:powercare_flutter/app/theme/colors.dart';
 
-import '../../../app/theme/colors.dart';
-import '../../../app/theme/text_styles.dart';
-import '../../../app/widget/custom_button.dart';
-import '../../../app/widget/custom_outline_button.dart';
-import '../../../app/widget/custom_text.dart';
-import '../../../core/navigation/app_navigator.dart';
+import '../../../core/api/auth_service.dart';
+import '../../alldata/models/login_response.dart';
+import '../pin/authentication_screen.dart';
+import '../pin/create_pin_screen.dart';
+import 'forgotpassword_Screen.dart';
 
-class LandingScreen extends StatelessWidget {
-  const LandingScreen({super.key});
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _rememberMe = false;
+  bool _isLoading = false;
+  bool _isLoadingid = false;
+  bool _obscurePassword = true;
+  late AnimationController _animationController;
+  late Animation<double> _fadeSlideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStoredCredentials();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _fadeSlideAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _loadStoredCredentials() async {
+    // Simulating loading from secure storage
+    // In real app, use flutter_secure_storage or shared_preferences
+    setState(() {
+      _rememberMe = false;
+      _emailController.text = '';
+    });
+  }
+
+  void _showToastMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: isError ? Colors.red.shade700 : const Color(0xFF1E293B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+        margin: const EdgeInsets.all(20),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+  Future<void> _performLogin() async {
+
+    if(_emailController.text.isEmpty){
+      _showToastMessage(
+        "Please enter valid email",
+        isError: true,
+      );
+      return;
+    }
+
+    if(_passwordController.text.isEmpty){
+      _showToastMessage(
+        "Please enter correct password",
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+
+      final result =
+      await AuthService().login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        deviceId: "123456",
+        fcmToken: "",
+      );
+
+      final loginResponse =
+      LoginResponse.fromJson(result);
+
+      if(loginResponse.statusCode == 200 ||
+          loginResponse.statusCode == 201){
+
+        _showToastMessage(
+          loginResponse.message ??
+              "Login Success",
+        );
+
+        print(loginResponse.data?.firstName);
+        if (loginResponse.data?.secretCode != null &&
+            loginResponse.data!.secretCode! > 0) {
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AuthenticationScreen(),
+            ),
+          );
+
+        } else {
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const CreatePinScreen(),
+            ),
+          );
+        }
+/*        if(loginResponse.data?.secretCode != null &&
+            loginResponse.data!.secretCode! > 0){
+
+           AuthenticationScreen();
+        } else {
+
+           CreatePinScreen();
+        }*/
+
+      } else {
+
+        _showToastMessage(
+          loginResponse.message ??
+              "Login Failed",
+          isError: true,
+        );
+      }
+
+    } catch(e){
+
+      _showToastMessage(
+        e.toString(),
+        isError: true,
+      );
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _handleSocialLogin(String provider) {
+    _showToastMessage('$provider Sign-In — coming in the next update 🚀');
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                'assets/icons/logo.svg',
-                width: 120,
-              ),
-              const SizedBox(height: 40),
-              CustomText(
-                'Welcome to Rosewood Virtual Academy!',
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              CustomText(
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.darkGrey,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 60),
-              CustomButton(
-                title: 'Register',
-                onPressed: () {
-                  // Navigate to registration
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(child: Container(
-                      margin: const EdgeInsets.only(left: 50),
-                      child: Divider(color: AppColors.grey))),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: CustomText(
-                      'or',
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/icons/login_bg.jpg'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: FadeTransition(
+                  opacity: _fadeSlideAnimation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.05),
+                      end: Offset.zero,
+                    ).animate(_fadeSlideAnimation),
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: _buildLoginCard(),
                     ),
                   ),
-                  Expanded(child:Container(
-                      margin: const EdgeInsets.only(right: 50),
-                      child: Divider(color: AppColors.grey))),
-                ],
+                ),
               ),
-              const SizedBox(height: 20),
-              CustomOutlineButton(
-                title: 'Already have an account? Sign in',
-                onPressed: () {
-                  AppNavigator.push(const LoginUserScreen());
-                },
-              ),
-
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildLoginCard() {
+    return Container(
+      decoration: BoxDecoration(
+       // color: Colors.white.withOpacity(0.92),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(56),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.5),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(56),
+        child: Material(
+          color: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+            child: Column(
+              children: [
+                _buildBrand(),
+                const SizedBox(height: 32),
+                _buildEmailField(),
+                const SizedBox(height: 20),
+                _buildPasswordField(),
+                const SizedBox(height: 16),
+                _buildOptionsRow(),
+                const SizedBox(height: 26),
+                buildLoginButton(), const SizedBox(height: 26),
+                buildLoginFaceButton(),
+              /*  const SizedBox(height: 28),
+                _buildDivider(),
+                const SizedBox(height: 28),
+                _buildSignupPrompt(),*/
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBrand() {
+    return Column(
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+      /*      gradient: const LinearGradient(
+              colors: [
+                Color(0xFF0F2D52),
+                Color(0xFF1D4E89),
+                Color(0xFFFF6B00),
+              ],
+            ),*/
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+          /*    BoxShadow(
+                color: const Color(0xFFFF6B6B).withOpacity(0.4),
+                blurRadius: 25,
+                offset: const Offset(0, 15),
+              ),*/
+            ],
+          ),
+          child: Image.asset(
+            'assets/icons/app_logo_dev.png',
+            width: 38,
+            height: 38,
+            fit: BoxFit.contain,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
+          ).createShader(bounds),
+          child: const Text(
+            'PowerCare',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'Poppins',
+              color: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'electrical services limited',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF5A6874),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmailField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(44),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+      ),
+      child: TextField(
+        controller: _emailController,
+        keyboardType: TextInputType.emailAddress,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        decoration: InputDecoration(
+          hintText: 'Email address',
+          hintStyle: TextStyle(color: Colors.grey.shade400),
+          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9AA6B5), size: 20),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        ),
+        onTapOutside: (_) => FocusScope.of(context).unfocus(),
+      ),
+    );
+  }
+  Widget _buildPasswordField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(44),
+        border: Border.all(
+          color: const Color(0xFFE2E8F0),
+          width: 1.5,
+        ),
+      ),
+      child: TextField(
+        controller: _passwordController,
+        obscureText: _obscurePassword,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Password',
+          hintStyle: TextStyle(
+            color: Colors.grey.shade500,
+          ),
+          prefixIcon: const Icon(
+            Icons.lock_outline,
+            color: Color(0xFF9AA6B5),
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+          ),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+/*  Widget _buildPasswordField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(44),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+      ),
+      child: TextField(
+        controller: _passwordController,
+        obscureText: true,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        decoration: InputDecoration(
+          hintText: 'Password',
+          hintStyle: TextStyle(color: Colors.grey.shade400),
+          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9AA6B5), size: 20),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        ),
+        onTapOutside: (_) => FocusScope.of(context).unfocus(),
+      ),
+    );
+  }*/
+
+  Widget _buildOptionsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: Checkbox(
+                value: _rememberMe,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _rememberMe = value ?? false;
+                  });
+                },
+                activeColor: const Color(0xFFFF6B6B),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Remember me',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF475569),
+              ),
+            ),
+          ],
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ForgotPasswordScreen(),
+              ),
+            );
+          },
+       /*   onTap: () {
+            String email = _emailController.text.trim();
+            if (email.isNotEmpty && email.contains('@')) {
+              _showToastMessage('Reset link sent to $email ✉️');
+            } else {
+              _showToastMessage('Enter your email address first to reset password', isError: true);
+            }
+          },*/
+          child: const Text(
+            'Forgot password?',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFFFF6B6B),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _performLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          padding: EdgeInsets.zero,
+        ),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                    Color(0xFFFF8A00),
+                    Color(0xFFFF6B00),
+
+            /*    Color(0xFFFF6B00), // Navy Blue
+                Color(0xFFFF6B00), // Blue
+                Color(0xFFFF6B00), // Orange*/
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(60),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F2D52).withOpacity(0.35),
+                blurRadius: 0,
+                offset: const Offset(0, 0),
+              ),
+            ],
+          ),          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_isLoading)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                else ...[
+                  const Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Poppins',
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  Widget buildLoginFaceButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoadingid ? null : _LoginScreenState.new,
+        //_performLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          padding: EdgeInsets.zero,
+        ),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF0F2D52),
+                Color(0xFF1D4E89),
+          /*      Color(0xFFFF6B00), // Navy Blue
+                Color(0xFFFF6B00), // Blue
+                Color(0xFFFF6B00), // Orange*/
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(60),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F2D52).withOpacity(0.35),
+                blurRadius: 0,
+                offset: const Offset(0, 0),
+              ),
+            ],
+          ),          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_isLoadingid)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                else ...[
+                  const Text(
+        'Login with Face ID',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Poppins',
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                 // const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                  Icon(Icons.fingerprint,color: Colors.white,size: 18,)
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+/*
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(child: Container(height: 1, color: Colors.black.withOpacity(0.1))),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 14),
+          child: Text(
+            'or continue with',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFFA0ABB9)),
+          ),
+        ),
+        Expanded(child: Container(height: 1, color: Colors.black.withOpacity(0.1))),
+      ],
+    );
+  }*/
+
+/*  Widget _buildSignupPrompt() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          'Don\'t have an account?',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF4B5565)),
+        ),
+        GestureDetector(
+          onTap: () {
+            _showToastMessage('Create your Power care account — get started');
+          },
+          child: const Text(
+            ' Create Account',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFFF6B6B),
+            ),
+          ),
+        ),
+      ],
+    );
+  }*/
 }

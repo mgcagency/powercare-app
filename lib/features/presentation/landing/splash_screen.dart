@@ -1,6 +1,3 @@
-
-
-
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
@@ -11,6 +8,7 @@ import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../core/navigation/app_navigator.dart';
+import 'landing_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -162,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen> {
             child: GestureDetector(
               onTap: () async {
 
-                  // AppNavigator.pushAndRemoveAll();
+                AppNavigator.pushAndRemoveAll(const LoginScreen());
 
               },
               child: Row(
