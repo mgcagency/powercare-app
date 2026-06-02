@@ -8,14 +8,14 @@ import '../../../app/widget/custom_textfield.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../dashboard/dashboard_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class LoginScreenOld extends StatefulWidget {
+  const LoginScreenOld({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginScreenOld> createState() => _LoginScreenOldState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenOldState extends State<LoginScreenOld> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;

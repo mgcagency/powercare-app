@@ -14,8 +14,8 @@ Future<void> main() async {
   FlavorConfig.setFlavor(
     Flavor.prod,
     'PowerCare',
-    'https://hla-frontend.resolveddevelopment.co.uk//api', // Using existing dev/local URL from AppConstants
-    'https://hla-frontend.resolveddevelopment.co.uk/',    // Replace with your production Socket URL
+    'https://powercarecrm.co.uk/api/', // Using existing dev/local URL from AppConstants
+    'https://powercarecrm.co.uk/',    // Replace with your production Socket URL
   );
 
 

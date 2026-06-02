@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:powercare_flutter/features/presentation/jobs/job_screen.dart';
+import 'package:powercare_flutter/app/widget/custom_appbar.dart';
+import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dart';
 
 import '../home/home_screen.dart';
 
@@ -17,7 +18,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final List<Widget> _pages = [
     const HomeScreen(),
-    const JobScreen(),
+    const JobListScreen(),
     const Center(child: Text("Timelog Content", style: TextStyle(fontSize: 20))),
     const Center(child: Text("Job Status Content", style: TextStyle(fontSize: 20))),
     const Center(child: Text("Contact Book Content", style: TextStyle(fontSize: 20))),
@@ -34,7 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: CustomAppBar(title: "Home"),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
         layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
@@ -55,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           // Padding around the bar to keep it floating
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 7, 16, 7),
           child: Container(
             height: 60, // Reduced height since labels are removed
             decoration: BoxDecoration(

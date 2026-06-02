@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:powercare_flutter/app/theme/colors.dart';
 
 import '../../core/navigation/app_navigator.dart';
 import '../constants/icon_contants.dart';
@@ -41,7 +42,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
       elevation: elevation ?? 0,
-      backgroundColor: backgroundColor ?? Colors.white,
+      backgroundColor: backgroundColor ?? AppColors.primary,
       centerTitle: title == null ? false : centerTitle,
       titleSpacing: 0,
       leading: null,
@@ -57,7 +58,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Icon(
                       Icons.arrow_back_ios_new,
                       size: 20,
-                      color: backButtonColor ?? Colors.black,
+                      color: backButtonColor ?? Colors.white,
                     ),
                   ),
                 )
@@ -68,7 +69,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ( CustomText(
                         title!,
                         style: AppTextStyles.headline4.copyWith(
-                            color: Colors.black, fontWeight: FontWeight.bold),
+                            color: Colors.white, fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       )

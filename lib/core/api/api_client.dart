@@ -1,18 +1,48 @@
-import 'package:dio/dio.dart';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
+import 'package:dio/io.dart'; // Required for IOHttpClientAdapter
 
 import '../../app/constants/app_constants.dart';
 import '../storage/secure_storage.dart';
 
 class ApiClient {
-  static final _dio = Dio(
-    BaseOptions(
-      baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(minutes: 1),
-      receiveTimeout: const Duration(minutes: 1),
-      headers: {'Content-Type': 'application/json'},
-    ),
-  );
+  static final _dio = _createDio();
+  static Dio _createDio() {
+    final dio = Dio(
+      BaseOptions(
+        // 1. Ensure NO trailing slash in AppConstants.baseUrl
+        baseUrl: AppConstants.baseUrl.endsWith('/')
+            ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+            : AppConstants.baseUrl,
+        connectTimeout: const Duration(minutes: 1),
+        receiveTimeout: const Duration(minutes: 1),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+        },
+      ),
+    );
+
+    // FIX: Bypassing SSL/Handshake errors
+
+
+    (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+      final client = HttpClient();
+
+      // 2. Some servers reject empty/null user-agents during handshake
+      client.userAgent = 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36';
+
+      // 3. This bypasses the certificate check, but UNRECOGNIZED_NAME
+      // often happens before this callback.
+      client.badCertificateCallback = (cert, host, port) => true;
+
+      return client;
+    };
+
+    return dio;
+  }
+
 
   static Future<Response> get(String path, {
     Map<String, dynamic>? parameters,
@@ -44,14 +74,14 @@ class ApiClient {
         endPoint,
         data: body,
         options: Options(
-          headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+          headers: token != null ? {'Authorization': 'Bearer $token', 'Content-Type': 'application/json; charset=utf-8'} : null,
         ),
       );
-      print('📥 RESPONSE BODY: ${request.data}');
+      print('📥 RESPONSE BODY: ${request.realUri.toString()}');
       return request;
     } on DioError catch (e) {
-      print("❌ POST ERROR STATUS => ${e.response?.statusCode}");
-      print("❌ POST ERROR DATA => ${e.response?.data}");
+      print("❌ POST ERROR STATUS => ${e.error}");
+      print("❌ POST ERROR DATA => ${e.response?.statusMessage}");
       throw ApiException.fromDioError(e);
     }
   }

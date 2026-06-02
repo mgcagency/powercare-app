@@ -5,26 +5,29 @@ import 'core/socket/socket_manager.dart';
 import 'core/storage/app_preferences.dart';
 import 'flavor_config.dart';
 import 'main.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options_dev.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // // Initialize Firebase
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
-  //
-  // // Set background messaging handler early
-  // FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  //
-  // // Initialize Notification Service
-  // await NotificationService().init();
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Set background messaging handler early
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Initialize Notification Service
+  await NotificationService().init();
   
   FlavorConfig.setFlavor(
     Flavor.dev,
     'PowerCare Dev',
-    'http://192.168.1.3:3000/api',
-    'http://192.168.1.3:3000',
+    'https://powercare.resolveddevelopment.co.uk/api',
+    'https://powercare.resolveddevelopment.co.uk',
   );
   
 
