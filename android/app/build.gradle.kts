@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.Powercare.devapp.powercare_hybrid"
+    namespace = "com.powercare"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

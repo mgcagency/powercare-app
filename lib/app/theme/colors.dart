@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Color(0xFF800020);
-  static const primaryLight = Color(0x1D5f2b38);
-  static const primaryLightDateBack = Color(0xFFFFF2F2);
+  static const primary = Color(0xFFff5b1f);
+  static const primaryLight = Color(0x1Dff5b1f);
   static const primaryLightbubbleBack = Color(0xFFE7C7CF);
   static const secondary = Color(0xFFFFFFFF); // Fixed: was 0xFFFFFFF
   static const background = Color(0xFFF5F5F5);

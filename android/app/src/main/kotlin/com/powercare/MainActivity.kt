@@ -1,4 +1,4 @@
-package com.Powercare.devapp.powercare_hybrid
+package com.powercare
 
 import io.flutter.embedding.android.FlutterActivity
 
