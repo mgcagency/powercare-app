@@ -138,14 +138,14 @@ class AppPreferences {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
-  static Future<void> setSecretCode(bool value) async {
+  static Future<void> setSecretCode(String value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_secretCode, value);
+    await prefs.setString(_secretCode, value);
   }
 
-  static Future<bool> getSecretCode() async {
+  static Future<String> getSecretCode() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_secretCode) ?? false;
+    return prefs.getString(_secretCode) ?? "";
   }
 
 }

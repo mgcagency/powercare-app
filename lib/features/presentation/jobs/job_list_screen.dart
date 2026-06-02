@@ -319,7 +319,8 @@ class _JobListScreenState extends State<JobListScreen> {
                 Expanded(
                   child: CustomText(
                     job.jobName ?? "",
-                    style: AppTextStyles.headline4.copyWith(
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
                       color: AppColors.textColor,
                     ),
                   ),
@@ -390,7 +391,7 @@ class _JobListScreenState extends State<JobListScreen> {
                   children: [
                     CustomText(
                       "Assigned Engineers",
-                      style: AppTextStyles.caption.copyWith(
+                      style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textColor,
                       ),
                     ),
