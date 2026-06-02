@@ -1,31 +1,20 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
+import 'package:powercare_flutter/core/api/api_endpoints.dart';
+
+import '../../../core/api/api_client.dart';
+import '../models/login_response.dart';
 
 class AuthRepository {
 
-  Future<Map<String, dynamic>> login(
-      String email,
-      String password,
+  Future<LoginResponse> login(
+      Map<String, dynamic> body
       ) async {
 
-    final response = await http.post(
-      Uri.parse(
-        'YOUR_LOGIN_API_URL',
-      ),
-      headers: {
-        'Content-Type':
-        'application/json',
-      },
-      body: jsonEncode({
-        "email": email,
-        "password": password,
-        "user_token": "",
-        "device_id": "",
-      }),
-    );
+    final response = await ApiClient.post(ApiEndpoints.login,body);
+print("login response ---->"+response.data.toString());
+    return LoginResponse.fromJson(response.data);
 
-    return jsonDecode(
-      response.body,
-    );
   }
+
 }

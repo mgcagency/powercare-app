@@ -8,6 +8,7 @@ import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../core/navigation/app_navigator.dart';
+import 'landing_screen.dart';
 import 'login_screen_old.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -236,7 +237,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () => AppNavigator.pushAndRemoveAll(const LoginScreen()),
+                  onPressed: () => AppNavigator.pushAndRemoveAll(const LoginScreenOld()),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     minimumSize: const Size(0, 36),
