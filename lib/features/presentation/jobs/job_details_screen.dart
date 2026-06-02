@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
@@ -8,7 +9,20 @@ import '../../alldata/models/job_list_response.dart';
 class JobDetailsScreen extends StatelessWidget {
   final JobModel job;
   const JobDetailsScreen({super.key, required this.job});
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
 
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (image != null) {
+      print(image.path);
+
+      // Upload image API
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final engineers = <Engineer>[
@@ -78,25 +92,87 @@ class JobDetailsScreen extends StatelessWidget {
                 icon: Icons.photo_library_outlined,
                 title: "Photos",
                 child: SizedBox(
-                  height: 95,
-                  child: ListView.separated(
+                  height: 90,
+                  child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: job.images!.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (_, i) => ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        job.images![i].imageFullLink ?? "",
-                        width: 115,
-                        height: 95,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                    itemCount: (job.images?.length ?? 0) + 1,
+                    itemBuilder: (_, i) {
+                      // Add Photo Button
+                      if (i == 0) {
+                        return GestureDetector(
+                          onTap: () {
+                            // Open image picker
+                            _pickImage();
+                          },
+                          child: Container(
+                            width: 90,
+                            margin: const EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(.05),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.primary.withOpacity(.3),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.add_a_photo_outlined,
+                                    color: AppColors.primary,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  "Add",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      final image = job.images![i - 1];
+
+                      return GestureDetector(
+                        onTap: () {
+                          // Open full-screen image
+                        },
+                        child: Container(
+                          width: 90,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: AppColors.border,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.network(
+                              image.imageFullLink ?? "",
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
             ],
-
             // ── QUOTE ─────────────────────────────────────────────
             if (job.quote != null) ...[
               const SizedBox(height: 12),
