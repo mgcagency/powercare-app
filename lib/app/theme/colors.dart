@@ -15,6 +15,8 @@ class AppColors {
   static const black = Color(0xff000000);
   static const darkGrey = Color(0xff838282);
   static const chatTabUnselectedBorder = Color(0xFFEAEAEA);
-
+  static const Color primaryOrange = Color(0xFFFF6B00);
+  static const Color navyBlue = Color(0xFF0F2D52);
+  static const Color pureWhite = Color(0xFFFFFFFF);
 
 }
