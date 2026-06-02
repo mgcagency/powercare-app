@@ -1,11 +1,8 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 import 'core/services/notification_service.dart';
 import 'core/socket/socket_manager.dart';
 import 'core/storage/app_preferences.dart';
-import 'firebase_options_dev.dart';
 import 'flavor_config.dart';
 import 'main.dart';
 

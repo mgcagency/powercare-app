@@ -4,4 +4,10 @@
    <FileRef
       location = "group:Runner.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:Pods/Pods.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "absolute:/Users/admin/Downloads/powercare-ios-main 3/GoogleService-Info.plist">
+   </FileRef>
 </Workspace>
