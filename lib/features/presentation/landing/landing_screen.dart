@@ -82,7 +82,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
   Future<void> _performLogin() async {
-
+/*    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const CreatePinScreen(),
+      ),
+    );*/
     if(_emailController.text.isEmpty){
       _showToastMessage(
         "Please enter valid email",
@@ -144,14 +149,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             ),
           );
         }
-/*        if(loginResponse.data?.secretCode != null &&
+        if(loginResponse.data?.secretCode != null &&
             loginResponse.data!.secretCode! > 0){
 
            AuthenticationScreen();
         } else {
 
            CreatePinScreen();
-        }*/
+        }
 
       } else {
 
@@ -173,10 +178,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     setState(() {
       _isLoading = false;
     });
-  }
-
-  void _handleSocialLogin(String provider) {
-    _showToastMessage('$provider Sign-In — coming in the next update 🚀');
   }
 
   @override
@@ -344,6 +345,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       ),
     );
   }
+
   Widget _buildPasswordField() {
     return Container(
       decoration: BoxDecoration(

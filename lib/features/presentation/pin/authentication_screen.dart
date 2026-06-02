@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 
+import '../../../core/navigation/app_navigator.dart';
 import '../../../core/storage/app_preferences.dart';
+import '../dashboard/dashboard_screen.dart';
 
 class AuthenticationScreen extends StatefulWidget {
   const AuthenticationScreen({super.key});
@@ -31,19 +33,12 @@ class _AuthenticationScreenState
 
       if (authenticated) {
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const Scaffold(
-              body: Center(
-                child: Text("Dashboard"),
-              ),
-            ),
-          ),
-        );
+        AppNavigator.pushAndRemoveAll(const DashboardScreen());
+
       }
 
     } catch (e) {
+
 
       debugPrint(
         "Biometric Error: $e",
@@ -54,22 +49,15 @@ class _AuthenticationScreenState
   void verifyPin() {
 
     if (pin.length != 4) return;
-
+    print("Entered Pin = $pin");
     final savedPin =
     AppPreferences.getSecretCode();
+    print("Saved Pin = ${AppPreferences.getSecretCode()}");
 
     if (savedPin == pin) {
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Text("Dashboard"),
-            ),
-          ),
-        ),
-      );
+      AppNavigator.pushAndRemoveAll(const DashboardScreen());
+
 
     } else {
 
@@ -96,7 +84,7 @@ class _AuthenticationScreenState
         child: Column(
           children: [
 
-            const SizedBox(height: 60),
+            const SizedBox(height: 30),
 
             const Icon(
               Icons.lock_outline,

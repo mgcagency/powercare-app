@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'confirm_pin_screen.dart';
+
 class CreatePinScreen extends StatefulWidget {
   const CreatePinScreen({super.key});
 
@@ -22,18 +24,20 @@ class _CreatePinScreenState extends State<CreatePinScreen> {
 
     if (pin.length == 4) {
 
+      print("Create PIN = $pin");
     Future.delayed(
     const Duration(milliseconds: 200),
     () {
-/*
+      print("Opening Confirm Screen");
+
     Navigator.push(
     context,
-*//*    MaterialPageRoute(
+   MaterialPageRoute(
     builder: (_) => ConfirmPinScreen(
     firstPin: pin,
     ),
-    ),*//*
-    );*/
+    ),
+    );
 
     },
     );
