@@ -48,13 +48,17 @@ class _CustomTextFieldState extends State<CustomTextField> {
           const SizedBox(height: 8),
         ],
         TextFormField(
+          style: AppTextStyles.bodyMedium,
           controller: widget.controller,
           obscureText: _obscureText,
           maxLines: widget.maxLines,
           decoration: InputDecoration(
             hintText: widget.hintText,
+            fillColor: Colors.white,
+            filled: true,
             hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey),
-            contentPadding: widget.maxLines > 1 
+            labelStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey),
+            contentPadding: widget.maxLines > 1
                 ? const EdgeInsets.all(15) 
                 : const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
             border: OutlineInputBorder(

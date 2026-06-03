@@ -6,6 +6,7 @@ import 'package:powercare_flutter/core/api/api_endpoints.dart';
 import '../../../core/api/api_client.dart';
 import '../models/job_details_response.dart';
 import '../models/job_list_response.dart';
+import '../models/job_type_status_response.dart';
 import '../models/login_response.dart';
 
 class JobRepository {
@@ -25,6 +26,15 @@ class JobRepository {
     );
     print("getJobDetails response ---->" + response.data.toString());
     return JobDetailsResponse.fromJson(response.data);
+  }
+
+  Future<JobTypeStatusResponse> getJobTypeStatusList({Map<String, dynamic>? parameters}) async {
+    final response = await ApiClient.get(
+      ApiEndpoints.jobTypeStatusList+"?paginate=1",
+      // parameters: parameters,
+    );
+    print("getJobTypeStatusList response ---->" + response.data.toString());
+    return JobTypeStatusResponse.fromJson(response.data);
   }
 
   Future<Response> uploadJobImage(String jobId, String imagePath) async {

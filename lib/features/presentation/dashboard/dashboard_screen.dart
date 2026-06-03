@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
+import 'package:powercare_flutter/features/presentation/job_status/job_status_screen.dart';
 import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dart';
 
 import '../home/home_screen.dart';
@@ -19,8 +20,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const JobListScreen(),
+    const JobStatusScreen(),
     const Center(child: Text("Timelog Content", style: TextStyle(fontSize: 20))),
-    const Center(child: Text("Job Status Content", style: TextStyle(fontSize: 20))),
     const Center(child: Text("Contact Book Content", style: TextStyle(fontSize: 20))),
   ];
 
