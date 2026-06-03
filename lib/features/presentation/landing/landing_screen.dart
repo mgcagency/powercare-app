@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
+import 'package:powercare_flutter/app/theme/text_styles.dart'; // Corrected import
+import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/core/storage/secure_storage.dart';
 import 'package:powercare_flutter/features/alldata/api_repository/auth_repository.dart';
 import 'package:powercare_flutter/features/presentation/dashboard/dashboard_screen.dart';
@@ -44,6 +46,8 @@ class _LoginScreenState extends State<LoginScreen>
       curve: Curves.easeOutCubic,
     );
     _animationController.forward();
+
+    // Default values for testing
     _emailController.text = "powercareelectrical@icloud.com";
     _passwordController.text = "Password@123";
     _setupTokenRefresh();
@@ -72,11 +76,8 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _loadStoredCredentials() async {
-    // Simulating loading from secure storage
-    // In real app, use flutter_secure_storage or shared_preferences
     setState(() {
       _rememberMe = false;
-      _emailController.text = '';
     });
   }
 
@@ -92,12 +93,10 @@ class _LoginScreenState extends State<LoginScreen>
               size: 20,
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            Expanded(child: CustomText(message, style: AppTextStyles.bodySmall.copyWith(color: Colors.white))),
           ],
         ),
-        backgroundColor: isError
-            ? Colors.red.shade700
-            : const Color(0xFF1E293B),
+        backgroundColor: isError ? Colors.red.shade700 : AppColors.textColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
         margin: const EdgeInsets.all(20),
@@ -129,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen>
       var payload = {
         "email": _emailController.text.trim(),
         "password": _passwordController.text.trim(),
-        "deviceId": "123456", // Ideally get real device ID
+        "deviceId": "123456",
         "fcmToken": fcmToken,
       };
 
@@ -139,13 +138,10 @@ class _LoginScreenState extends State<LoginScreen>
         final user = loginResponse.data;
 
         if (user != null) {
-          // 1. Save the main Token to Secure Storage
           if (loginResponse.token != null) {
             await SecureStorage.saveToken(loginResponse.token!);
           }
 
-          // 2. Prepare user map for AppPreferences
-          // We manually create a map to ensure keys match what your app expects
           final Map<String, dynamic> userMap = {
             'id': user.id,
             'firstName': user.firstName,
@@ -155,10 +151,9 @@ class _LoginScreenState extends State<LoginScreen>
             'user_image': user.userImage,
             'contact_number': user.contactNumber,
             'status': user.status,
-            'accessToken': user.accessToken, // Token inside the data object
+            'accessToken': user.accessToken,
           };
 
-          // 3. Store data in AppPreferences
           await AppPreferences.saveUser(userMap);
           await AppPreferences.setLoggedIn(true);
           await AppPreferences.saveRole(user.role ?? "ENGINEER");
@@ -169,7 +164,6 @@ class _LoginScreenState extends State<LoginScreen>
 
           _showToastMessage(loginResponse.message ?? "Login Success");
 
-          // 4. Navigation Logic based on secretCode
           if (user.secretCode != null && user.secretCode! > 0) {
             Navigator.pushReplacement(
               context,
@@ -193,9 +187,6 @@ class _LoginScreenState extends State<LoginScreen>
       });
     }
   }
-  void _handleSocialLogin(String provider) {
-    _showToastMessage('$provider Sign-In — coming in the next update 🚀');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen>
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             image: DecorationImage(
               image: AssetImage('assets/icons/login_bg.jpg'),
               fit: BoxFit.cover,
@@ -212,10 +203,7 @@ class _LoginScreenState extends State<LoginScreen>
           child: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 20,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: FadeTransition(
                   opacity: _fadeSlideAnimation,
                   child: SlideTransition(
@@ -240,7 +228,6 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildLoginCard() {
     return Container(
       decoration: BoxDecoration(
-        // color: Colors.white.withOpacity(0.92),
         color: Colors.white,
         borderRadius: BorderRadius.circular(56),
         boxShadow: [
@@ -250,34 +237,21 @@ class _LoginScreenState extends State<LoginScreen>
             offset: const Offset(0, 20),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(56),
-        child: Material(
-          color: Colors.transparent,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-            child: Column(
-              children: [
-                _buildBrand(),
-                const SizedBox(height: 32),
-                _buildEmailField(),
-                const SizedBox(height: 20),
-                _buildPasswordField(),
-                const SizedBox(height: 16),
-                _buildOptionsRow(),
-                const SizedBox(height: 26),
-                buildLoginButton(),
-                const SizedBox(height: 26),
-                buildLoginFaceButton(),
-                /*  const SizedBox(height: 28),
-                _buildDivider(),
-                const SizedBox(height: 28),
-                _buildSignupPrompt(),*/
-              ],
-            ),
-          ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          children: [
+            _buildBrand(),
+            const SizedBox(height: 32),
+            _buildEmailField(),
+            const SizedBox(height: 20),
+            _buildPasswordField(),
+            const SizedBox(height: 16),
+            _buildOptionsRow(),
+            const SizedBox(height: 26),
+            _buildActionButtons(),
+          ],
         ),
       ),
     );
@@ -286,55 +260,26 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildBrand() {
     return Column(
       children: [
-        Container(
+        Image.asset(
+          'assets/icons/app_logo_dev.png',
           width: 70,
           height: 70,
-          decoration: BoxDecoration(
-            /*      gradient: const LinearGradient(
-              colors: [
-                Color(0xFF0F2D52),
-                Color(0xFF1D4E89),
-                Color(0xFFFF6B00),
-              ],
-            ),*/
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              /*    BoxShadow(
-                color: const Color(0xFFFF6B6B).withOpacity(0.4),
-                blurRadius: 25,
-                offset: const Offset(0, 15),
-              ),*/
-            ],
-          ),
-          child: Image.asset(
-            'assets/icons/app_logo_dev.png',
-            width: 38,
-            height: 38,
-            fit: BoxFit.contain,
-          ),
+          fit: BoxFit.contain,
         ),
         const SizedBox(height: 16),
-        ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
-          ).createShader(bounds),
-          child: const Text(
-            'PowerCare',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              fontFamily: 'Poppins',
-              color: Colors.white,
-            ),
+        CustomText(
+          'PowerCare',
+          style: AppTextStyles.headline3.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.primary,
           ),
         ),
         const SizedBox(height: 6),
-        const Text(
+        CustomText(
           'electrical services limited',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF5A6874),
+          style: AppTextStyles.bodySmall.copyWith(
+            color: const Color(0xFF5A6874),
+            letterSpacing: 1.1,
           ),
         ),
       ],
@@ -351,22 +296,14 @@ class _LoginScreenState extends State<LoginScreen>
       child: TextField(
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: AppTextStyles.bodyMedium,
         decoration: InputDecoration(
           hintText: 'Email address',
-          hintStyle: TextStyle(color: Colors.grey.shade400),
-          prefixIcon: const Icon(
-            Icons.email_outlined,
-            color: Color(0xFF9AA6B5),
-            size: 20,
-          ),
+          hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.grey.shade400),
+          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF9AA6B5), size: 20),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 16,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         ),
-        onTapOutside: (_) => FocusScope.of(context).unfocus(),
       ),
     );
   }
@@ -381,48 +318,21 @@ class _LoginScreenState extends State<LoginScreen>
       child: TextField(
         controller: _passwordController,
         obscureText: _obscurePassword,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: AppTextStyles.bodyMedium,
         decoration: InputDecoration(
           hintText: 'Password',
-          hintStyle: TextStyle(color: Colors.grey.shade500),
-          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9AA6B5)),
+          hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.grey.shade500),
+          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9AA6B5), size: 20),
           suffixIcon: IconButton(
-            icon: Icon(
-              _obscurePassword ? Icons.visibility_off : Icons.visibility,
-            ),
-            onPressed: () {
-              setState(() {
-                _obscurePassword = !_obscurePassword;
-              });
-            },
+            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: const Color(0xFF9AA6B5), size: 20),
+            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           ),
           border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         ),
       ),
     );
   }
-  /*  Widget _buildPasswordField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(44),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-      ),
-      child: TextField(
-        controller: _passwordController,
-        obscureText: true,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          hintText: 'Password',
-          hintStyle: TextStyle(color: Colors.grey.shade400),
-          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9AA6B5), size: 20),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        ),
-        onTapOutside: (_) => FocusScope.of(context).unfocus(),
-      ),
-    );
-  }*/
 
   Widget _buildOptionsRow() {
     return Row(
@@ -430,125 +340,79 @@ class _LoginScreenState extends State<LoginScreen>
       children: [
         Row(
           children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: Checkbox(
-                value: _rememberMe,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _rememberMe = value ?? false;
-                  });
-                },
-                activeColor: const Color(0xFFFF6B6B),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
+            Checkbox(
+              value: _rememberMe,
+              onChanged: (bool? value) => setState(() => _rememberMe = value ?? false),
+              activeColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             ),
-            const SizedBox(width: 8),
-            const Text(
-              'Remember me',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF475569),
-              ),
-            ),
+            CustomText('Remember me', style: AppTextStyles.bodySmall),
           ],
         ),
         GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-            );
-          },
-          /*   onTap: () {
-            String email = _emailController.text.trim();
-            if (email.isNotEmpty && email.contains('@')) {
-              _showToastMessage('Reset link sent to $email ✉️');
-            } else {
-              _showToastMessage('Enter your email address first to reset password', isError: true);
-            }
-          },*/
-          child: const Text(
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+          child: CustomText(
             'Forgot password?',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFFF6B6B),
-            ),
+            style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.primary),
           ),
         ),
       ],
     );
   }
 
-  Widget buildLoginButton() {
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        _buildGradientButton(
+          onPressed: _isLoading ? null : _performLogin,
+          isLoading: _isLoading,
+          text: 'Login',
+          icon: Icons.arrow_forward,
+          colors: [const Color(0xFFFF8A00), const Color(0xFFFF6B00)],
+        ),
+        const SizedBox(height: 20),
+        _buildGradientButton(
+          onPressed: () {}, // Handle biometric logic
+          isLoading: _isLoadingid,
+          text: 'Login with Face ID',
+          icon: Icons.fingerprint,
+          colors: [const Color(0xFF0F2D52), const Color(0xFF1D4E89)],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGradientButton({
+    required VoidCallback? onPressed,
+    required bool isLoading,
+    required String text,
+    required IconData icon,
+    required List<Color> colors,
+  }) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _performLogin,
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
           padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(60)),
         ),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFFFF8A00),
-                Color(0xFFFF6B00),
-
-                /*    Color(0xFFFF6B00), // Navy Blue
-                Color(0xFFFF6B00), // Blue
-                Color(0xFFFF6B00), // Orange*/
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
+            gradient: LinearGradient(colors: colors, begin: Alignment.centerLeft, end: Alignment.centerRight),
             borderRadius: BorderRadius.circular(60),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0F2D52).withOpacity(0.35),
-                blurRadius: 0,
-                offset: const Offset(0, 0),
-              ),
-            ],
           ),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (_isLoading)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
+                if (isLoading)
+                  const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 else ...[
-                  const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'Poppins',
-                      color: Colors.white,
-                    ),
-                  ),
+                  CustomText(text, style: AppTextStyles.button.copyWith(color: Colors.white)),
                   const SizedBox(width: 12),
-                  const Icon(
-                    Icons.arrow_forward,
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  Icon(icon, color: Colors.white, size: 18),
                 ],
               ],
             ),
@@ -557,114 +421,4 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-
-  Widget buildLoginFaceButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _isLoadingid ? null : _LoginScreenState.new,
-        //_performLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          padding: EdgeInsets.zero,
-        ),
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF0F2D52),
-                Color(0xFF1D4E89),
-                /*      Color(0xFFFF6B00), // Navy Blue
-                Color(0xFFFF6B00), // Blue
-                Color(0xFFFF6B00), // Orange*/
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(60),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0F2D52).withOpacity(0.35),
-                blurRadius: 0,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_isLoadingid)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                else ...[
-                  const Text(
-                    'Login with Face ID',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'Poppins',
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                  Icon(Icons.fingerprint, color: Colors.white, size: 18),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  /*
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        Expanded(child: Container(height: 1, color: Colors.black.withOpacity(0.1))),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14),
-          child: Text(
-            'or continue with',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFFA0ABB9)),
-          ),
-        ),
-        Expanded(child: Container(height: 1, color: Colors.black.withOpacity(0.1))),
-      ],
-    );
-  }*/
-
-  /*  Widget _buildSignupPrompt() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          'Don\'t have an account?',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF4B5565)),
-        ),
-        GestureDetector(
-          onTap: () {
-            _showToastMessage('Create your Power care account — get started');
-          },
-          child: const Text(
-            ' Create Account',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFFF6B6B),
-            ),
-          ),
-        ),
-      ],
-    );
-  }*/
 }

@@ -2,7 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../core/navigation/app_navigator.dart';
+import '../../features/presentation/jobs/job_sheet_screen.dart';
 import '../theme/colors.dart';
+import '../theme/text_styles.dart';
+import 'custom_text.dart';
 
 class AnimatedMicButton extends StatefulWidget {
   final VoidCallback startListening;
@@ -123,3 +127,73 @@ class _AnimatedMicButtonState extends State<AnimatedMicButton>
     super.dispose();
   }
 }
+
+class SectionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool isJobSheet;
+  final Widget child;
+  const SectionCard({
+    required this.icon,
+    required this.title,
+    required this.child,
+    this.isJobSheet =false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEBEBEB), width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 13, 16, 0),
+            child: Row(
+              children: [
+                Icon(icon, size: 17, color: AppColors.primary),
+                const SizedBox(width: 7),
+                CustomText(
+                  title,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if(isJobSheet)
+                  Spacer(),
+                if(isJobSheet)
+                  GestureDetector(
+                    onTap: () async {
+                      AppNavigator.push(JobSheetScreen());
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.05),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+}
+

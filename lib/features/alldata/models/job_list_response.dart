@@ -171,21 +171,48 @@ class JobModel {
     );
   }
 }
-
 class JobTypeStatus {
   int? id;
   String? status;
   String? colorCode;
+  String? createdAt;
+  String? updatedAt;
+  String? isVisibleEngineer;
 
-  JobTypeStatus({this.id, this.status, this.colorCode});
+  JobTypeStatus({
+    this.id,
+    this.status,
+    this.colorCode,
+    this.createdAt,
+    this.updatedAt,
+    this.isVisibleEngineer,
+  });
 
   factory JobTypeStatus.fromJson(Map<String, dynamic> json) {
     return JobTypeStatus(
       id: json['id'],
       status: json['status'],
       colorCode: json['color_code'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      isVisibleEngineer: json['is_visible_engineer'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'status': status,
+      'color_code': colorCode,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+      'is_visible_engineer': isVisibleEngineer,
+    };
+  }
+
+  /// Convenient getter
+  bool get visibleToEngineer =>
+      (isVisibleEngineer ?? '').toUpperCase() == 'YES';
 }
 
 class OtherEngineer {
