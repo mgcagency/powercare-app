@@ -83,6 +83,8 @@ dev_dependencies:
   firebase_core: ^4.7.0
   firebase_messaging: ^16.1.0
   flutter_local_notifications: ^21.0.0
+  url_launcher: ^6.2.5
+  webview_flutter: ^4.10.0
 
 flutter_launcher_icons:
   android: true
