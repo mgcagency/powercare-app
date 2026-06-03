@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:powercare_flutter/features/presentation/landing/landing_screen.dart';
+import 'package:powercare_flutter/features/presentation/profile/ProfileScreen.dart';
 
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
@@ -237,7 +238,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () => AppNavigator.pushAndRemoveAll(const LoginScreenOld()),
+                  onPressed: () => AppNavigator.pushAndRemoveAll(const AnimatedProfileScreen()),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     minimumSize: const Size(0, 36),

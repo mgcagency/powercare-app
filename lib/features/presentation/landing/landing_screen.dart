@@ -107,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _performLogin() async {
+
     if (_emailController.text.isEmpty) {
       _showToastMessage("Please enter valid email", isError: true);
       return;
@@ -172,12 +173,12 @@ class _LoginScreenState extends State<LoginScreen>
           if (user.secretCode != null && user.secretCode! > 0) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const DashboardScreen()),
+              MaterialPageRoute(builder: (_) => const CreatePinScreen()),
             );
           } else {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const CreatePinScreen()),
+              MaterialPageRoute(builder: (_) => const AuthenticationScreen()),
             );
           }
         }
