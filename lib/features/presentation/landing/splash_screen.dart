@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:powercare_flutter/features/presentation/landing/landing_screen.dart';
-import 'package:powercare_flutter/features/presentation/profile/ProfileScreen.dart';
+import 'package:powercare_flutter/features/presentation/profile/profile_screen.dart';
 
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
@@ -238,7 +238,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () => AppNavigator.pushAndRemoveAll(const AnimatedProfileScreen()),
+                  onPressed: () => AppNavigator.pushAndRemoveAll(const LoginScreen()),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     minimumSize: const Size(0, 36),
@@ -265,7 +265,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.pureWhite,
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                     elevation: 2,
@@ -276,7 +276,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     children: [
                       CustomText(
                         _currentPage == _introData.length - 1 ? "Get Started" : "Next",
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                        style: const TextStyle(fontWeight: FontWeight.bold, color:AppColors.pureWhite, fontSize: 14),
                       ),
                       const SizedBox(width: 8),
                       const Icon(Icons.arrow_forward_rounded, size: 16),

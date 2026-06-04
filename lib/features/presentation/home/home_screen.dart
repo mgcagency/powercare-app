@@ -3,6 +3,7 @@ import '../../../app/theme/text_styles.dart';
 import '../../../app/theme/colors.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../core/storage/app_preferences.dart';
+import '../Material/material_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -110,7 +111,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildMenuCard("View Jobs", Icons.work_rounded, primaryColor),
                 _buildMenuCard("Create a Job", Icons.assignment_add, const Color(0xFFd4a373)),
                 _buildMenuCard("Job Status", Icons.history_rounded, const Color(0xFF6b5b95)),
-                _buildMenuCard("Materials", Icons.layers_rounded, const Color(0xFFb5a642)),
+                _buildMenuCard(
+                  "Materials",
+                  Icons.layers_rounded,
+                  const Color(0xFFb5a642),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                        const MaterialScreen(),
+                      ),
+                    );
+                  },
+                ),
+               // _buildMenuCard("Materials", Icons.layers_rounded, const Color(0xFFb5a642)),
                 _buildMenuCard("Archived Jobs", Icons.inventory_2_rounded, const Color(0xFF7b9ebc)),
                 _buildMenuCard("Time Logs", Icons.update_rounded, const Color(0xFF67ab7c)),
               ],
@@ -121,37 +136,85 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  Widget _buildMenuCard(String title, IconData icon, Color iconColor) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-             title,
-            // Using bodyMedium (Size 14) and making it bold
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textColor,
-            ),
+  Widget _buildMenuCard(
+      String title,
+      IconData icon,
+      Color iconColor, {
+        VoidCallback? onTap,
+      }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.black.withOpacity(0.05),
           ),
-          const Spacer(),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Icon(
-              icon,
-              size: 40,
-              color: iconColor.withOpacity(0.8),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              title,
+              style: AppTextStyles.bodyMedium
+                  .copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
             ),
-          ),
-        ],
+            const Spacer(),
+            Align(
+              alignment:
+              Alignment.bottomRight,
+              child: Icon(
+                icon,
+                size: 40,
+                color: iconColor.withOpacity(0.8),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+/*
+  Widget _buildMenuCard(String title, IconData icon, Color iconColor,  VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black.withOpacity(0.05)),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+               title,
+              // Using bodyMedium (Size 14) and making it bold
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
+            ),
+            const Spacer(),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Icon(
+                icon,
+                size: 40,
+                color: iconColor.withOpacity(0.8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+*/
 }

@@ -3,7 +3,9 @@ import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/features/presentation/job_status/job_status_screen.dart';
 import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dart';
 
+import '../contactbook/contact_book_screen.dart';
 import '../home/home_screen.dart';
+import '../profile/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -22,7 +24,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const JobListScreen(),
     const JobStatusScreen(),
     const Center(child: Text("Timelog Content", style: TextStyle(fontSize: 20))),
-    const Center(child: Text("Contact Book Content", style: TextStyle(fontSize: 20))),
+    const ContactBookScreen(),
+   // const Center(child: Text("Contact Book Content", style: TextStyle(fontSize: 20))),
   ];
 
   final List<IconData> _icons = [
@@ -36,7 +39,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Home"),
+      appBar: CustomAppBar(title: "Home",
+      actions: [
+
+        IconButton(
+          icon: const CircleAvatar(
+            radius: 16,
+            child: Icon(
+              Icons.person,
+              size: 18,
+            ),
+          ),
+          onPressed: () {
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                const ProfileScreen(),
+              ),
+            );
+          },
+        ),
+
+        const SizedBox(width: 10),
+      ],),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
         layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {

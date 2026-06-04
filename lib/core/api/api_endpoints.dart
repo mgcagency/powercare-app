@@ -8,6 +8,9 @@ class ApiEndpoints {
   static const String jobTypeStatusList = '/jobtypestatus/list';
   static const String jobImageUpload = '/job/image';
   static const String jobImageDelete = '/job/image-delete/';
+  static const String contactList = '/contact/list';
+  static const String materialList = '/material/list';
+  static const String materialPurchaseList = '/material/purchase-list';
 
 
 }
