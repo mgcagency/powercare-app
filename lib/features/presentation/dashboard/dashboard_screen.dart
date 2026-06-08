@@ -5,6 +5,7 @@ import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dar
 
 import '../contactbook/contact_book_screen.dart';
 import '../home/home_screen.dart';
+import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -41,13 +42,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: CustomAppBar(title: "Home",
       actions: [
-
         IconButton(
+          icon: Icon(
+              Icons.add,
+              size: 25,
+            ),
+
+          onPressed: () {
+            showAddOptions();
+
+          },
+        ),
+        Stack(
+          children: [
+
+            IconButton(
+              icon: const Icon(
+                Icons.notifications,color: Colors.white,size: 25,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                    const NotificationScreen(),
+                  ),
+                );
+              },
+            ),
+
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                padding:
+                const EdgeInsets.all(4),
+                decoration:
+                const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  "1",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+/*        IconButton(
+          icon: const CircleAvatar(
+            radius: 16,
+            child: Icon(
+              Icons.notifications,
+              size: 18,
+            ),
+          ),
+          onPressed: () {
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                const NotificationScreen(),
+              ),
+            );
+          },
+        ),*/
+      IconButton(
           icon: const CircleAvatar(
             radius: 16,
             child: Icon(
               Icons.person,
-              size: 18,
+              size: 25,
             ),
           ),
           onPressed: () {
@@ -125,4 +195,187 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+  void showAddOptions() {
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(25),
+        ),
+      ),
+      builder: (context) {
+
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              ListTile(
+                leading: const Icon(
+                  Icons.access_time,
+                  color: Colors.orange,
+                ),
+                title: const Text(
+                  "Add Time Log",
+                ),
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  _showSelectJobDialog();
+                },
+              ),
+
+              ListTile(
+                leading: const Icon(
+                  Icons.beach_access,
+                  color: Colors.green,
+                ),
+                title: const Text(
+                  "Request Holiday",
+                ),
+                onTap: () {
+
+                  Navigator.pop(context);
+
+              /*    Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                      const HolidayRequestScreen(),
+                    ),
+                  );*/
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  void _showSelectJobDialog() {
+
+    showDialog(
+      context: context,
+      builder: (context) {
+
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(25),
+          ),
+          child: Container(
+            height: 450,
+            padding: const EdgeInsets.all(20),
+
+            child: Column(
+              children: [
+
+                const Text(
+                  "Select Job",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight:
+                    FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: 10,
+                    itemBuilder:
+                        (context, index) {
+
+                      return ListTile(
+                        title: Text(
+                          "Job ${index + 1}",
+                        ),
+                        subtitle: Text(
+                          "Job Number ${(index + 1) * 100}",
+                        ),
+                        onTap: () {
+
+                          Navigator.pop(
+                            context,
+                          );
+
+                          // Open Screen
+                        },
+                      );
+                    },
+                  ),
+                ),
+
+                Align(
+                  alignment:
+                  Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(
+                        context,
+                      );
+                    },
+                    child: const Text(
+                      "CANCEL",
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+/*
+  void _showSelectJobDialog() {
+
+    showDialog(
+      context: context,
+      builder: (context) {
+
+        return AlertDialog(
+
+          title: const Text(
+            "Select Job",
+          ),
+
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 300,
+
+            child: ListView.builder(
+              itemCount: 10,
+              itemBuilder:
+                  (context, index) {
+
+                return ListTile(
+                  title: Text(
+                    "Job ${index + 1}",
+                  ),
+                  onTap: () {
+
+                    Navigator.pop(
+                      context,
+                    );
+
+                    // Open Add Time Log Screen
+                  },
+                );
+
+              },
+            ),
+
+          ),
+
+        );
+
+      },
+    );
+  }
+*/
 }

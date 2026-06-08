@@ -14,5 +14,10 @@ class ApiEndpoints {
   static const String createJob = '/job/create';
   static const String userList = '/user/list';
   static const String jobNumber = '/job/job-number';
+  static const String notificationList =
+      '/user/notification';
+
+  static const String readNotification =
+      '/user/read-notification';
 
 }
