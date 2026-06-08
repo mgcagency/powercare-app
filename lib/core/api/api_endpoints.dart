@@ -11,6 +11,8 @@ class ApiEndpoints {
   static const String contactList = '/contact/list';
   static const String materialList = '/material/list';
   static const String materialPurchaseList = '/material/purchase-list';
-
+  static const String createJob = '/job/create';
+  static const String userList = '/user/list';
+  static const String jobNumber = '/job/job-number';
 
 }

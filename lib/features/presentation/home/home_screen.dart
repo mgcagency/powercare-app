@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../app/theme/colors.dart';
+import '../../../app/widget/custom_button.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../Material/material_screen.dart';
+import '../contactbook/contact_book_screen.dart';
+import '../createjob/CreateJobScreen.dart';
+import '../landing/landing_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,7 +35,108 @@ class _HomeScreenState extends State<HomeScreen> {
       if (fullName.isEmpty) fullName = "User";
     });
   }
+  Future<void> _showLogoutDialog() async {
 
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      size: 22,
+                    ),
+                  ),
+                ),
+
+                const Icon(
+                  Icons.logout_rounded,
+                  color: Colors.red,
+                  size: 50,
+                ),
+
+                const SizedBox(height: 15),
+
+                const Text(
+                  "Logout",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                const Text(
+                  "Are you sure you want to log out?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
+
+                const SizedBox(height: 25),
+
+                Row(
+                  children: [
+
+                    Expanded(
+                      child:    CustomButton(
+                        title: "No",
+                        background: AppColors.darkGrey,
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child:
+                      CustomButton(
+                        title: "Yes",
+                        background: AppColors.primary,
+                        onPressed: () async {
+                          // Clear Login Data
+                          await AppPreferences.setLoggedIn(false);
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                              const LoginScreen(),
+                            ),
+                                (route) => false,
+                          );                        },
+                      ),
+
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,7 +214,21 @@ class _HomeScreenState extends State<HomeScreen> {
               childAspectRatio: 1.1,
               children: [
                 _buildMenuCard("View Jobs", Icons.work_rounded, primaryColor),
-                _buildMenuCard("Create a Job", Icons.assignment_add, const Color(0xFFd4a373)),
+                _buildMenuCard(
+                  "Create a Job",
+                  Icons.assignment_add,
+                  const Color(0xFFd4a373),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                        const CreateJobScreen(),
+                      ),
+                    );
+                  },
+                ),
+               // _buildMenuCard("Create a Job", Icons.assignment_add, const Color(0xFFd4a373)),
                 _buildMenuCard("Job Status", Icons.history_rounded, const Color(0xFF6b5b95)),
                 _buildMenuCard(
                   "Materials",
@@ -128,7 +247,29 @@ class _HomeScreenState extends State<HomeScreen> {
                // _buildMenuCard("Materials", Icons.layers_rounded, const Color(0xFFb5a642)),
                 _buildMenuCard("Archived Jobs", Icons.inventory_2_rounded, const Color(0xFF7b9ebc)),
                 _buildMenuCard("Time Logs", Icons.update_rounded, const Color(0xFF67ab7c)),
-              ],
+                _buildMenuCard(
+                  "Contact Book",
+                  Icons.contact_phone_rounded,
+                  const Color(0xFF7b9ebc),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                        const ContactBookScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildMenuCard(
+                  "Log out",
+                  Icons.logout_rounded,
+                  const Color(0xFF7b9ebc),
+                  onTap: () {
+                    _showLogoutDialog();
+                  },
+                ),
+              ]
             ),
             const SizedBox(height: 100),
           ],

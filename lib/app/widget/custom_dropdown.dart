@@ -32,7 +32,7 @@ class CustomDropdown<T> extends StatelessWidget {
         child: DropdownButton<T>(
           value: value,
           isExpanded: true,
-          style: AppTextStyles.headline3.copyWith(
+          style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.black,
             fontWeight: FontWeight.w500, // Makes it look more like an input field
           ),
