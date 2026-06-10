@@ -8,6 +8,7 @@ import '../Material/material_screen.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../createjob/CreateJobScreen.dart';
 import '../landing/landing_screen.dart';
+import '../timelog/TimeLogScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,7 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: primaryColor,
+               // color: primaryColor,
+                color: AppColors.navyBlue,
+
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Column(
@@ -246,7 +249,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                // _buildMenuCard("Materials", Icons.layers_rounded, const Color(0xFFb5a642)),
                 _buildMenuCard("Archived Jobs", Icons.inventory_2_rounded, const Color(0xFF7b9ebc)),
-                _buildMenuCard("Time Logs", Icons.update_rounded, const Color(0xFF67ab7c)),
+                _buildMenuCard(
+                  "Time Logs",
+                  Icons.update_rounded,
+                  const Color(0xFF67ab7c),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                        const TimeLogScreen(),
+                      ),
+                    );
+                  },
+                ),
+              //  _buildMenuCard("Time Logs", Icons.update_rounded, const Color(0xFF67ab7c)),
                 _buildMenuCard(
                   "Contact Book",
                   Icons.contact_phone_rounded,

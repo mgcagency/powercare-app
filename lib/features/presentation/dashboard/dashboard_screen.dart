@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
+import 'package:powercare_flutter/features/presentation/holiday/RequestHolidayScreen.dart';
 import 'package:powercare_flutter/features/presentation/job_status/job_status_screen.dart';
 import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dart';
 
+import '../../../app/theme/colors.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../home/home_screen.dart';
 import '../notification/notification_screen.dart';
@@ -44,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       actions: [
         IconButton(
           icon: Icon(
-              Icons.add,
+              Icons.add,color: Colors.white,
               size: 25,
             ),
 
@@ -158,7 +160,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Container(
             height: 60, // Reduced height since labels are removed
             decoration: BoxDecoration(
-              color: Colors.white,
+             // color: Colors.white,
+              color: AppColors.navyBlue,
+
               borderRadius: BorderRadius.circular(30), // Circular rounded corners
               boxShadow: [
                 BoxShadow(
@@ -182,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Icon(
                           _icons[index],
                           size: 26,
-                          color: isSelected ? primary : const Color(0xFFBBBBBB),
+                          color: isSelected ? AppColors.secondary : const Color(0xFFBBBBBB),
                         ),
                       ),
                     ),
@@ -240,13 +244,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   Navigator.pop(context);
 
-              /*    Navigator.push(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) =>
-                      const HolidayRequestScreen(),
+                      const RequestHolidayScreen(),
                     ),
-                  );*/
+                  );
                 },
               ),
             ],

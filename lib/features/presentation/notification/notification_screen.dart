@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 
+import '../../../app/widget/custom_appbar.dart';
 import '../../alldata/api_repository/notification_repository.dart';
 import '../../alldata/models/NotificationResponse.dart';
 
@@ -92,8 +93,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Notifications",style: TextStyle(color: Colors.white),),backgroundColor: AppColors.primary,),
-
+        appBar: const CustomAppBar(title: "Notifications"),
   /*    body: isLoading && notifications.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : notifications.isEmpty

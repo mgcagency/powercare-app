@@ -4,6 +4,7 @@ import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
 
 import '../../../app/theme/text_styles.dart';
+import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_dropdown.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../app/widget/custom_textfield.dart';
@@ -247,10 +248,8 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: const Text("Create Job", style: TextStyle(color: Colors.white)),
-      ),
+
+      appBar: const CustomAppBar(title: "Create Job"),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

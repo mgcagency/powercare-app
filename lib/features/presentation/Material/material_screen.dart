@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 
+import '../../../app/widget/custom_appbar.dart';
 import '../../alldata/api_repository/material_repository.dart';
 import '../../alldata/models/material_response.dart';
 
@@ -72,6 +73,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
+      appBar: const CustomAppBar(title: "Materials"),
 
       body: SafeArea(
         child: Column(
@@ -108,7 +110,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                           child: Container(
                             width: tabWidth - 4,
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: AppColors.navyBlue,
                               borderRadius: BorderRadius.circular(26),
                             ),
                           ),

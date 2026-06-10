@@ -1,0 +1,377 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:powercare_flutter/app/theme/colors.dart';
+
+import '../../../app/widget/custom_appbar.dart';
+import '../../../core/storage/app_preferences.dart';
+import '../../alldata/api_repository/TimeLogRepository.dart';
+import '../../alldata/models/TimeLogResponse.dart';
+import 'TimeSheetScreen.dart';
+
+class TimeLogScreen extends StatefulWidget {
+  const TimeLogScreen({super.key});
+
+  @override
+  State<TimeLogScreen> createState() =>
+      TimeLogScreenState();
+}
+
+class TimeLogScreenState
+    extends State<TimeLogScreen> {
+
+  final TimeLogRepository repository =
+  TimeLogRepository();
+
+  List<TimeLogJob> jobs = [];
+
+  bool isLoading = false;
+
+  String selectedTab = "DAY";
+
+  @override
+  void initState() {
+    super.initState();
+    callTimeLogApi();
+  }
+
+  Future<void> callTimeLogApi() async {
+
+    try {
+
+      setState(() {
+        isLoading = true;
+      });
+
+      final userId =
+      await AppPreferences.getUserID();
+
+      final response =
+      await repository.getTimeLogs(
+        date: DateFormat(
+          "dd-MM-yyyy",
+        ).format(
+          DateTime.now(),
+        ),
+        engineerId: userId,
+        dateKey: selectedTab,
+        specificDate: "",
+      );
+      print(
+        "Total Jobs => ${response.jobs.length}",
+      );
+
+      setState(() {
+
+        jobs = response.jobs;
+
+        isLoading = false;
+      });
+
+    } catch(e){
+
+      print(
+        "TimeLog Error => $e",
+      );
+
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }@override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      appBar:
+      const CustomAppBar(
+        title: "Time Logs",
+      ),
+
+      body: Column(
+
+        children: [
+
+          const SizedBox(height: 15),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+
+                  final tabWidth =
+                      constraints.maxWidth / 3;
+
+                  return Stack(
+                    children: [
+
+                      AnimatedPositioned(
+                        duration:
+                        const Duration(
+                          milliseconds: 350,
+                        ),
+                        curve:
+                        Curves.easeOutCubic,
+
+                        left:
+                        selectedTab == "DAY"
+                            ? 0
+                            : selectedTab == "WEEK"
+                            ? tabWidth
+                            : tabWidth * 2,
+
+                        top: 4,
+                        bottom: 4,
+
+
+                        child: Container(
+                          width: tabWidth - 4,
+                          decoration: BoxDecoration(
+                            color: AppColors.navyBlue,
+                            borderRadius:
+                            BorderRadius.circular(
+                              26,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      Row(
+                        children: [
+
+                          _tabButton(
+                            "DAY",
+                            0,
+                          ),
+
+                          _tabButton(
+                            "WEEK",
+                            1,
+                          ),
+
+                          _tabButton(
+                            "MONTH",
+                            2,
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+/*          Row(
+            mainAxisAlignment:
+            MainAxisAlignment.center,
+            children: [
+
+              _tabButton("DAY"),
+
+              const SizedBox(width: 10),
+
+              _tabButton("WEEK"),
+
+              const SizedBox(width: 10),
+
+              _tabButton("MONTH"),
+            ],
+          ),*/
+
+          const SizedBox(height: 15),
+
+          Expanded(
+
+            child: isLoading
+
+                ? const Center(
+              child:
+              CircularProgressIndicator(),
+            )
+
+                : ListView.builder(
+
+              itemCount: jobs.length,
+
+              itemBuilder:
+                  (_, index) {
+                final item =
+                jobs[index];
+
+                return Card(
+
+                  margin:
+                  const EdgeInsets.all(10),
+
+                  child: ListTile(
+
+                    leading:
+                    CircleAvatar(
+                      child: Text(
+                        item.jobName
+                            ?.substring(0, 1) ??
+                            "J",
+                      ),
+                    ),
+
+                    title: Text(
+                      item.jobName ?? "",
+                    ),
+
+                 /*   subtitle: Text(
+                      "${item.jobTime ?? ""} - ${item.jobEndTime ?? ""}",
+                    ),*/
+                    subtitle: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+
+                        Text(
+                          "Start Time : ${item.jobTime ?? "-"}",
+                        ),
+
+                        Text(
+                          "End Time : ${item.jobEndTime ?? "-"}",
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      print(
+                        item.id,
+                      );
+                      Navigator.push(
+
+                        context,
+
+                        MaterialPageRoute(
+
+                          builder: (_) =>
+                              TimeSheetScreen(
+                                jobId:
+                                item.id.toString(),
+                              ),
+                        ),
+                      );
+                      // Open TimeSheetScreen
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _tabButton(
+      String title,
+      int index,
+      ) {
+
+    final active =
+        selectedTab == title;
+
+    return Expanded(
+      child: InkWell(
+
+        borderRadius:
+        BorderRadius.circular(
+          30,
+        ),
+
+        onTap: () {
+
+          setState(() {
+            selectedTab = title;
+          });
+
+          callTimeLogApi();
+        },
+
+        child: Center(
+          child:
+          AnimatedDefaultTextStyle(
+            duration:
+            const Duration(
+              milliseconds: 250,
+            ),
+
+            style: TextStyle(
+              color: active
+                  ? Colors.white
+                  : Colors.black87,
+
+              fontWeight:
+              active
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+
+              fontSize: 15,
+            ),
+
+            child: Text(title),
+          ),
+        ),
+      ),
+    );
+  }
+/*  Widget _tabButton(
+      String title) {
+
+    return GestureDetector(
+
+      onTap: () {
+
+        setState(() {
+
+          selectedTab =
+              title;
+        });
+
+        callTimeLogApi();
+      },
+
+      child: Container(
+
+        padding:
+        const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 10,
+        ),
+
+        decoration: BoxDecoration(
+
+          color:
+          selectedTab == title
+              ? Colors.orange
+              : Colors.grey.shade300,
+
+          borderRadius:
+          BorderRadius.circular(
+            25,
+          ),
+        ),
+
+        child: Text(
+          title,
+          style: TextStyle(
+            color:
+            selectedTab == title
+                ? Colors.white
+                : Colors.black,
+          ),
+        ),
+      ),
+    );
+  }*/
+}
