@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
+import 'package:powercare_flutter/app/widget/custom_outline_button.dart';
 
 import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_appbar.dart';
@@ -483,13 +484,13 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             Row(
               children: [
                 const SizedBox(width: 25),
-
-                CustomButton(
-                  title: "Cancel",
-                  background: AppColors.darkGrey,
-                  onPressed: () {
-                    // Handle Save Logic
-                  },
+                Expanded(
+                  child: CustomOutlineButton(
+                    title: "Cancel",
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
                 ),
 
                 const SizedBox(width: 25),
@@ -559,7 +560,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: AppColors.primary,
+                color: AppColors.navyBlue,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(3),
                   bottomRight: Radius.circular(3),
@@ -608,7 +609,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: AppColors.primary,
+                color: AppColors.navyBlue,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(3),
                   bottomRight: Radius.circular(3),

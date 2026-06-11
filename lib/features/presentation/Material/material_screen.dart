@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 
+import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_appbar.dart';
+import '../../../app/widget/custom_text.dart';
 import '../../alldata/api_repository/material_repository.dart';
 import '../../alldata/models/material_response.dart';
 
@@ -229,15 +231,44 @@ class _MaterialScreenState extends State<MaterialScreen> {
               backgroundColor: Colors.orange.shade100,
               child: const Icon(Icons.inventory),
             ),
+
+            title: CustomText(
+              item.materialName ?? "",
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
+            ),
+
+            subtitle: CustomText(
+              item.supplierName ?? "",
+              style: AppTextStyles.bodySmall.copyWith(
+                color: Colors.grey,
+              ),
+            ),
+
+            trailing: CustomText(
+              "Qty : ${item.totalQty ?? 0}",
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+      /*    child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.orange.shade100,
+              child: const Icon(Icons.inventory),
+            ),
             title: Text(item.materialName ?? ""),
 
             subtitle: Text(item.supplierName ?? ""),
 
             trailing: Text("Qty : ${item.totalQty ?? 0}"),
-            /*Text(
+            *//*Text(
                 "£${item.totalPrice ?? "0"}",
-              ),*/
-          ),
+              ),*//*
+          ),*/
         );
       },
     );

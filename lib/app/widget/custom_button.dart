@@ -50,7 +50,7 @@ class CustomButton extends StatelessWidget {
         children: [Container(
         // height: (fontSize ?? 16.sp) + 25.h,
         decoration: BoxDecoration(
-          color: background ?? AppColors.primary,
+          color: background ?? AppColors.navyBlue,
           borderRadius: BorderRadius.circular(999),
           boxShadow: [
             BoxShadow(

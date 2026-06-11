@@ -161,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             height: 60, // Reduced height since labels are removed
             decoration: BoxDecoration(
              // color: Colors.white,
-              color: AppColors.navyBlue,
+              color: AppColors.pureWhite,
 
               borderRadius: BorderRadius.circular(30), // Circular rounded corners
               boxShadow: [
@@ -186,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Icon(
                           _icons[index],
                           size: 26,
-                          color: isSelected ? AppColors.secondary : const Color(0xFFBBBBBB),
+                          color: isSelected ? AppColors.primary : const Color(0xFFBBBBBB),
                         ),
                       ),
                     ),

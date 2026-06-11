@@ -236,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildMenuCard(
                   "Materials",
                   Icons.layers_rounded,
-                  const Color(0xFFb5a642),
+                  const Color(0xffcab526),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildMenuCard(
                   "Time Logs",
                   Icons.update_rounded,
-                  const Color(0xFF67ab7c),
+                  const Color(0xff1dc852),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -267,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildMenuCard(
                   "Contact Book",
                   Icons.contact_phone_rounded,
-                  const Color(0xFF7b9ebc),
+                  const Color(0xff1846ed),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -281,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildMenuCard(
                   "Log out",
                   Icons.logout_rounded,
-                  const Color(0xFF7b9ebc),
+                  const Color(0xfff31403),
                   onTap: () {
                     _showLogoutDialog();
                   },

@@ -4,6 +4,8 @@ import 'package:powercare_flutter/features/alldata/models/UserModel.dart';
 import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_button.dart';
 import '../../../app/widget/custom_dropdown.dart';
+import '../../../app/widget/custom_text.dart';
+import '../../../app/widget/custom_textfield.dart';
 import '../../alldata/api_repository/TimeSheetRepository.dart';
 import '../../alldata/api_repository/job_repository.dart';
 
@@ -18,7 +20,8 @@ class TimeSheetScreen extends StatefulWidget {
 
 class _TimeSheetScreenState extends State<TimeSheetScreen> {
   final TimeSheetRepository repository = TimeSheetRepository();
-
+  final TextEditingController leadEngineerController = TextEditingController();
+  final startTimeController = TextEditingController();
   bool isLoading = false;
   String jobName = "";
   String jobStatus = "";
@@ -56,6 +59,9 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
 
       if (job != null) {
         setState(() {
+          leadEngineerController.text =
+          "${response.jobDetails?.leadEngineer?.firstName ?? ""} "
+              "${response.jobDetails?.leadEngineer?.lastName ?? ""}";
           jobName = job.jobName ?? "";
 
           jobStatus = job.jobTypeStatus?.status ?? "";
@@ -326,8 +332,15 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                                     },
                                   ),
                                 ),
-
                               item["isLead"] == true
+
+                                  ? CustomTextField(
+                                controller: leadEngineerController,
+                                label: "Lead Engineer",
+                                hintText: "Lead Engineer",
+                                readOnly: true,
+                              ):
+                         /*     item["isLead"] == true
 
                                   ? TextFormField(
 
@@ -343,9 +356,9 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                                   border:
                                   OutlineInputBorder(),
                                 ),
-                              )
+                              )*/
 
-                                  :
+
                               CustomDropdown<UserModel>(
                                 value: users.any(
                                       (e) => e.id.toString() == item["userId"],
@@ -438,8 +451,20 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
 
                                   Expanded(
                                     child:
-
-                                    TextFormField(
+                                    CustomTextField(
+                                      controller: TextEditingController(
+                                        text: item["startTime"] ?? "",
+                                      ),
+                                      label: "Start Time",
+                                      readOnly: true,
+                                      onTap: () {
+                                        pickTime(
+                                          index,
+                                          "startTime",
+                                        );
+                                      },
+                                    ),
+                              /*      TextFormField(
                                       readOnly: true,
                                       controller:
                                       TextEditingController(
@@ -460,7 +485,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                                           "startTime",
                                         );
                                       },
-                                    ),
+                                    ),*/
                                   ),
 
                                   const SizedBox(
@@ -469,7 +494,20 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
 
                                   Expanded(
                                     child:
-                                    TextFormField(
+                                    CustomTextField(
+                                      controller: TextEditingController(
+                                        text: item["endTime"] ?? "",
+                                      ),
+                                      label: "End Time",
+                                      readOnly: true,
+                                      onTap: () {
+                                        pickTime(
+                                          index,
+                                          "endTime",
+                                        );
+                                      },
+                                    ),
+                       /*             TextFormField(
                                       readOnly: true,
                                       controller:
                                       TextEditingController(
@@ -490,7 +528,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                                           "endTime",
                                         );
                                       },
-                                    ),
+                                    ),*/
                                   ),
                                 ],
                               ),
@@ -515,7 +553,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                                     10,
                                   ),
                                 ),
-                                child: Text(
+                                child: CustomText(
                                   "Total Time : ${calculateTotal(item["startTime"], item["endTime"])}",
                                   textAlign:
                                   TextAlign.center,

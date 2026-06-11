@@ -4,6 +4,7 @@ import 'package:powercare_flutter/app/theme/colors.dart';
 
 import '../../../app/widget/custom_appbar.dart';
 import '../../../core/storage/app_preferences.dart';
+import '../../../main.dart';
 import '../../alldata/api_repository/TimeLogRepository.dart';
 import '../../alldata/models/TimeLogResponse.dart';
 import 'TimeSheetScreen.dart';
@@ -21,7 +22,9 @@ class TimeLogScreenState
 
   final TimeLogRepository repository =
   TimeLogRepository();
+  DateTime selectedWeekDate = DateTime.now();
 
+  List<DateTime> currentWeek = [];
   List<TimeLogJob> jobs = [];
 
   bool isLoading = false;
@@ -31,11 +34,46 @@ class TimeLogScreenState
   @override
   void initState() {
     super.initState();
+    generateWeek();
     callTimeLogApi();
   }
+  void generateWeek() {
 
+    final now = DateTime.now();
+
+    final startOfWeek =
+    now.subtract(
+      Duration(days: now.weekday % 7),
+    );
+
+    currentWeek = List.generate(
+      7,
+          (index) => startOfWeek.add(
+        Duration(days: index),
+      ),
+    );
+  }
   Future<void> callTimeLogApi() async {
+    final response =
+    await repository.getTimeLogs(
 
+      date: DateFormat(
+        "dd-MM-yyyy",
+      ).format(DateTime.now()),
+
+      engineerId: userId,
+
+      dateKey: selectedTab,
+
+      specificDate:
+      selectedTab == "WEEK"
+          ? DateFormat(
+        "yyyy-MM-dd",
+      ).format(
+        selectedWeekDate,
+      )
+          : "",
+    );
     try {
 
       setState(() {
@@ -189,6 +227,83 @@ class TimeLogScreenState
           ),*/
 
           const SizedBox(height: 15),
+
+        if (selectedTab == "WEEK")
+    Container(
+      height: 90,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        itemCount: currentWeek.length,
+        itemBuilder: (_, index) {
+
+          final day = currentWeek[index];
+
+          final isSelected =
+              DateFormat("yyyy-MM-dd").format(day) ==
+                  DateFormat("yyyy-MM-dd").format(selectedWeekDate);
+
+          return GestureDetector(
+            onTap: () {
+
+              setState(() {
+                selectedWeekDate = day;
+              });
+
+              callTimeLogApi();
+            },
+
+            child: Container(
+              width: 65,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.navyBlue
+                    : Colors.white,
+
+                borderRadius: BorderRadius.circular(12),
+
+                border: Border.all(
+                  color: AppColors.navyBlue,
+                ),
+              ),
+
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+
+                children: [
+
+                  Text(
+                    DateFormat("EEE").format(day),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    DateFormat("dd").format(day),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ),
+
 
           Expanded(
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 
+import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_appbar.dart';
+import '../../../app/widget/custom_text.dart';
 import '../../alldata/api_repository/notification_repository.dart';
 import '../../alldata/models/NotificationResponse.dart';
 
@@ -170,11 +172,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         color: Colors.white,
                       ),
                     ),
-
-                    title: Text(
+                    title: CustomText(
+                      item.title ?? "",
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                 /*   title: Text(
                       item.title ?? "",
                       style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    ),*/
                     subtitle: Column(
                       crossAxisAlignment:
                       CrossAxisAlignment.start,

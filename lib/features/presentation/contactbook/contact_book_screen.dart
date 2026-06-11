@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../app/widget/custom_appbar.dart';
 import '../../alldata/api_repository/contact_repository.dart';
 import '../../alldata/models/contact_book_model.dart';
 
@@ -111,6 +112,7 @@ class _ContactBookScreenState
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
+      //appBar: const CustomAppBar(title: "Contact Book"),
 
       body: Column(
         children: [

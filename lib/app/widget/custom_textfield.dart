@@ -9,13 +9,18 @@ class CustomTextField extends StatefulWidget {
   final bool obscureText;
   final String? label;
   final int maxLines;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const CustomTextField({
     super.key,
     required this.controller,
     this.hintText,
     this.obscureText = false,
+    this.readOnly = false,
     this.label,
+    this.onTap,
+
     this.maxLines = 1,
   });
 
@@ -50,6 +55,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
         TextFormField(
           style: AppTextStyles.bodyMedium,
           controller: widget.controller,
+          readOnly: widget.readOnly,
+          onTap: widget.onTap,
+
           obscureText: _obscureText,
           maxLines: widget.maxLines,
           decoration: InputDecoration(
