@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/features/alldata/models/UserModel.dart';
 
+import '../../../app/theme/colors.dart';
+import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_button.dart';
 import '../../../app/widget/custom_dropdown.dart';
@@ -357,9 +359,45 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                                   OutlineInputBorder(),
                                 ),
                               )*/
+                              GestureDetector(
+                                onTap: () {
+                                  showEngineerBottomSheet(item);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 15,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.border,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
 
+                                      Expanded(
+                                        child: CustomText(
+                                          item["name"] == null ||
+                                              item["name"].toString().isEmpty
+                                              ? "Select Engineer"
+                                              : item["name"],
+                                          style: AppTextStyles.bodyMedium,
+                                        ),
+                                      ),
 
-                              CustomDropdown<UserModel>(
+                                      Icon(
+                                        Icons.keyboard_arrow_down,
+                                        color: AppColors.primary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+         /*                     CustomDropdown<UserModel>(
                                 value: users.any(
                                       (e) => e.id.toString() == item["userId"],
                                 )
@@ -391,56 +429,8 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                                     "${value.firstName ?? ""} ${value.lastName ?? ""}";
                                   });
                                 },
-                              ),
-                              /* DropdownButtonFormField<String>(
-
-                                value:
-                                item["userId"] == ""
-                                    ? null
-                                    : item["userId"],
-
-                                decoration:
-                                const InputDecoration(
-                                  labelText:
-                                  "Engineer",
-                                  border:
-                                  OutlineInputBorder(),
-                                ),
-
-                                items:
-                                users.map((user) {
-
-                                  return DropdownMenuItem<String>(
-
-                                    value:
-                                    user.id.toString(),
-
-                                    child: Text(
-                                      "${user.firstName ?? ""} ${user.lastName ?? ""}",
-                                    ),
-                                  );
-
-                                }).toList(),
-
-                                onChanged: (value) {
-
-                                  final selectedUser =
-                                  users.firstWhere(
-                                        (e) =>
-                                    e.id.toString()
-                                        == value,
-                                  );
-
-                                  setState(() {
-
-                                    item["userId"] =
-                                        value;
-
-                                    item["name"] =
-                                    "${selectedUser.firstName ?? ""} ${selectedUser.lastName ?? ""}";
-                                  });
-                                },
                               ),*/
+
 
                               const SizedBox(
                                 height: 15,
@@ -635,6 +625,81 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
           ]
         ),
       ),
+    );
+  }
+  void showEngineerBottomSheet(
+      Map<String, dynamic> item,
+      ) {
+
+    showModalBottomSheet(
+
+      context: context,
+
+      backgroundColor: Colors.white,
+
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+
+      builder: (_) {
+
+        return Column(
+
+          mainAxisSize: MainAxisSize.min,
+
+          children: [
+
+            const SizedBox(height: 15),
+
+            const Text(
+              "Select Engineer",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(),
+
+            Flexible(
+              child: ListView.builder(
+
+                shrinkWrap: true,
+
+                itemCount: users.length,
+
+                itemBuilder: (_, index) {
+
+                  final user = users[index];
+
+                  return ListTile(
+
+                    title: Text(
+                      "${user.firstName ?? ""} ${user.lastName ?? ""}",
+                    ),
+
+                    onTap: () {
+
+                      setState(() {
+
+                        item["userId"] =
+                            user.id.toString();
+
+                        item["name"] =
+                        "${user.firstName ?? ""} ${user.lastName ?? ""}";
+                      });
+
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
