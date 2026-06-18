@@ -7,10 +7,20 @@ import 'flavor_config.dart';
 import 'main.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'firebase_options_dev.dart';
+import 'firebase_options_dev_old.dart';
+
+import 'package:package_info_plus/package_info_plus.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlavorConfig.setFlavor(
+    Flavor.dev,
+    'PowerCare Dev',
+    'https://powercare.resolveddevelopment.co.uk/api',
+    'https://powercare.resolveddevelopment.co.uk',
+  );
+  print('STARTING DEV APP');
 
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -22,14 +32,15 @@ Future<void> main() async {
 
   // Initialize Notification Service
   await NotificationService().init();
-  
-  FlavorConfig.setFlavor(
-    Flavor.dev,
-    'PowerCare Dev',
-    'https://powercare.resolveddevelopment.co.uk/api',
-    'https://powercare.resolveddevelopment.co.uk',
-  );
-  
+
+
+
+  final info = await PackageInfo.fromPlatform();
+
+  print("✅ Package Name: ${info.packageName}");
+  print("✅ App Name: ${info.appName}");
+  print("✅ Version: ${info.version}");
+
 
   runApp(const PowerCareApp());
 }

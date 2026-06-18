@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/theme/text_styles.dart'; // Corrected import
 import 'package:powercare_flutter/app/widget/custom_text.dart';
+import 'package:powercare_flutter/core/services/notification_service.dart';
 import 'package:powercare_flutter/core/storage/secure_storage.dart';
 import 'package:powercare_flutter/features/alldata/api_repository/auth_repository.dart';
 import 'package:powercare_flutter/features/presentation/dashboard/dashboard_screen.dart';
@@ -121,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen>
       _isLoading = true;
     });
 
-    var fcmToken = await FirebaseMessaging.instance.getToken();
+    var fcmToken = await NotificationService().getToken();
     fcmToken ??= await SecureStorage.getToken();
 
     try {

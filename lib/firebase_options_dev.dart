@@ -4,7 +4,16 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-
+/// Default [FirebaseOptions] for use with your Firebase apps.
+///
+/// Example:
+/// ```dart
+/// import 'firebase_options_dev.dart';
+/// // ...
+/// await Firebase.initializeApp(
+///   options: DefaultFirebaseOptions.currentPlatform,
+/// );
+/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -45,12 +54,12 @@ class DefaultFirebaseOptions {
     appId: '1:658053185000:android:45e1f2e9fbacd3dc9bb85d',
     messagingSenderId: '658053185000',
     projectId: 'powercare-1f524',
-    storageBucket: 'powercare-1f524.appspot.com',
+    storageBucket: 'powercare-1f524.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBSDS1QKjNmo2aX6zzn4k7UHq6EMzVQifo',
-    appId: '1:658053185000:ios:1d906d10de58ce329bb85d',
+    appId: '1:658053185000:ios:843e0ec9c61fbcda9bb85d',
     messagingSenderId: '658053185000',
     projectId: 'powercare-1f524',
     storageBucket: 'powercare-1f524.firebasestorage.app',

@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "658053185000",
     "project_id": "powercare-1f524",
-    "storage_bucket": "powercare-1f524.appspot.com"
+    "storage_bucket": "powercare-1f524.firebasestorage.app"
   },
   "client": [
     {

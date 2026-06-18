@@ -3,14 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:powercare_flutter/features/presentation/landing/landing_screen.dart';
-import 'package:powercare_flutter/features/presentation/profile/profile_screen.dart';
 
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../core/navigation/app_navigator.dart';
-import 'landing_screen.dart';
-import 'login_screen_old.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

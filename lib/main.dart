@@ -32,6 +32,9 @@ class PowerCareApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+      'Running Flavor: ${FlavorConfig.instance.name}',
+    );
     return MaterialApp(
       title: FlavorConfig.instance.name,
       debugShowCheckedModeBanner: false,
