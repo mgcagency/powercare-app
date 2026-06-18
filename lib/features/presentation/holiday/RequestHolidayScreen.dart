@@ -311,8 +311,40 @@ class _RequestHolidayScreenState
               height: 20,
             ),
             _buildLabel("Holiday Type"),
+            GestureDetector(
+              onTap: showHolidayTypeBottomSheet,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                  ),
+                ),
+                child: Row(
+                  children: [
 
-            CustomDropdown(
+                    Expanded(
+                      child: CustomText(
+                        selectedType ??
+                            "Select Type",
+                        style: AppTextStyles.bodyMedium,
+                      ),
+                    ),
+
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      color: AppColors.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+       /*     CustomDropdown(
               value: selectedType,
               hint: "Select Type",
               items: holidayTypes
@@ -331,7 +363,7 @@ class _RequestHolidayScreenState
                       value;
                 });
               },
-            ),
+            ),*/
             const SizedBox(
               height: 20,
             ),
@@ -381,6 +413,66 @@ class _RequestHolidayScreenState
             )          ],
         ),
       ),
+    );
+  }
+  void showHolidayTypeBottomSheet() {
+
+    showModalBottomSheet(
+
+      context: context,
+
+      backgroundColor: Colors.white,
+
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+
+      builder: (_) {
+
+        return Column(
+
+          mainAxisSize: MainAxisSize.min,
+
+          children: [
+
+            const SizedBox(height: 15),
+
+            const Text(
+              "Select Holiday Type",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(),
+
+            ...holidayTypes.map((type) {
+
+              return ListTile(
+
+                title: CustomText(
+                  type,
+                  style: AppTextStyles.bodyMedium,
+                ),
+
+                onTap: () {
+
+                  setState(() {
+                    selectedType = type;
+                  });
+
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+
+            const SizedBox(height: 10),
+          ],
+        );
+      },
     );
   }
   Widget _buildLabel(String text, {bool isRequired = false}) {

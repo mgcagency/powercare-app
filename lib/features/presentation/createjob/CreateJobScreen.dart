@@ -293,8 +293,43 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             ),
 
             const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () {
+                showLeadEngineerBottomSheet();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
 
-            CustomDropdown<UserModel>(
+                    Expanded(
+                      child: CustomText(
+                        selectedLeadEngineer == null
+                            ? "Select Lead Engineer"
+                            : "${selectedLeadEngineer!.firstName ?? ""} ${selectedLeadEngineer!.lastName ?? ""}",
+                        style: AppTextStyles.bodyMedium,
+                      ),
+                    ),
+
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+ /*           CustomDropdown<UserModel>(
               value: selectedLeadEngineer,
               hint: "Select Lead Engineer",
               items: users.map((user) {
@@ -311,7 +346,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   selectedLeadEngineer = value;
                 });
               },
-            ),
+            ),*/
             const SizedBox(height: 12),
 
             Align(
@@ -324,8 +359,41 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () {
+                showStatusBottomSheet();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
 
-            CustomDropdown<JobStatusModel>(
+                    Expanded(
+                      child: CustomText(
+                        selectedStatus?.status ??
+                            "Select Job Status",
+                        style: AppTextStyles.bodyMedium,
+                      ),
+                    ),
+
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+/*            CustomDropdown<JobStatusModel>(
               value: selectedStatus,
               hint: "Select Job Status",
               items: jobStatusList.map((status) {
@@ -342,7 +410,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   selectedStatus = value;
                 });
               },
-            ),
+            ),*/
             const SizedBox(height: 12),
 
             CustomTextField(
@@ -360,8 +428,42 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             ),
 
             const SizedBox(height: 12),
-
             GestureDetector(
+              onTap: showOtherEngineerBottomSheet,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.border,
+                  ),
+                ),
+                child: Row(
+                  children: [
+
+                    Expanded(
+                      child: CustomText(
+                        selectedOtherEngineers.isEmpty
+                            ? "Select Other Engineers"
+                            : "${selectedOtherEngineers.length} Engineers Selected",
+                        style: AppTextStyles.bodyMedium,
+                      ),
+                    ),
+
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      color: AppColors.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        /*    GestureDetector(
               onTap: showOtherEngineerDialog,
               child: Container(
                 width: double.infinity,
@@ -388,7 +490,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   ],
                 ),
               ),
-            ),
+            ),*/
 
             const SizedBox(height: 10),
 
@@ -575,6 +677,234 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
           ),
         ],
       ),
+    );
+  }
+  void showOtherEngineerBottomSheet() {
+
+    showModalBottomSheet(
+
+      context: context,
+
+      isScrollControlled: true,
+
+      backgroundColor: Colors.white,
+
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+
+      builder: (context) {
+
+        return StatefulBuilder(
+
+          builder: (context, setModalState) {
+
+            return SizedBox(
+
+              height: MediaQuery.of(context).size.height * 0.65,
+
+              child: Column(
+
+                children: [
+
+                  const SizedBox(height: 15),
+
+                  const Text(
+                    "Select Other Engineers",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const Divider(),
+
+                  Expanded(
+
+                    child: ListView.builder(
+
+                      itemCount: users.length,
+
+                      itemBuilder: (_, index) {
+
+                        final user = users[index];
+
+                        final isSelected =
+                        selectedOtherEngineers.any(
+                              (e) => e.id == user.id,
+                        );
+
+                        return CheckboxListTile(
+
+                          value: isSelected,
+
+                          title: Text(
+                            "${user.firstName ?? ""} ${user.lastName ?? ""}",
+                          ),
+
+                          activeColor: AppColors.primary,
+
+                          onChanged: (value) {
+
+                            setModalState(() {
+
+                              if (isSelected) {
+
+                                selectedOtherEngineers.removeWhere(
+                                      (e) => e.id == user.id,
+                                );
+
+                              } else {
+
+                                selectedOtherEngineers.add(user);
+                              }
+                            });
+
+                            setState(() {});
+                          },
+                        );
+                      },
+                    ),
+                  ),
+
+                  Padding(
+
+                    padding: const EdgeInsets.all(16),
+
+                    child: SizedBox(
+
+                      width: double.infinity,
+                     child: CustomButton(
+                        title: "Done",
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  void showLeadEngineerBottomSheet() {
+
+    showModalBottomSheet(
+
+      context: context,
+
+      backgroundColor: Colors.white,
+
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+
+      builder: (context) {
+
+        return Column(
+
+          mainAxisSize: MainAxisSize.min,
+
+          children: [
+
+            const SizedBox(height: 15),
+
+            const Text(
+              "Select Lead Engineer",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(),
+
+            Flexible(
+              child: ListView.builder(
+
+                shrinkWrap: true,
+
+                itemCount: users.length,
+
+                itemBuilder: (_, index) {
+
+                  final user = users[index];
+
+                  return ListTile(
+
+                    title: CustomText(
+                      "${user.firstName ?? ""} ${user.lastName ?? ""}",
+                      style: AppTextStyles.bodyMedium,
+                    ),
+
+                    onTap: () {
+
+                      setState(() {
+                        selectedLeadEngineer = user;
+                      });
+
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void showStatusBottomSheet() {
+
+    showModalBottomSheet(
+
+      context: context,
+
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+
+      builder: (_) {
+
+        return ListView.builder(
+
+          shrinkWrap: true,
+
+          itemCount: jobStatusList.length,
+
+          itemBuilder: (context, index) {
+
+            final status =
+            jobStatusList[index];
+
+            return ListTile(
+
+              title: CustomText(
+                status.status ?? "",
+                style: AppTextStyles.bodyMedium,
+              ),
+
+              onTap: () {
+
+                setState(() {
+                  selectedStatus = status;
+                });
+
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
     );
   }
 

@@ -8,7 +8,7 @@ import '../../../main.dart';
 import '../../alldata/api_repository/TimeLogRepository.dart';
 import '../../alldata/models/TimeLogResponse.dart';
 import 'TimeSheetScreen.dart';
-
+import 'package:table_calendar/table_calendar.dart';
 class TimeLogScreen extends StatefulWidget {
   const TimeLogScreen({super.key});
 
@@ -23,7 +23,8 @@ class TimeLogScreenState
   final TimeLogRepository repository =
   TimeLogRepository();
   DateTime selectedWeekDate = DateTime.now();
-
+  DateTime selectedDate =
+  DateTime.now();
   List<DateTime> currentWeek = [];
   List<TimeLogJob> jobs = [];
 
@@ -54,26 +55,7 @@ class TimeLogScreenState
     );
   }
   Future<void> callTimeLogApi() async {
-    final response =
-    await repository.getTimeLogs(
 
-      date: DateFormat(
-        "dd-MM-yyyy",
-      ).format(DateTime.now()),
-
-      engineerId: userId,
-
-      dateKey: selectedTab,
-
-      specificDate:
-      selectedTab == "WEEK"
-          ? DateFormat(
-        "yyyy-MM-dd",
-      ).format(
-        selectedWeekDate,
-      )
-          : "",
-    );
     try {
 
       setState(() {
@@ -85,15 +67,33 @@ class TimeLogScreenState
 
       final response =
       await repository.getTimeLogs(
+
         date: DateFormat(
           "dd-MM-yyyy",
         ).format(
           DateTime.now(),
         ),
+
         engineerId: userId,
+
         dateKey: selectedTab,
-        specificDate: "",
+
+        specificDate:
+        selectedTab == "MONTH"
+            ? DateFormat(
+          "yyyy-MM-dd",
+        ).format(
+          selectedDate,
+        )
+            : selectedTab == "WEEK"
+            ? DateFormat(
+          "yyyy-MM-dd",
+        ).format(
+          selectedWeekDate,
+        )
+            : "",
       );
+
       print(
         "Total Jobs => ${response.jobs.length}",
       );
@@ -105,7 +105,7 @@ class TimeLogScreenState
         isLoading = false;
       });
 
-    } catch(e){
+    } catch (e) {
 
       print(
         "TimeLog Error => $e",
@@ -115,7 +115,7 @@ class TimeLogScreenState
         isLoading = false;
       });
     }
-  }@override
+  }  @override
   Widget build(BuildContext context) {
     return Scaffold(
 
@@ -303,7 +303,55 @@ class TimeLogScreenState
         },
       ),
     ),
+          if (selectedTab == "MONTH")
+            Container(
+              margin: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: TableCalendar(
+                firstDay: DateTime.utc(2024, 1, 1),
+                lastDay: DateTime.utc(2035, 12, 31),
+                focusedDay: selectedDate,
 
+                selectedDayPredicate: (day) {
+                  return isSameDay(
+                    selectedDate,
+                    day,
+                  );
+                },
+
+                onDaySelected: (
+                    selectedDay,
+                    focusedDay,
+                    ) {
+
+                  setState(() {
+                    selectedDate = selectedDay;
+                  });
+
+                  callTimeLogApi();
+                },
+
+                calendarStyle: const CalendarStyle(
+                  todayDecoration: BoxDecoration(
+                    color: Colors.deepOrangeAccent,
+                    shape: BoxShape.circle,
+                  ),
+
+                  selectedDecoration: BoxDecoration(
+                    color: AppColors.navyBlue,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+
+                headerStyle: const HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                ),
+              ),
+            ),
 
           Expanded(
 
