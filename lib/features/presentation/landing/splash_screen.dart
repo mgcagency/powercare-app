@@ -9,6 +9,8 @@ import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../core/navigation/app_navigator.dart';
+import '../../../core/storage/app_preferences.dart';
+import '../pin/authentication_screen.dart';
 import 'landing_screen.dart';
 import 'login_screen_old.dart';
 
@@ -56,8 +58,28 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
     _startAutoScroll();
+    checkLogin();
   }
+  Future<void> checkLogin() async {
 
+    final isLoggedIn =
+    await AppPreferences.isLoggedIn();
+
+    if (isLoggedIn) {
+
+      Future.delayed(
+        const Duration(seconds: 2),
+            () {
+
+          AppNavigator.pushAndRemoveAll(
+            const AuthenticationScreen(),
+          );
+
+        },
+      );
+
+    }
+  }
   void _startAutoScroll() {
     _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
       if (_currentPage < _introData.length - 1) {

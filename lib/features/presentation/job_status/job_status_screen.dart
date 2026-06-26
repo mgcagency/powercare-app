@@ -12,11 +12,25 @@ import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/job_type_status_response.dart';
 
 class JobStatusScreen extends StatefulWidget {
+
+  final bool showAppBar;
+
+  const JobStatusScreen({
+    super.key,
+    this.showAppBar = true,   bool isArchive=false,
+
+  });
+
+  @override
+  State<JobStatusScreen> createState() =>
+      _JobStatusScreenState();
+}
+/*class JobStatusScreen extends StatefulWidget {
   const JobStatusScreen({super.key});
 
   @override
   State<JobStatusScreen> createState() => _JobStatusScreenState();
-}
+}*/
 
 class _JobStatusScreenState extends State<JobStatusScreen> {
   bool _isUploading = false;
@@ -207,7 +221,11 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(   appBar: widget.showAppBar
+        ? const CustomAppBar(
+      title: "Job Status",
+    )
+        : null,
       body: (_isLoadingJobs || _isLoadingStatuses)
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : RefreshIndicator(
@@ -223,7 +241,48 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                   children: [
                     // ── SELECT JOB ──
                     _buildLabel("Select Job"),
-                    _buildDropdownContainer(
+                    GestureDetector(
+                      onTap: () {
+                        showJobBottomSheet();
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.border,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+
+                            Expanded(
+                              child: CustomText(
+                                _selectedJobModel == null
+                                    ? "Select Job"
+                                    : _selectedJobModel!.jobName ?? "",
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: _selectedJobModel == null
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                              ),
+                            ),
+
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+     /*               _buildDropdownContainer(
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<JobModel>(
                           value: _selectedJobModel,
@@ -241,13 +300,51 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                           onChanged: (val) => setState(() => _selectedJobModel = val),
                         ),
                       ),
-                    ),
+                    ),*/
 
                     const SizedBox(height: 20),
 
                     // ── JOB STATUS ──
                     _buildLabel("Job Status"),
-                    _buildDropdownContainer(
+                    GestureDetector(
+                      onTap: () {
+                        showStatusBottomSheet();
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.border,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CustomText(
+                                _selectedStatusModel == null
+                                    ? "Select Status"
+                                    : _selectedStatusModel!.status ?? "",
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: _selectedStatusModel == null
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),    /*                _buildDropdownContainer(
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<JobTypeStatus>(
                           value: _selectedStatusModel,
@@ -265,7 +362,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                           onChanged: (val) => setState(() => _selectedStatusModel = val),
                         ),
                       ),
-                    ),
+                    ),*/
 
                     const SizedBox(height: 20),
 
@@ -453,7 +550,137 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
             ),
     );
   }
+  void showJobBottomSheet() {
 
+    showModalBottomSheet(
+
+      context: context,
+
+      isScrollControlled: true,
+
+      backgroundColor: Colors.white,
+
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+
+      builder: (context) {
+
+        return SizedBox(
+
+          height: MediaQuery.of(context).size.height * 0.60,
+
+          child: Column(
+
+            children: [
+
+              const SizedBox(height: 15),
+
+              const Text(
+                "Select Job",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const Divider(),
+
+              Expanded(
+
+                child: ListView.builder(
+
+                  itemCount: _jobsList.length,
+
+                  itemBuilder: (_, index) {
+
+                    final job = _jobsList[index];
+
+                    return ListTile(
+
+                      title: CustomText(
+                        job.jobName ?? "No Name",
+                        style: AppTextStyles.bodyMedium,
+                      ),
+
+                      onTap: () {
+
+                        setState(() {
+                          _selectedJobModel = job;
+                        });
+
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }  void showStatusBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            const SizedBox(height: 15),
+
+            const Text(
+              "Select Status",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const Divider(),
+
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _statusList.length,
+                itemBuilder: (_, index) {
+
+                  final status =
+                  _statusList[index];
+
+                  return ListTile(
+                    title: CustomText(
+                      status.status ?? "",
+                      style: AppTextStyles.bodyMedium,
+                    ),
+
+                    onTap: () {
+
+                      setState(() {
+                        _selectedStatusModel =
+                            status;
+                      });
+
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
   // Helper for Labels
   Widget _buildLabel(String text) {
     return Padding(

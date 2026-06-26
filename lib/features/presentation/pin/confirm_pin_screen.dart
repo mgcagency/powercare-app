@@ -87,7 +87,7 @@ class _ConfirmPinScreenState
     }
   }
 
-  Widget buildDot(int index) {
+/*  Widget buildDot(int index) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       width: 18,
@@ -99,8 +99,8 @@ class _ConfirmPinScreenState
             : Colors.white30,
       ),
     );
-  }
-
+  }*/
+/*
   Widget numberButton(String value) {
 
     return GestureDetector(
@@ -124,103 +124,166 @@ class _ConfirmPinScreenState
         ),
       ),
     );
+  }*/
+  Widget numberButton(String value) {
+    return GestureDetector(
+      onTap: () => addDigit(value),
+      child: Container(
+        width: 90,
+        height: 90,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.cyanAccent,
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 40,
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+        ),
+      ),
+    );
   }
-
+  Widget buildDot(int index) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: confirmPin.length > index
+            ? Colors.white
+            : Colors.transparent,
+        border: Border.all(
+          color: Colors.white70,
+          width: 1.5,
+        ),
+      ),
+    );
+  }
   @override
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFF8C00),
+     // backgroundColor: const Color(0xFFFF8C00),
 
-      body: SafeArea(
-        child: Column(
-          children: [
-
-            const SizedBox(height: 60),
-
-            const Icon(
-              Icons.lock_outline,
-              size: 90,
-              color: Colors.white,
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage(
+              "assets/icons/login_bg.jpg",
             ),
+            fit: BoxFit.cover,
+            opacity: 0.90,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 60),
 
-            const Text(
-              "Confirm 4 Digit PIN",
-              style: TextStyle(
+              const Icon(
+                Icons.lock_outline,
+                size: 70,
                 color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
               ),
-            ),
 
-            const SizedBox(height: 10),
+              const SizedBox(height: 20),
 
-            const Text(
-              "Re-enter your PIN to confirm",
-              style: TextStyle(
-                color: Colors.white70,
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
-              children: List.generate(
-                4,
-                    (index) => buildDot(index),
-              ),
-            ),
-
-            const SizedBox(height: 50),
-
-            Expanded(
-              child: GridView.count(
-                physics:
-                const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                crossAxisCount: 3,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 70,
+              const Text(
+                "Confirm Your PIN",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
-                children: [
+              ),
 
-                  ...List.generate(
-                    9,
-                        (index) =>
-                        numberButton(
-                          "${index + 1}",
-                        ),
+              const SizedBox(height: 10),
+
+
+              const Text(
+                "Re-enter your 4-digit PIN",
+                style: TextStyle(
+                  color: Colors.white70,
+                 // fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              Row(
+                mainAxisAlignment:
+                MainAxisAlignment.center,
+                children: List.generate(
+                  4,
+                      (index) => buildDot(index),
+                ),
+              ),
+
+              const SizedBox(height: 50),
+
+              Expanded(
+                child: GridView.count(
+                  physics:
+                  const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 70,
                   ),
+                  children: [
 
-                  Container(),
+                    ...List.generate(
+                      9,
+                          (index) =>
+                          numberButton(
+                            "${index + 1}",
+                          ),
+                    ),
 
-                  numberButton("0"),
+                    Container(),
 
-                  GestureDetector(
-                    onTap: removeDigit,
-                    child: const CircleAvatar(
-                      radius: 38,
-                      backgroundColor:
-                      Colors.white,
-                      child: Icon(
-                        Icons.backspace_outlined,
-                        color: Colors.black,
+                    numberButton("0"),
+
+                    GestureDetector(
+                      onTap: removeDigit,
+                      child: Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.cyanAccent,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.backspace_outlined,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

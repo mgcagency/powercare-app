@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 
+import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_appbar.dart';
+import '../../../app/widget/custom_text.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../../../main.dart';
 import '../../alldata/api_repository/TimeLogRepository.dart';
@@ -10,15 +12,29 @@ import '../../alldata/models/TimeLogResponse.dart';
 import 'TimeSheetScreen.dart';
 import 'package:table_calendar/table_calendar.dart';
 class TimeLogScreen extends StatefulWidget {
-  const TimeLogScreen({super.key});
+
+  final bool showAppBar;
+
+  const TimeLogScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<TimeLogScreen> createState() =>
       TimeLogScreenState();
 }
+/*class TimeLogScreen extends StatefulWidget {
+  const TimeLogScreen({super.key});
+
+  @override
+  State<TimeLogScreen> createState() =>
+      TimeLogScreenState();
+}*/
 
 class TimeLogScreenState
     extends State<TimeLogScreen> {
+
 
   final TimeLogRepository repository =
   TimeLogRepository();
@@ -115,14 +131,18 @@ class TimeLogScreenState
         isLoading = false;
       });
     }
-  }  @override
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
 
-      appBar:
-      const CustomAppBar(
+      appBar: widget.showAppBar
+          ? const CustomAppBar(
         title: "Time Logs",
-      ),
+      )
+          : null,
 
       body: Column(
 
@@ -305,6 +325,135 @@ class TimeLogScreenState
     ),
           if (selectedTab == "MONTH")
             Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: TableCalendar(
+                firstDay: DateTime.utc(2024, 1, 1),
+                lastDay: DateTime.utc(2035, 12, 31),
+                focusedDay: selectedDate,
+
+                selectedDayPredicate: (day) =>
+                    isSameDay(selectedDate, day),
+
+                onDaySelected: (selectedDay, focusedDay) {
+
+                  setState(() {
+                    selectedDate = selectedDay;
+                  });
+
+                  callTimeLogApi();
+                },
+
+                headerStyle: const HeaderStyle(
+                  titleCentered: true,
+                  formatButtonVisible: false,
+                  titleTextStyle: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  leftChevronIcon: Icon(
+                    Icons.chevron_left,
+                    color: Colors.orange,
+                  ),
+                  rightChevronIcon: Icon(
+                    Icons.chevron_right,
+                    color: Colors.orange,
+                  ),
+                ),
+
+                daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  weekendStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                calendarBuilders: CalendarBuilders(
+                  selectedBuilder: (context, day, focusedDay) {
+                    return Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyBlue,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+
+                  todayBuilder: (context, day, focusedDay) {
+                    return Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+               /* calendarStyle: CalendarStyle(
+
+                  todayDecoration: BoxDecoration(
+                    color: Colors.orange.shade300,
+                    shape: BoxShape.circle,
+                  ),
+
+                  selectedDecoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+
+                  selectedTextStyle: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+
+                  todayTextStyle: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+
+                  outsideDaysVisible: false,
+
+                  weekendTextStyle: const TextStyle(
+                    color: Colors.red,
+                  ),
+                ),*/
+
+              ),
+            ),
+/*
+            Container(
               margin: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -352,6 +501,7 @@ class TimeLogScreenState
                 ),
               ),
             ),
+*/
 
           Expanded(
 
@@ -362,7 +512,80 @@ class TimeLogScreenState
               CircularProgressIndicator(),
             )
 
-                : ListView.builder(
+                :       ListView.builder(
+
+    itemCount: jobs.length,
+
+    itemBuilder:
+    (_, index) {
+    final item =
+    jobs[index];
+
+    return Card(
+
+    margin:
+    const EdgeInsets.all(10),
+    child: ListTile(
+
+    leading: CircleAvatar(backgroundColor: AppColors.navyBlue,
+    child: CustomText(
+    item.jobName?.substring(0, 1) ?? "J",
+    style: AppTextStyles.bodyMedium.copyWith(
+    fontWeight: FontWeight.bold,
+    color: AppColors.pureWhite,
+    ),
+    ),
+    ),
+
+    title: CustomText(
+    item.jobName ?? "",
+    style: AppTextStyles.bodyMedium.copyWith(
+    fontWeight: FontWeight.bold,
+    color: AppColors.textColor,
+    ),
+    ),
+
+    subtitle: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+
+    const SizedBox(height: 4),
+
+    CustomText(
+    "Start Time : ${item.jobTime ?? "-"}",
+    style: AppTextStyles.bodySmall.copyWith(
+    color: AppColors.textColor,
+    ),
+    ),
+
+    const SizedBox(height: 2),
+
+    CustomText(
+    "End Time : ${item.jobEndTime ?? "-"}",
+    style: AppTextStyles.bodySmall.copyWith(
+    color: AppColors.textColor,
+    ),
+    ),
+    ],
+    ),
+
+    onTap: () {
+
+    Navigator.push(
+    context,
+    MaterialPageRoute(
+    builder: (_) => TimeSheetScreen(
+    jobId: item.id.toString(),
+    ),
+    ),
+    );
+    },
+    ),
+    );
+    }
+    )
+/*
+            ListView.builder(
 
               itemCount: jobs.length,
 
@@ -391,9 +614,11 @@ class TimeLogScreenState
                       item.jobName ?? "",
                     ),
 
-                 /*   subtitle: Text(
+                 */
+/*   subtitle: Text(
                       "${item.jobTime ?? ""} - ${item.jobEndTime ?? ""}",
-                    ),*/
+                    ),*//*
+
                     subtitle: Column(
                       crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -431,6 +656,7 @@ class TimeLogScreenState
                 );
               },
             ),
+*/
           ),
         ],
       ),

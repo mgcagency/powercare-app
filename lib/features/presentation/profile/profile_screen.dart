@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../app/theme/colors.dart';
 import '../../../app/widget/custom_button.dart';
 import '../../../app/widget/custom_textfield.dart';
+import '../../../core/storage/app_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,10 +25,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   late TextEditingController _emailController;
   late TextEditingController _roleController;
   late TextEditingController _phoneController;
+  File? selectedImage;
+  final ImagePicker picker = ImagePicker();
+  String profileImage = "";
 
   @override
   void initState() {
     super.initState();
+    loadProfileImage();
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -47,7 +56,28 @@ class _ProfileScreenState extends State<ProfileScreen>
     _roleController = TextEditingController(text: "ENGINEER");
     _phoneController = TextEditingController(text: "+44 786 514 569");
   }
+  Future<void> loadProfileImage() async {
 
+    profileImage =
+        await AppPreferences.getUserImage() ?? "";
+
+    print("PROFILE IMAGE => $profileImage");
+
+    setState(() {});
+  }
+  Future<void> pickImage() async {
+
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (image != null) {
+
+      setState(() {
+        selectedImage = File(image.path);
+      });
+    }
+  }
   @override
   void dispose() {
     _animationController.dispose();
@@ -175,17 +205,22 @@ class _ProfileScreenState extends State<ProfileScreen>
                               spreadRadius: 8,
                             ),
                           ],
-                          image: const DecorationImage(
-                            image: NetworkImage(
+                          image: DecorationImage(
+                            image: selectedImage != null
+                                ? FileImage(selectedImage!)
+                                : profileImage.isNotEmpty
+                                ? FileImage(File(profileImage))
+                                : const NetworkImage(
                               "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-                            ),
+                            ) as ImageProvider,
                             fit: BoxFit.cover,
                           ),
                         ),
                         child: Align(
                           alignment: Alignment.bottomRight,
                           child: GestureDetector(
-                            onTap: () {
+                            onTap: () async {
+                                await pickImage();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Update Profile Picture"),
@@ -309,9 +344,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                               hintText: "Enter phone number",
                             ),
                             SizedBox(height: width * 0.08),
-                            CustomButton(background: AppColors.primary,
+                            CustomButton(
+                              background: AppColors.primary,
                               title: "Update",
-                              onPressed: () {
+                              onPressed: () async {
+                                if (selectedImage != null) {
+                                  await AppPreferences.saveUserImage(
+                                    selectedImage!.path,
+                                  );
+                                }
+
+                                Navigator.pop(context, true);
+
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: const Text(

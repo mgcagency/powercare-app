@@ -113,9 +113,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
           CircularProgressIndicator(),
         )
             : notifications.isEmpty
-            ? const Center(
-          child: Text(
+            ?  Center(
+          child: CustomText(
             "No Notification Available",
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.textColor,
+            ),
           ),
         )
             : RefreshIndicator(
@@ -164,8 +167,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   },*/
                     leading: CircleAvatar(
                       backgroundColor: item.isRead == 0
-                          ? Colors.orange
-                          : Colors.grey,
+                          ? AppColors.primary
+                          : AppColors.grey,
 
                       child: const Icon(
                         Icons.notifications,
@@ -174,7 +177,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     ),
                     title: CustomText(
                       item.title ?? "",
-                      style: AppTextStyles.bodyLarge.copyWith(
+                      style: AppTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.textColor,
                       ),
@@ -183,6 +186,74 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       item.title ?? "",
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),*/
+                   // working custom text  code
+/*
+                    subtitle: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+
+                        const SizedBox(height: 5),
+
+                        CustomText(
+                          item.body ?? "",
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textColor,
+                          ),
+                        ),
+
+                        const SizedBox(height: 5),
+
+                        CustomText(
+                          item.createdAt ?? "",
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.grey,
+                            fontSize: 11,
+                          ),
+                        ),
+
+                        if(item.type == "job_invitation")
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 10,
+                            ),
+                            child: Row(
+                              children: [
+
+                                ElevatedButton(
+                                  onPressed: () {
+                                    print("Accept Click");
+                                  },
+                                  child: CustomText(
+                                    "Accept",
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 10),
+
+                                OutlinedButton(
+                                  onPressed: () {
+                                    print("Reject Click");
+                                  },
+                                  child: CustomText(
+                                    "Reject",
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.textColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+*/
+
                     subtitle: Column(
                       crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -240,26 +311,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                       ],
                     ),
-/*
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 5),
 
-                        Text(item.body ?? ""),
-
-                        const SizedBox(height: 5),
-
-                        Text(
-                          item.createdAt ?? "",
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-*/
                   ),
                 );
               },

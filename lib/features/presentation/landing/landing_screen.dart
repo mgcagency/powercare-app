@@ -163,8 +163,26 @@ class _LoginScreenState extends State<LoginScreen>
           await AppPreferences.saveUserId(user.id.toString());
 
           _showToastMessage(loginResponse.message ?? "Login Success");
+          if (user.secretCode == null ||
+              user.secretCode == 0) {
 
-          if (user.secretCode != null && user.secretCode! > 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CreatePinScreen(),
+              ),
+            );
+
+          } else {
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AuthenticationScreen(),
+              ),
+            );
+          }
+  /*        if (user.secretCode != null && user.secretCode! > 0) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => const CreatePinScreen()),
@@ -174,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen>
               context,
               MaterialPageRoute(builder: (_) => const AuthenticationScreen()),
             );
-          }
+          }*/
         }
       } else {
         _showToastMessage(loginResponse.message ?? "Login Failed", isError: true);
