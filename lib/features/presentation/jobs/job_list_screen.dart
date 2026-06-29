@@ -2,24 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/core/navigation/app_navigator.dart';
+import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/models/job_list_response.dart';
 import 'job_details_screen.dart';
 
 class JobListScreen extends StatefulWidget {
+
+  final bool showAppBar;
+  final bool isArchive;
+
+  const JobListScreen({
+    super.key,
+    this.showAppBar = true,
+    this.isArchive = false,
+
+  });
+
+  @override
+  State<JobListScreen> createState() =>
+      _JobListScreenState();
+}
+/*class JobListScreen extends StatefulWidget {
   const JobListScreen({super.key});
 
   @override
   State<JobListScreen> createState() => _JobListScreenState();
-}
+}*/
 
 class _JobListScreenState extends State<JobListScreen> {
   // Theme and Repository
   final Color primaryColor = AppColors.primary;
   final Color primaryLightColor = AppColors.primaryLightbubbleBack;
   final JobRepository _repository = JobRepository();
-
+  bool isArchive=false;
   // State Variables
   int selected = 0; // 0 for All Jobs, 1 for My Jobs
   List<JobModel> jobs = [];
@@ -38,6 +55,8 @@ class _JobListScreenState extends State<JobListScreen> {
     super.initState();
     fetchJobs();
 
+    isArchive = widget.isArchive;
+
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
@@ -55,6 +74,7 @@ class _JobListScreenState extends State<JobListScreen> {
   }
 
   Future<void> fetchJobs({bool isRefresh = false}) async {
+
     if (isRefresh) {
       setState(() {
         _currentPage = 1;
@@ -73,8 +93,61 @@ class _JobListScreenState extends State<JobListScreen> {
       }
       errorMessage = null;
     });
-
     try {
+
+      JobListResponse response;
+
+      if (isArchive) {
+
+        response = await _repository.getArchivedJobs({
+          "specific_date": "",
+        });
+
+      } else {
+
+        response = await _repository.getJobs({
+          "page": _currentPage,
+          "my_job": selected,
+          "job_date": "",
+        });
+
+      }
+
+      if (response.statusCode == 200) {
+
+        final List<JobModel> newItems =
+            response.job?.data ?? [];
+
+        setState(() {
+
+          if (_currentPage == 1) {
+            jobs = newItems;
+          } else {
+            jobs.addAll(newItems);
+          }
+
+          _hasMoreData =
+              _currentPage < (response.job?.lastPage ?? 1);
+
+          if (_hasMoreData) {
+            _currentPage++;
+          }
+
+          isLoading = false;
+          _isFetchingMore = false;
+        });
+      }
+
+    } catch (e) {
+
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+        _isFetchingMore = false;
+      });
+
+    }
+/*    try {
       final response = await _repository.getJobs({
         'page': _currentPage,
         'my_job': selected,
@@ -104,12 +177,19 @@ class _JobListScreenState extends State<JobListScreen> {
         isLoading = false;
         _isFetchingMore = false;
       });
-    }
+    }*/
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: widget.showAppBar
+          ? CustomAppBar(
+        title:  isArchive
+            ? "Archived Jobs"
+            : "Jobs",
+      )
+          : null,
       body: SafeArea(
         child: Column(
           children: [

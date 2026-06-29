@@ -20,4 +20,5 @@ class ApiEndpoints {
   static const String timeLogList = '/timesheets/get';
   static const String timeSheetCreate =
       '/timesheets/create';
+  static const archiveJobList = "/archives/list";
 }

@@ -7,6 +7,8 @@ import '../../../core/storage/app_preferences.dart';
 import '../Material/material_screen.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../createjob/CreateJobScreen.dart';
+import '../job_status/job_status_screen.dart';
+import '../jobs/job_list_screen.dart';
 import '../landing/landing_screen.dart';
 import '../timelog/TimeLogScreen.dart';
 
@@ -20,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const primaryColor = Color(0xFFff5b1f);
   String fullName = "Loading...";
+  bool isArchive=false;
 
   @override
   void initState() {
@@ -214,9 +217,24 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisCount: 2,
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
-              childAspectRatio: 1.1,
+             // childAspectRatio: 1.1,
+              childAspectRatio: 0.82,
               children: [
-                _buildMenuCard("View Jobs", Icons.work_rounded, primaryColor),
+                _buildMenuCard(
+                  "View Jobs",
+                  Icons.work_rounded,primaryColor,
+                  //const Color(0xFFd4a373),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                        const JobListScreen(isArchive: true),
+                      ),
+                    );
+                  },
+                ),
+                //_buildMenuCard("View Jobs", Icons.work_rounded, primaryColor),
                 _buildMenuCard(
                   "Create a Job",
                   Icons.assignment_add,
@@ -232,7 +250,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                // _buildMenuCard("Create a Job", Icons.assignment_add, const Color(0xFFd4a373)),
-                _buildMenuCard("Job Status", Icons.history_rounded, const Color(0xFF6b5b95)),
+               // _buildMenuCard("Job Status", Icons.history_rounded, const Color(0xFF6b5b95)),
+                _buildMenuCard(
+                  "Job Status",
+                  Icons.history_rounded,
+                  const Color(0xFF6b5b95),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                        const JobStatusScreen(),
+                      ),
+                    );
+                  },
+                ),
                 _buildMenuCard(
                   "Materials",
                   Icons.layers_rounded,
@@ -288,6 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ]
             ),
+
             const SizedBox(height: 100),
           ],
         ),
@@ -295,6 +328,109 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   Widget _buildMenuCard(
+      String title,
+      IconData icon,
+      Color iconColor, {
+        VoidCallback? onTap,
+      }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(20),
+
+        child: Column(
+          children: [
+
+            CustomText(
+              title,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyLarge.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
+            ),
+
+            const Spacer(),
+
+            Container(
+              height: 70,
+              width: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: iconColor.withOpacity(0.10),
+              ),
+              child: Icon(
+                icon,
+                size: 45,
+                color: iconColor,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            CustomText(
+              _getDescription(title),
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: Colors.grey.shade700,
+                height: 1.4,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            Icon(
+              Icons.arrow_forward,
+              color: iconColor,
+              size: 28,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  String _getDescription(String title) {
+    switch (title) {
+      case "View Jobs":
+        return "Browse and manage your jobs";
+
+      case "Create a Job":
+        return "Add new job and assign tasks";
+
+      case "Job Status":
+        return "Track progress and job updates";
+
+      case "Materials":
+        return "Manage materials and inventory";
+
+      case "Archived Jobs":
+        return "View and restore archived jobs";
+
+      case "Time Logs":
+        return "Track and review time logs";
+
+      case "Contact Book":
+        return "Access contacts and engineers";
+
+      case "Log out":
+        return "Securely sign out";
+
+      default:
+        return "";
+    }
+  }
+/*  Widget _buildMenuCard(
       String title,
       IconData icon,
       Color iconColor, {
@@ -337,7 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
+  }*/
 /*
   Widget _buildMenuCard(String title, IconData icon, Color iconColor,  VoidCallback? onTap) {
     return GestureDetector(

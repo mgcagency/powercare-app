@@ -58,7 +58,7 @@ class _CreatePinScreenState extends State<CreatePinScreen> {
     }
   }
 
-  Widget buildPinCircle(int index) {
+/*  Widget buildPinCircle(int index) {
 
 
     return Container(
@@ -74,9 +74,9 @@ class _CreatePinScreenState extends State<CreatePinScreen> {
     );
 
 
-  }
+  }*/
 
-  Widget buildNumberButton(String value) {
+/*  Widget buildNumberButton(String value) {
 
 
     return GestureDetector(
@@ -101,101 +101,181 @@ class _CreatePinScreenState extends State<CreatePinScreen> {
     );
 
 
+  }*/
+  Widget buildNumberButton(String number) {
+    return GestureDetector(
+      onTap: () => addDigit(number),
+      child: Container(
+        width: 90,
+        height: 90,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+           color: Colors.cyanAccent,
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            number,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 40,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
   }
-
+  Widget buildPinCircle(int index) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: pin.length > index
+            ? Colors.white
+            : Colors.transparent,
+        border: Border.all(
+          color: Colors.white70,
+          width: 1.5,
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
-    backgroundColor: const Color(0xFFFF8C00),
+   // backgroundColor: const Color(0xFFFF8C00),
 
-    body: SafeArea(
-    child: Column(
-    children: [
-
-    const SizedBox(height: 60),
-
-    const Icon(
-    Icons.lock_outline,
-    size: 90,
-    color: Colors.white,
+    body: Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+      image: AssetImage('assets/icons/login_bg.jpg'),
+      fit: BoxFit.cover,opacity:0.90,
+      ),
+  /*    gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFF2C5364),
+          Color(0xFF203A43),
+          Color(0xFF0F2027),
+        ],
+      ),*/
     ),
+      child: SafeArea(
+      child: Column(
+      children: [
 
-    const SizedBox(height: 20),
+      const SizedBox(height: 60),
 
-    const Text(
-    "Create 4 Digit PIN",
-    style: TextStyle(
-    color: Colors.white,
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-    ),
-    ),
+      const Icon(
+      Icons.lock_outline,
+      size: 70,
+      color: Colors.white,
+      ),
 
-    const SizedBox(height: 10),
+      const SizedBox(height: 20),
 
-    const Text(
-    "Create a secure PIN for quick login",
-    style: TextStyle(
-    color: Colors.white70,
-    ),
-    ),
+      const Text(
+      "Create PIN",
+      style: TextStyle(
+      color: Colors.white,
+      fontSize: 22,
+      fontWeight: FontWeight.bold,
+      ),
+      ),
 
-    const SizedBox(height: 40),
+      const SizedBox(height: 10),
 
-    Row(
-    mainAxisAlignment:
-    MainAxisAlignment.center,
-    children: List.generate(
-    4,
-    (index) =>
-    buildPinCircle(index),
-    ),
-    ),
+      const Text(
+      "Create a PIN to securely access your account",
+      style: TextStyle(
+      color: Colors.white70,
+      ),
+      ),
 
-    const Spacer(),
+      const SizedBox(height: 40),
 
-    GridView.count(
-    shrinkWrap: true,
-    crossAxisCount: 3,
-    mainAxisSpacing: 20,
-    crossAxisSpacing: 20,
-    padding:
-    const EdgeInsets.symmetric(
-    horizontal: 70,
-    ),
-    children: [
+      Row(
+      mainAxisAlignment:
+      MainAxisAlignment.center,
+      children: List.generate(
+      4,
+      (index) =>
+      buildPinCircle(index),
+      ),
+      ),
+        const SizedBox(height: 40),
 
-    ...List.generate(
-    9,
-    (index) =>
-    buildNumberButton(
-    "${index + 1}",
-    ),
-    ),
+     // const Spacer(),
 
-    Container(),
+      GridView.count(
+      shrinkWrap: true,
+      crossAxisCount: 3,
+      mainAxisSpacing: 20,
+      crossAxisSpacing: 20,
+      padding:
+      const EdgeInsets.symmetric(
+      horizontal: 70,
+      ),
+      children: [
 
-    buildNumberButton("0"),
+      ...List.generate(
+      9,
+      (index) =>
+      buildNumberButton(
+      "${index + 1}",
+      ),
+      ),
 
-    GestureDetector(
-    onTap: removeDigit,
-    child: const CircleAvatar(
-    radius: 38,
-    backgroundColor:
-    Colors.white,
-    child: Icon(
-    Icons.backspace_outlined,
-    color: Colors.black,
-    ),
-    ),
-    ),
-    ],
-    ),
+      Container(),
 
-    const SizedBox(height: 40),
-    ],
-    ),
+      buildNumberButton("0"),
+        GestureDetector(
+          onTap: removeDigit,
+          child: Container(
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.cyanAccent,
+                width: 1.5,
+              ),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.backspace_outlined,
+                color: Colors.white,
+                size: 35,
+              ),
+            ),
+          ),
+        ),
+/*      GestureDetector(
+      onTap: removeDigit,
+      child: const CircleAvatar(
+      radius: 38,
+      backgroundColor:
+      Colors.white,
+      child: Icon(
+      Icons.backspace_outlined,
+      color: Colors.black,
+      ),
+      ),
+      ),*/
+      ],
+      ),
+
+      const SizedBox(height: 40),
+      ],
+      ),
+      ),
     ),
     );
 

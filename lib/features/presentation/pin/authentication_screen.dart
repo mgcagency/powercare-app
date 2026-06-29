@@ -46,12 +46,12 @@ class _AuthenticationScreenState
     }
   }
 
-  void verifyPin() {
+  Future<void> verifyPin() async {
 
     if (pin.length != 4) return;
     print("Entered Pin = $pin");
     final savedPin =
-    AppPreferences.getSecretCode();
+    await AppPreferences.getSecretCode();
     print("Saved Pin = ${AppPreferences.getSecretCode()}");
 
     if (savedPin == pin) {
@@ -75,141 +75,191 @@ class _AuthenticationScreenState
       );
     }
   }
+  Widget numberButton(String value) {
+    return GestureDetector(
+      onTap: () {
+        if (pin.length < 4) {
+          setState(() {
+            pin += value;
+          });
+
+          if (pin.length == 4) {
+            verifyPin();
+          }
+        }
+      },
+      child: Container(
+        width: 90,
+        height: 90,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.cyanAccent,
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 40,
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFF8A00),
-      body: SafeArea(
-        child: Column(
-          children: [
-
-            const SizedBox(height: 30),
-
-            const Icon(
-              Icons.lock_outline,
-              size: 90,
-              color: Colors.white,
+     // backgroundColor: const Color(0xFFFF8A00),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(
+              "assets/icons/login_bg.jpg",
             ),
+            fit: BoxFit.cover,
+            opacity: 0.90,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 60),
 
-            const Text(
-              "Enter your 4-digit password",
-              style: TextStyle(
+              const Icon(
+                Icons.lock_outline,
+                size: 70,
                 color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
               ),
-            ),
 
-            const SizedBox(height: 30),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                4,
-                    (index) => Container(
-                  margin: const EdgeInsets.all(8),
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: index < pin.length
-                        ? Colors.white
-                        : Colors.white30,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                "Forgot PIN?",
+              const SizedBox(height: 20),
+              const Text(
+                "Enter Your PIN",
                 style: TextStyle(
                   color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
+              const SizedBox(height: 10),
 
-            const Spacer(),
+              const Text(
+                "Enter your 4-digit PIN to continue",
+                style: TextStyle(
+                  color: Colors.white70,
+                 // fontSize: 16,
+                ),
+              ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 50),
-              child: GridView.count(
-                shrinkWrap: true,
-                crossAxisCount: 3,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                children: [
+              const SizedBox(height: 30),
 
-                  for (int i = 1; i <= 9; i++)
-                    ElevatedButton(
-                      onPressed: () {
-                        if (pin.length < 4) {
-                          setState(() {
-                            pin += i.toString();
-                          });
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  4,
+                      (index) => Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                    ),
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: pin.length > index
+                          ? Colors.white
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: Colors.white70,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+/*              const SizedBox(height: 20),
 
-                          if (pin.length == 4) {
-                            verifyPin();
+              TextButton(
+                onPressed: () {},
+                child: const Text(
+                  "Forgot PIN?",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              IconButton(
+                onPressed: authenticateWithBiometric,
+                icon: const Icon(
+                  Icons.fingerprint,
+                  color: Colors.white,
+                  size: 45,
+                ),
+              ),*/
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50),
+                  child: GridView.count(
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 20,
+                    children: [
+                      for (int i = 1; i <= 9; i++)
+                        numberButton("$i"),
+
+                      Container(),
+
+                      numberButton("0"),
+
+                      GestureDetector(
+                        onTap: () {
+                          if (pin.isNotEmpty) {
+                            setState(() {
+                              pin = pin.substring(
+                                0,
+                                pin.length - 1,
+                              );
+                            });
                           }
-                        }
-                      },
-                      child: Text(
-                        "$i",
-                        style: const TextStyle(
-                          fontSize: 24,
+                        },
+                        child: Container(
+                          width: 90,
+                          height: 90,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.cyanAccent,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.backspace_outlined,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-
-                  const SizedBox(),
-
-                  ElevatedButton(
-                    onPressed: () {
-                      if (pin.length < 4) {
-                        setState(() {
-                          pin += "0";
-                        });
-
-                        if (pin.length == 4) {
-                          verifyPin();
-                        }
-                      }
-                    },
-                    child: const Text(
-                      "0",
-                      style: TextStyle(
-                        fontSize: 24,
-                      ),
-                    ),
+                    ],
                   ),
-
-                  ElevatedButton(
-                    onPressed: () {
-                      if (pin.isNotEmpty) {
-                        setState(() {
-                          pin = pin.substring(
-                            0,
-                            pin.length - 1,
-                          );
-                        });
-                      }
-                    },
-                    child: const Icon(
-                      Icons.backspace,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

@@ -52,4 +52,15 @@ class JobRepository {
     // Assuming the API uses GET or DELETE as per your description
     return await ApiClient.delete("${ApiEndpoints.jobImageDelete}$imageId");
   }
+  Future<JobListResponse> getArchivedJobs(
+      Map<String,dynamic> parameters,
+      ) async {
+
+    final response = await ApiClient.get(
+      ApiEndpoints.archiveJobList,
+      parameters: parameters,
+    );
+
+    return JobListResponse.fromJson(response.data);
+  }
 }

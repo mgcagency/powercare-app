@@ -8,12 +8,26 @@ import '../../alldata/api_repository/contact_repository.dart';
 import '../../alldata/models/contact_book_model.dart';
 
 class ContactBookScreen extends StatefulWidget {
-  const ContactBookScreen({super.key});
+
+  final bool showAppBar;
+
+  const ContactBookScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<ContactBookScreen> createState() =>
       _ContactBookScreenState();
 }
+
+/*class ContactBookScreen extends StatefulWidget {
+  const ContactBookScreen({super.key});
+
+  @override
+  State<ContactBookScreen> createState() =>
+      _ContactBookScreenState();
+}*/
 
 class _ContactBookScreenState
     extends State<ContactBookScreen> {
@@ -113,6 +127,11 @@ class _ContactBookScreenState
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       //appBar: const CustomAppBar(title: "Contact Book"),
+      appBar: widget.showAppBar
+          ? const CustomAppBar(
+        title: "Contact Book",
+      )
+          : null,
 
       body: Column(
         children: [

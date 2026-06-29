@@ -12,6 +12,7 @@ import '../../../app/widget/custom_textfield.dart';
 import '../../alldata/api_repository/create_job_repository.dart';
 import '../../alldata/models/JobStatusModel.dart';
 import '../../alldata/models/UserModel.dart';
+import '../jobs/job_list_screen.dart';
 
 class CreateJobScreen extends StatefulWidget {
   const CreateJobScreen({super.key});
@@ -21,6 +22,11 @@ class CreateJobScreen extends StatefulWidget {
 }
 
 class _CreateJobScreenState extends State<CreateJobScreen> {
+  bool isValidEmail(String email) {
+    return RegExp(
+      r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$',
+    ).hasMatch(email);
+  }
   String _orderDate = "16/03/2026";
   List<UserModel> users = [];
 
@@ -67,7 +73,13 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     getUsers();
     getJobStatus();
   }
-
+  void showToast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
   Future<void> showOtherEngineerDialog() async {
     List<UserModel> tempList = List.from(selectedOtherEngineers);
 
@@ -179,6 +191,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
     }
   }
 
+/*
   Future<void> createJob() async {
     Map<String, dynamic> body = {
       "job_number": jobNumberController.text,
@@ -216,7 +229,102 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
     await repository.createJob(body);
   }
+*/
+/*
+  Future<void> createJob() async {
+    try {
 
+      Map<String, dynamic> body = {
+        "job_number": jobNumberController.text,
+        "job_name": jobNameController.text,
+        "email": emailController.text,
+        "lead_engineer_id": selectedLeadEngineer?.id,
+        "job_status": selectedStatus?.id,
+        "customer_po_number": customerPoController.text,
+        "job_location": locationController.text,
+        "mobile_no": mobileController.text,
+        "city": cityController.text,
+        "state": "",
+        "job_date": selectedDate,
+        "job_time": selectedTime,
+        "job_description": descriptionController.text,
+        "more_information": moreInfoController.text,
+      };
+
+      for (int i = 0; i < selectedOtherEngineers.length; i++) {
+        body["other_engineers_id[$i]"] =
+            selectedOtherEngineers[i].id.toString();
+      }
+
+      final response =
+      await repository.createJob(body);
+
+      print("STATUS => ${response.statusCode}");
+      print("DATA => ${response.data}");
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201) {
+
+        showToast("Job Created Successfully");
+
+        Navigator.pop(context);
+
+      } else {
+
+        showToast("Failed to create job");
+      }
+
+    } catch (e, s) {
+
+      print("CREATE JOB ERROR => $e");
+      print("STACK => $s");
+
+      showToast(e.toString());
+    }
+  }
+*/
+  Future<void> createJob() async {
+
+    Map<String, dynamic> body = {
+      "job_number": jobNumberController.text,
+      "job_name": jobNameController.text,
+      "email": emailController.text,
+      "lead_engineer_id": selectedLeadEngineer?.id,
+      "job_status": selectedStatus?.id,
+      "customer_po_number": customerPoController.text,
+      "job_location": locationController.text,
+      "mobile_no": mobileController.text,
+      "city": cityController.text,
+      "state": "",
+      "job_date": selectedDate,
+      "job_time": selectedTime,
+      "job_description": descriptionController.text,
+      "more_information": moreInfoController.text,
+    };
+
+    for (int i = 0; i < selectedOtherEngineers.length; i++) {
+      body["other_engineers_id[$i]"] =
+          selectedOtherEngineers[i].id.toString();
+    }
+
+    try {
+
+      final response =
+      await repository.createJob(body);
+
+      print("STATUS => ${response.statusCode}");
+
+      print("DATA => ${response.data}");
+
+      print("TYPE => ${response.data.runtimeType}");
+
+    } catch (e, s) {
+
+      print("ERROR => $e");
+
+      print("STACK => $s");
+    }
+  }
   Future<void> pickDate() async {
     final date = await showDatePicker(
       context: context,
@@ -257,32 +365,35 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
         child: Column(
           children: [
+            _buildLabel("Job Number", isRequired: true),
+
             CustomTextField(
               controller: jobNumberController,
               hintText: "Job Number",
-              label: "Job Number",
 
               // readOnly: true,
             ),
 
             const SizedBox(height: 12),
+            _buildLabel("Job Name", isRequired: true),
 
             CustomTextField(
               controller: jobNameController,
               hintText: "Job Name",
-              label: "Job Name",
             ),
 
             const SizedBox(height: 12),
+            _buildLabel("Email", isRequired: true),
 
             CustomTextField(
               controller: emailController,
               hintText: "Email",
-              label: "Email",
             ),
 
             const SizedBox(height: 12),
-            Align(
+            _buildLabel("Lead Engineer", isRequired: true),
+
+      /*      Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 "Lead Engineer",
@@ -290,7 +401,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
+            ),*/
 
             const SizedBox(height: 8),
             GestureDetector(
@@ -348,8 +459,9 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               },
             ),*/
             const SizedBox(height: 12),
+            _buildLabel("Job Status", isRequired: true),
 
-            Align(
+       /*     Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 "Job Status",
@@ -357,7 +469,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
+            ),*/
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
@@ -412,22 +524,24 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               },
             ),*/
             const SizedBox(height: 12),
+            _buildLabel("Customer PO Number", isRequired: true),
 
             CustomTextField(
               controller: customerPoController,
               hintText: "Customer PO Number",
-              label: "Customer PO Number",
             ),
 
             const SizedBox(height: 12),
+            _buildLabel("Mobile Number", isRequired: true),
 
             CustomTextField(
               controller: mobileController,
               hintText: "Mobile Number",
-              label: "Mobile Number",
             ),
 
             const SizedBox(height: 12),
+            _buildLabel("Select Other Engineers", isRequired: true),
+
             GestureDetector(
               onTap: showOtherEngineerBottomSheet,
               child: Container(
@@ -514,19 +628,19 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               }).toList(),
             ),
             const SizedBox(height: 12),
+            _buildLabel("Job Location", isRequired: true),
 
             CustomTextField(
               controller: locationController,
               hintText: "Job Location",
-              label: "Job Location",
             ),
 
             const SizedBox(height: 12),
+            _buildLabel("City", isRequired: true),
 
             CustomTextField(
               controller: cityController,
               hintText: "City",
-              label: "City",
             ),
 
             const SizedBox(height: 12),
@@ -567,19 +681,19 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               onTap: pickTime,
             ),*/
             const SizedBox(height: 12),
+            _buildLabel("Description", isRequired: true),
 
             CustomTextField(
               controller: descriptionController,
-              maxLines: 4,
-              label: "Description",
+              maxLines: 4,hintText:"Description" ,
             ),
 
             const SizedBox(height: 12),
+            _buildLabel("More Information", isRequired: true),
 
             CustomTextField(
               controller: moreInfoController,
-              maxLines: 4,
-              label: "More Information",
+              maxLines: 4,hintText: "More Information",
             ),
 
             const SizedBox(height: 25),
@@ -599,11 +713,68 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
                 CustomButton(
                   title: "Create Job",
-                  onPressed: () {
-                    // Handle Save Logic
+                  onPressed: () async {
+
+                    bool callApi = true;
+
+                    if (jobNameController.text.trim().isEmpty) {
+                      showToast("Please enter Job Name");
+                      callApi = false;
+                    }
+
+                    if (emailController.text.trim().isEmpty ||
+                        !isValidEmail(emailController.text.trim())) {
+                      showToast("Please enter valid Email");
+                      callApi = false;
+                    }
+
+                    if (mobileController.text.trim().isEmpty) {
+                      showToast("Please enter Mobile Number");
+                      callApi = false;
+                    }
+
+                    if (customerPoController.text.trim().isEmpty) {
+                      showToast("Please enter Customer PO Number");
+                      callApi = false;
+                    }
+
+                    if (locationController.text.trim().isEmpty) {
+                      showToast("Please enter Job Location");
+                      callApi = false;
+                    }
+
+                    if (cityController.text.trim().isEmpty) {
+                      showToast("Please enter City");
+                      callApi = false;
+                    }
+
+                    if (selectedLeadEngineer == null) {
+                      showToast("Please select Lead Engineer");
+                      callApi = false;
+                    }
+
+                    if (selectedStatus == null) {
+                      showToast("Please select Job Status");
+                      callApi = false;
+                    }
+
+                    if (selectedOtherEngineers.isEmpty) {
+                      showToast("Please select Other Engineer");
+                      callApi = false;
+                    }
+
+                    if (callApi) {
+                      await createJob();
+
+                    }
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const JobListScreen(),
+                      ),
+                    );
                   },
-                ),
-                const SizedBox(width: 25),
+                ),                const SizedBox(width: 25),
               ],
             ),
           ],
@@ -679,119 +850,119 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
       ),
     );
   }
-  void showOtherEngineerBottomSheet() {
+    void showOtherEngineerBottomSheet() {
 
-    showModalBottomSheet(
+      showModalBottomSheet(
 
-      context: context,
+        context: context,
 
-      isScrollControlled: true,
+        isScrollControlled: true,
 
-      backgroundColor: Colors.white,
+        backgroundColor: Colors.white,
 
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
         ),
-      ),
 
-      builder: (context) {
+        builder: (context) {
 
-        return StatefulBuilder(
+          return StatefulBuilder(
 
-          builder: (context, setModalState) {
+            builder: (context, setModalState) {
 
-            return SizedBox(
+              return SizedBox(
 
-              height: MediaQuery.of(context).size.height * 0.65,
+                height: MediaQuery.of(context).size.height * 0.65,
 
-              child: Column(
+                child: Column(
 
-                children: [
+                  children: [
 
-                  const SizedBox(height: 15),
+                    const SizedBox(height: 15),
 
-                  const Text(
-                    "Select Other Engineers",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    const Text(
+                      "Select Other Engineers",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
 
-                  const Divider(),
+                    const Divider(),
 
-                  Expanded(
+                    Expanded(
 
-                    child: ListView.builder(
+                      child: ListView.builder(
 
-                      itemCount: users.length,
+                        itemCount: users.length,
 
-                      itemBuilder: (_, index) {
+                        itemBuilder: (_, index) {
 
-                        final user = users[index];
+                          final user = users[index];
 
-                        final isSelected =
-                        selectedOtherEngineers.any(
-                              (e) => e.id == user.id,
-                        );
+                          final isSelected =
+                          selectedOtherEngineers.any(
+                                (e) => e.id == user.id,
+                          );
 
-                        return CheckboxListTile(
+                          return CheckboxListTile(
 
-                          value: isSelected,
+                            value: isSelected,
 
-                          title: Text(
-                            "${user.firstName ?? ""} ${user.lastName ?? ""}",
-                          ),
+                            title: Text(
+                              "${user.firstName ?? ""} ${user.lastName ?? ""}",
+                            ),
 
-                          activeColor: AppColors.primary,
+                            activeColor: AppColors.primary,
 
-                          onChanged: (value) {
+                            onChanged: (value) {
 
-                            setModalState(() {
+                              setModalState(() {
 
-                              if (isSelected) {
+                                if (isSelected) {
 
-                                selectedOtherEngineers.removeWhere(
-                                      (e) => e.id == user.id,
-                                );
+                                  selectedOtherEngineers.removeWhere(
+                                        (e) => e.id == user.id,
+                                  );
 
-                              } else {
+                                } else {
 
-                                selectedOtherEngineers.add(user);
-                              }
-                            });
+                                  selectedOtherEngineers.add(user);
+                                }
+                              });
 
-                            setState(() {});
-                          },
-                        );
-                      },
-                    ),
-                  ),
-
-                  Padding(
-
-                    padding: const EdgeInsets.all(16),
-
-                    child: SizedBox(
-
-                      width: double.infinity,
-                     child: CustomButton(
-                        title: "Done",
-                        onPressed: () {
-                          Navigator.pop(context);
+                              setState(() {});
+                            },
+                          );
                         },
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+
+                    Padding(
+
+                      padding: const EdgeInsets.all(16),
+
+                      child: SizedBox(
+
+                        width: double.infinity,
+                       child: CustomButton(
+                          title: "Done",
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
   void showLeadEngineerBottomSheet() {
 
     showModalBottomSheet(

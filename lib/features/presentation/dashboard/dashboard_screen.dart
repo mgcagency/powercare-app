@@ -5,11 +5,13 @@ import 'package:powercare_flutter/features/presentation/job_status/job_status_sc
 import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dart';
 
 import '../../../app/theme/colors.dart';
+import '../../../core/storage/app_preferences.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../home/home_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
-
+import '../timelog/TimeLogScreen.dart';
+import 'dart:io';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -19,18 +21,32 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   static const primary = Color(0xFFff5b1f);
+  String profileImage = "";
 
   int _selectedIndex = 0;
-
   final List<Widget> _pages = [
     const HomeScreen(),
+    const JobListScreen(showAppBar: false),
+    const JobStatusScreen(showAppBar: false),
+    const TimeLogScreen(showAppBar: false),
+    const ContactBookScreen(showAppBar: false),
+  ];
+/*  final List<Widget> _pages = [
+    const HomeScreen(showAppBar: false),
     const JobListScreen(),
     const JobStatusScreen(),
-    const Center(child: Text("Timelog Content", style: TextStyle(fontSize: 20))),
+    const TimeLogScreen(),
     const ContactBookScreen(),
+    //const Center(child: Text("Timelog Content", style: TextStyle(fontSize: 20))),
    // const Center(child: Text("Contact Book Content", style: TextStyle(fontSize: 20))),
+  ];*/
+  final List<String> _titles = [
+    "Home",
+    "View Jobs",
+    "Job Status",
+    "Time Logs",
+    "Contact Book",
   ];
-
   final List<IconData> _icons = [
     Icons.home_rounded,
     Icons.grid_view_rounded,
@@ -38,11 +54,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Icons.insert_chart_rounded,
     Icons.contact_phone_rounded,
   ];
+  Future<void> loadProfileImage() async {
 
+    profileImage =
+        await AppPreferences.getUserImage() ?? "";
+
+    print("DASHBOARD IMAGE => $profileImage");
+
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadProfileImage();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Home",
+      appBar: CustomAppBar(title:_titles[_selectedIndex],
       actions: [
         IconButton(
           icon: Icon(
@@ -114,7 +144,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
         ),*/
-      IconButton(
+/*      IconButton(
           icon: const CircleAvatar(
             radius: 16,
             child: Icon(
@@ -132,6 +162,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             );
           },
+        ),*/
+        IconButton(
+          icon: CircleAvatar(
+            radius: 16,
+            backgroundImage:
+            profileImage.isNotEmpty
+                ? FileImage(
+              File(profileImage),
+            )
+                : null,
+            child: profileImage.isEmpty
+                ? const Icon(
+              Icons.person,
+              size: 18,
+            )
+                : null,
+          ),
+          onPressed: () async {
+
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ProfileScreen(),
+              ),
+            );
+
+            if (result == true) {
+              loadProfileImage();
+            }
+          },
+/*          onPressed: () {
+
+   Navigator.push(
+    context,
+    MaterialPageRoute(
+    builder: (_) =>
+    const ProfileScreen(),
+    ),
+    );
+    },*/
         ),
 
         const SizedBox(width: 10),
