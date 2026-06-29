@@ -123,6 +123,7 @@ dev_dependencies:
   json_serializable: ^6.11.4
   flutter_launcher_icons: ^0.14.3
   http: ^1.2.1
+  table_calendar: ^3.1.2
 
 flutter_launcher_icons:
   android: true
