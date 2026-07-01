@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
-
 import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_text.dart';
@@ -16,306 +15,240 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   final NotificationRepository repository = NotificationRepository();
-
   List<NotificationData> notifications = [];
-
   bool isLoading = false;
-
+  bool isFirstLoad = true;
   int page = 1;
   int lastPage = 1;
-  final ScrollController
-  scrollController =
-  ScrollController();
+  final ScrollController scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     markNotificationsRead();
-
     callNotificationApi();
 
     scrollController.addListener(() {
-
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
-
-        if (!isLoading &&
-            page < lastPage) {
-
+      if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+        if (!isLoading && page < lastPage) {
           page++;
-
           callNotificationApi();
         }
       }
     });
   }
+
   Future<void> markNotificationsRead() async {
-
     try {
-
       await repository.markAllAsRead();
-
-      print(
-        "Notifications marked as read",
-      );
-
     } catch (e) {
-
-      print(
-        "Read Notification Error => $e",
-      );
+      debugPrint("Read Notification Error => $e");
     }
   }
-  Future<void> callNotificationApi() async {
-    if(page == 1){
-      notifications.clear();
-    }
-    setState(() {
-      isLoading = true;
-    });
 
+  Future<void> callNotificationApi() async {
+    setState(() => isLoading = true);
     try {
       final response = await repository.getNotifications(page);
-
+      if (page == 1) notifications.clear();
       notifications.addAll(response.notification?.data ?? []);
-
       lastPage = response.notification?.lastPage ?? 1;
-
-      print("Notification Count = ${notifications.length}");
-
-      setState(() {});
     } catch (e) {
-      print("Notification Error => $e");
+      debugPrint("Notification Error => $e");
     }
-
     setState(() {
       isLoading = false;
+      isFirstLoad = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: const CustomAppBar(title: "Notifications"),
-  /*    body: isLoading && notifications.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+      backgroundColor: const Color(0xFFF8FAFC), // Modern off-white background
+      appBar: const CustomAppBar(title: "Notifications"),
+      body: isFirstLoad && isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : notifications.isEmpty
-          ? const Center(child: Text("No Notification Available"))
-
-          : ListView.builder(
-        controller: scrollController,
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                final item = notifications[index];*/
-        body: isLoading &&
-            notifications.isEmpty
-            ? const Center(
-          child:
-          CircularProgressIndicator(),
-        )
-            : notifications.isEmpty
-            ?  Center(
-          child: CustomText(
-            "No Notification Available",
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textColor,
-            ),
-          ),
-        )
-            : RefreshIndicator(
-          onRefresh: () async {
-
-            page = 1;
-            notifications.clear();
-
-            await callNotificationApi();
+          ? _buildEmptyState()
+          : RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async {
+          page = 1;
+          await callNotificationApi();
+        },
+        child: ListView.builder(
+          controller: scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+          itemCount: notifications.length + (isLoading ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index < notifications.length) {
+              return _buildAnimatedItem(index);
+            } else {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              );
+            }
           },
-          child: ListView.builder(
-            controller: scrollController,
-            itemCount:
-            notifications.length,
-            itemBuilder:
-                (context, index) {
+        ),
+      ),
+    );
+  }
 
-              final item =
-              notifications[index];
-                return Card(color: item.isRead == 0
-                    ? Colors.orange.shade50
-                    : Colors.white,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+  Widget _buildAnimatedItem(int index) {
+    final item = notifications[index];
+
+    // Staggered Animation Logic
+    return TweenAnimationBuilder(
+      duration: Duration(milliseconds: 400 + (index % 10 * 60)),
+      tween: Tween<double>(begin: 0, end: 1),
+      builder: (context, double value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: _buildNotificationCard(item),
+    );
+  }
+
+  Widget _buildNotificationCard(NotificationData item) {
+    bool isUnread = item.isRead == 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isUnread ? Colors.blue.withOpacity(0.03) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isUnread ? AppColors.primary.withOpacity(0.1) : Colors.grey.shade100,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            // Vertical indicator for unread notifications
+            if (isUnread)
+              Container(
+                width: 4,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
                   ),
-
-                  elevation: 2,
-
-                  child: ListTile(
-      /*              onTap:  () {
-
-                    if(item.jobId != null){
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              JobDetailsScreen(
-                                jobId:
-                                item.jobId!,
+                ),
+              ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: isUnread
+                              ? AppColors.primary.withOpacity(0.1)
+                              : Colors.grey.shade100,
+                          child: Icon(
+                            Icons.notifications_none_rounded,
+                            size: 20,
+                            color: isUnread ? AppColors.primary : Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                item.title ?? "",
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
+                                  color: AppColors.navyBlue,
+                                ),
                               ),
-                        ),
-                      );
-                    }
-                  },*/
-                    leading: CircleAvatar(
-                      backgroundColor: item.isRead == 0
-                          ? AppColors.primary
-                          : AppColors.grey,
-
-                      child: const Icon(
-                        Icons.notifications,
-                        color: Colors.white,
-                      ),
-                    ),
-                    title: CustomText(
-                      item.title ?? "",
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textColor,
-                      ),
-                    ),
-                 /*   title: Text(
-                      item.title ?? "",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),*/
-                   // working custom text  code
-/*
-                    subtitle: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      children: [
-
-                        const SizedBox(height: 5),
-
-                        CustomText(
-                          item.body ?? "",
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textColor,
-                          ),
-                        ),
-
-                        const SizedBox(height: 5),
-
-                        CustomText(
-                          item.createdAt ?? "",
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.grey,
-                            fontSize: 11,
-                          ),
-                        ),
-
-                        if(item.type == "job_invitation")
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 10,
-                            ),
-                            child: Row(
-                              children: [
-
-                                ElevatedButton(
-                                  onPressed: () {
-                                    print("Accept Click");
-                                  },
-                                  child: CustomText(
-                                    "Accept",
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                              const SizedBox(height: 4),
+                              CustomText(
+                                item.body ?? "",
+                                style: AppTextStyles.bodyExtraSmall.copyWith(
+                                  color: Colors.grey.shade600,
                                 ),
-
-                                const SizedBox(width: 10),
-
-                                OutlinedButton(
-                                  onPressed: () {
-                                    print("Reject Click");
-                                  },
-                                  child: CustomText(
-                                    "Reject",
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.textColor,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
-*/
+                    if (item.type?.toLowerCase() == "job")
+                    const SizedBox(height: 12),
 
-                    subtitle: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      children: [
-
-                        const SizedBox(height: 5),
-
-                        Text(item.body ?? ""),
-
-                        const SizedBox(height: 5),
-
-                        Text(
-                          item.createdAt ?? "",
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-
-                        if(item.type == "job_invitation")
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 10,
-                            ),
-                            child: Row(
-                              children: [
-
-                                ElevatedButton(
-                                  onPressed: () {
-
-                                    print(
-                                      "Accept Click",
-                                    );
-                                  },
-                                  child: const Text(
-                                    "Accept",
-                                  ),
-                                ),
-
-                                const SizedBox(width: 10),
-
-                                OutlinedButton(
-                                  onPressed: () {
-
-                                    print(
-                                      "Reject Click",
-                                    );
-                                  },
-                                  child: const Text(
-                                    "Reject",
-                                  ),
-                                ),
-                              ],
-                            ),
+                        if (item.type?.toLowerCase() == "job")
+                          Row(
+                            children: [
+                              Spacer(),
+                              _buildActionBtn("Reject", Colors.grey.shade100, AppColors.navyBlue),
+                              const SizedBox(width: 8),
+                              _buildActionBtn("Accept", AppColors.primary, Colors.white),
+                              Spacer(),
+                            ],
                           ),
                       ],
-                    ),
 
-                  ),
-                );
-              },
+
+                ),
+              ),
             ),
-    ));
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionBtn(String text, Color bg, Color textCol) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: CustomText(
+        text,
+        style: AppTextStyles.bodyExtraSmall.copyWith(
+          color: textCol,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey.shade200),
+          const SizedBox(height: 16),
+          CustomText(
+            "No notifications yet",
+            style: AppTextStyles.bodyMedium.copyWith(color: Colors.grey.shade400),
+          ),
+        ],
+      ),
+    );
   }
 }

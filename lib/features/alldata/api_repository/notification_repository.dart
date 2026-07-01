@@ -16,7 +16,7 @@ class NotificationRepository {
         "page": page,
       },
     );
-
+print("NotificationResponse---->"+response.data.toString());
     return NotificationResponse.fromJson(
       response.data,
     );
