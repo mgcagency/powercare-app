@@ -52,7 +52,7 @@ class _AuthenticationScreenState
     print("Entered Pin = $pin");
     final savedPin =
     await AppPreferences.getSecretCode();
-    print("Saved Pin = ${AppPreferences.getSecretCode()}");
+    print("Saved Pin = ${ await AppPreferences.getSecretCode()}");
 
     if (savedPin == pin) {
 
