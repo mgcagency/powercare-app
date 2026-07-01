@@ -284,71 +284,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
   void _showSelectJobDialog() {
-
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
-
         return Dialog(
+          backgroundColor: AppColors.pureWhite,
+          surfaceTintColor: AppColors.pureWhite,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
           shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Container(
-            height: 450,
-            padding: const EdgeInsets.all(20),
-
+            width: double.maxFinite,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7, // Responsive height
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-
-                const Text(
-                  "Select Job",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight:
-                    FontWeight.bold,
+                // Header section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.assignment_rounded,
+                            color: AppColors.primary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CustomText(
+                          "Select Active Job",
+                          style: AppTextStyles.headline4.copyWith(
+                            color: AppColors.navyBlue,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                        visualDensity: VisualDensity.compact,
+                      )
+                    ],
                   ),
                 ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 15, bottom: 5),
+                  child: Divider(height: 1, thickness: 0.5),
+                ),
 
-                const SizedBox(height: 20),
-
+                // Job List section
                 Expanded(
                   child: ListView.builder(
-                    itemCount: 10,
-                    itemBuilder:
-                        (context, index) {
-
-                      return ListTile(
-                        title: Text(
-                          "Job ${index + 1}",
-                        ),
-                        subtitle: Text(
-                          "Job Number ${(index + 1) * 100}",
-                        ),
-                        onTap: () {
-
-                          Navigator.pop(
-                            context,
-                          );
-
-                          // Open Screen
-                        },
-                      );
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    itemCount: 10, // Replace with your actual list length
+                    itemBuilder: (context, index) {
+                      return _buildPremiumJobCard(index);
                     },
                   ),
                 ),
 
-                Align(
-                  alignment:
-                  Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pop(
-                        context,
-                      );
-                    },
-                    child: const Text(
-                      "CANCEL",
+                // Footer section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: CustomText(
+                        "CLOSE",
+                        style: AppTextStyles.button.copyWith(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -357,6 +381,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPremiumJobCard(int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Navigator.pop(context),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Icon Prefix
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.maps_home_work_rounded, color: AppColors.primary, size: 22),
+                ),
+                const SizedBox(width: 16),
+
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        "London Site Office ${index + 1}",
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      CustomText(
+                        "Job No: PC-00${842 + index}",
+                        style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+                // Trailing
+                const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 /*
