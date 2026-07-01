@@ -24,9 +24,13 @@ Future<void> main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    //options: DefaultFirebaseOptions.currentPlatform,
   );
-
+/*  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }*/
   // Set background messaging handler early
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 

@@ -13,7 +13,7 @@ class CustomTextField extends StatefulWidget {
   final VoidCallback? onTap;
   final IconData? prefixIcon;
   final TextInputType? keyboardType;
-
+  final String? Function(String?)? validator;
   const CustomTextField({
     super.key,
     required this.controller,
@@ -25,6 +25,7 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.keyboardType,
     this.maxLines = 1,
+    this.validator,
   });
 
   @override
@@ -67,6 +68,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
           readOnly: widget.readOnly,
           onTap: widget.onTap,
           keyboardType: widget.keyboardType,
+          validator: widget.validator,   // <-- ADD THIS
+
           obscureText: _obscureText,
           maxLines: widget.maxLines,
           decoration: InputDecoration(

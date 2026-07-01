@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../Material/material_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../plant/plant_usage_screen.dart';
 import '../webview_screen/web_view_screen.dart';
 
 class JobDetailsScreen extends StatefulWidget {
@@ -454,8 +455,20 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           icon: Icons.local_shipping_outlined,
                           title: "Plant Order",
                           subtitle: "Manage equipment requests",
-                          onTap: () {
-                            AppNavigator.pushAndRemoveAll(const MaterialScreen());
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PlantUsageScreen(
+                                  job: job,
+                                ),
+                              ),
+                            );
+
+                            if (result == true) {
+                              // Refresh Job Details
+                            }
+                            //AppNavigator.pushAndRemoveAll(const MaterialScreen());
 
     },
 
