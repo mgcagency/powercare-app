@@ -21,6 +21,7 @@ class TimeLogRepository {
         "specific_date": specificDate,
       },
     );
+    print("TIME LOG API => ${response.data}");
 
     return TimeLogResponse.fromJson(
       response.data,

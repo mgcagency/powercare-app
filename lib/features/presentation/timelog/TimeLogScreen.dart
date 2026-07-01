@@ -48,6 +48,15 @@ class TimeLogScreenState
 
   String selectedTab = "DAY";
 
+/*  List<dynamic> _getEventsForDay(DateTime day) {
+    return jobs.where((job) {
+      if (job.jobDate == null) return false;
+
+      final jobDate = DateTime.parse(job.jobDate!);
+
+      return isSameDay(jobDate, day);
+    }).toList();
+  }*/
   @override
   void initState() {
     super.initState();
@@ -195,7 +204,7 @@ class TimeLogScreenState
                         child: Container(
                           width: tabWidth - 4,
                           decoration: BoxDecoration(
-                            color: AppColors.navyBlue,
+                            color: AppColors.primary,
                             borderRadius:
                             BorderRadius.circular(
                               26,
@@ -345,7 +354,7 @@ class TimeLogScreenState
 
                 selectedDayPredicate: (day) =>
                     isSameDay(selectedDate, day),
-
+               // eventLoader: _getEventsForDay,
                 onDaySelected: (selectedDay, focusedDay) {
 
                   setState(() {
@@ -383,6 +392,21 @@ class TimeLogScreenState
                   ),
                 ),
                 calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, day, events) {
+                    if (events.isEmpty) return const SizedBox();
+
+                    return Positioned(
+                      bottom: 4,
+                      child: Container(
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    );
+                  },
                   selectedBuilder: (context, day, focusedDay) {
                     return Container(
                       margin: const EdgeInsets.all(4),

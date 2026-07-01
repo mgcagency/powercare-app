@@ -6,11 +6,14 @@ import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/core/navigation/app_navigator.dart';
 import 'package:powercare_flutter/features/presentation/jobs/job_sheet_screen.dart';
+import 'package:powercare_flutter/features/presentation/timelog/TimeSheetScreen.dart';
 import '../../../app/widget/helper.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/models/job_list_response.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../Material/material_screen.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../webview_screen/web_view_screen.dart';
 
 class JobDetailsScreen extends StatefulWidget {
@@ -44,7 +47,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Image deleted successfully")),
         );
-        _fetchJobDetails(); // Refresh the UI
+        _fetchJobDetails() ; // Refresh the UI
       }
     } catch (e) {
       ScaffoldMessenger.of(
@@ -440,19 +443,31 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           icon: Icons.more_time_rounded,
                           title: "Add Timesheet",
                           subtitle: "Track engineer hours",
-                          onTap: () {},
+                          onTap: () {
+                            AppNavigator.pushAndRemoveAll(TimeSheetScreen (jobId: job!.id.toString(),
+
+                            ));
+
+                          },
                         ),
                         _actionTile(
                           icon: Icons.local_shipping_outlined,
                           title: "Plant Order",
                           subtitle: "Manage equipment requests",
-                          onTap: () {},
+                          onTap: () {
+                            AppNavigator.pushAndRemoveAll(const MaterialScreen());
+
+    },
+
                         ),
                         _actionTile(
                           icon: Icons.inventory_2_outlined,
                           title: "Order Material",
                           subtitle: "Request site materials",
-                          onTap: () {},
+                          onTap: () {
+                            AppNavigator.pushAndRemoveAll(const MaterialScreen());
+
+                          },
                         ),
                       ],
                     ),

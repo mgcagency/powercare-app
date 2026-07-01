@@ -169,24 +169,58 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    "Upcoming Jobs",
-                    style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.engineering_outlined,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 6),
+                      CustomText(
+                        "Upcoming Jobs",
+                        style: AppTextStyles.bodyLarge.copyWith(color: Colors.white,fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 8),
-                  CustomText(
-                    "Commercial Generator Installation",
-                    // Using bodyLarge (Size 18) and forcing bold
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.electrical_services,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      CustomText(
+                        "Commercial Generator Installation",
+                        // Using bodyLarge (Size 18) and forcing bold
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: Colors.white,
+                         // fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 4),
-                  CustomText(
-                     "Stockton College",
-                    style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      CustomText(
+                        "Stockton College",
+                        style: AppTextStyles.bodySmall.copyWith(color: Colors.white),
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -209,9 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 25),
-
-            // GRID OF MENU ITEMS
-            GridView.count(
+      GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
@@ -347,6 +379,83 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+        padding: const EdgeInsets.all(16), // Reduced from 20
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CustomText(
+              title,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyLarge.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
+              maxLines: 1, // Prevent title from wrapping
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 12), // Reduced from Spacer()
+
+            Container(
+              height: 60, // Reduced from 70
+              width: 60, // Reduced from 70
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: iconColor.withOpacity(0.10),
+              ),
+              child: Icon(
+                icon,
+                size: 35, // Reduced from 45
+                color: iconColor,
+              ),
+            ),
+
+            const SizedBox(height: 12), // Reduced from 20
+
+            CustomText(
+              _getDescription(title),
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: Colors.grey.shade700,
+                height: 1.2, // Reduced from 1.4
+              ),
+              maxLines: 2, // Limit description to 2 lines
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 12), // Reduced from 15
+
+            Icon(
+              Icons.arrow_forward,
+              color: iconColor,
+              size: 24, // Reduced from 28
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+/*  Widget _buildMenuCard(
+      String title,
+      IconData icon,
+      Color iconColor, {
+        VoidCallback? onTap,
+      }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
         padding: const EdgeInsets.all(20),
 
         child: Column(
@@ -399,7 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
+  }*/
   String _getDescription(String title) {
     switch (title) {
       case "View Jobs":

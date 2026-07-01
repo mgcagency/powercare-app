@@ -368,12 +368,26 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
                     // ── CLIENT QUESTIONS ──
                     _buildLabel("Does the client require any other work or questions?"),
-                    CustomTextField(
+              /*      CustomTextField(
                       controller: _explanationController,
                       hintText: "Explain here...",
                       maxLines: 5,
+                    ),*/
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      child: CustomTextField(
+                        controller: _explanationController,
+                        hintText: "Explain here...",
+                        maxLines: 5,
+                      ),
                     ),
-
                     const SizedBox(height: 25),
 
                     // ── UPLOAD PHOTOS ──

@@ -207,7 +207,7 @@ class _ContactBookScreenState
                 final contact =
                 contacts[index];
 
-                return Card(
+                return Card(color: Colors.white,
                   elevation: 2,
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16,
