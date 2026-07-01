@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app/theme/colors.dart';
 import 'app/theme/text_styles.dart';
+import 'app_frame.dart';
 import 'core/navigation/app_navigator.dart';
 import 'features/presentation/landing/splash_screen.dart';
 import 'flavor_config.dart';
@@ -32,7 +33,15 @@ class PowerCareApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+      'Running Flavor: ${FlavorConfig.instance.name}',
+    );
     return MaterialApp(
+      builder: (context, child) {
+        return AppFrame(
+          child: child!,
+        );
+      },
       title: FlavorConfig.instance.name,
       debugShowCheckedModeBanner: false,
       theme: appTheme,

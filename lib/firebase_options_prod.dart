@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAtt-C-SLz_mTWOYZOfe1aYRtWny7GFX4Y',
-    appId: '1:537333520101:android:c922ea6d6a23e4871b660c',
-    messagingSenderId: '537333520101',
-    projectId: 'rosewood-54dfb',
-    storageBucket: 'rosewood-54dfb.firebasestorage.app',
+    apiKey: 'AIzaSyDiP8kNaaMeJnC17gXLf8LmjWUA9lp2C8E',
+    appId: '1:658053185000:android:45e1f2e9fbacd3dc9bb85d',
+    messagingSenderId: '658053185000',
+    projectId: 'powercare-1f524',
+    storageBucket: 'powercare-1f524.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBp_TTss7agmiamjh-LcMnU3koFaQlyBzs',
-    appId: '1:537333520101:ios:8eb685b137f5a73a1b660c',
-    messagingSenderId: '537333520101',
-    projectId: 'rosewood-54dfb',
-    storageBucket: 'rosewood-54dfb.firebasestorage.app',
-    iosBundleId: 'com.rosewood',
+    apiKey: 'AIzaSyBSDS1QKjNmo2aX6zzn4k7UHq6EMzVQifo',
+    appId: '1:658053185000:ios:843e0ec9c61fbcda9bb85d',
+    messagingSenderId: '658053185000',
+    projectId: 'powercare-1f524',
+    storageBucket: 'powercare-1f524.firebasestorage.app',
+    iosBundleId: 'com.Powercare',
   );
 }

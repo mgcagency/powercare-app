@@ -27,47 +27,92 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+#dependencies:
+#  flutter:
+#    sdk: flutter
+#
+#  cupertino_icons: ^1.0.8
+#
+#  # SVG support
+#  flutter_svg: ^2.0.10+1
+#
+#  # HTTP client
+#  dio: ^5.9.0
+#
+#  # Image Picker
+#  image_picker: ^1.1.2
+#
+#  # File Picker
+#  file_picker: ^8.0.3
+#
+#  # Audio Recording
+#  record: ^6.2.0
+#
+#  # Audio Player (for playing back recordings if needed)
+#  audioplayers: ^6.6.0
+#
+#  # JSON parsing
+#  json_annotation: ^4.9.0
+#
+#  # State management
+#  flutter_riverpod: ^2.3.3
+#
+#  # Real-time socket
+#  socket_io_client: ^2.0.0
+#
+#  # Local storage
+#  shared_preferences: ^2.2.1
+#
+#  #for secure storage like token
+#  flutter_secure_storage: ^10.0.0
+##  firebase_core: ^4.9.0
+##  firebase_messaging: ^16.1.0
+#  flutter_local_notifications: ^21.0.0
+#
+#dev_dependencies:
+#  flutter_test:
+#    sdk: flutter
+#
+#  flutter_lints: ^6.0.0
+#  build_runner: ^2.4.8
+#  json_serializable: ^6.11.4
+#  flutter_launcher_icons: ^0.14.3
+#  http: ^1.2.1
+#  device_info_plus: ^11.1.0
+#  local_auth: ^2.3.0
+#  firebase_core: ^4.7.0
+#  firebase_messaging: ^16.1.0
+#  flutter_local_notifications: ^21.0.0
+#  url_launcher: ^6.2.5
+#  webview_flutter: ^4.10.0
+#  package_info_plus: ^8.0.0
+
 dependencies:
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
-  # SVG support
   flutter_svg: ^2.0.10+1
-
-  # HTTP client
   dio: ^5.9.0
-
-  # Image Picker
   image_picker: ^1.1.2
-
-  # File Picker
-  file_picker: ^8.0.3
-
-  # Audio Recording
-  record: ^6.2.0
-
-  # Audio Player (for playing back recordings if needed)
-  audioplayers: ^6.6.0
-
-  # JSON parsing
-  json_annotation: ^4.9.0
-
-  # State management
-  flutter_riverpod: ^2.3.3
-
-  # Real-time socket
-  socket_io_client: ^2.0.0
-
-  # Local storage
+#  file_picker: ^12.0.0-beta.7
+#  record: ^7.1.0
+#  audioplayers: ^6.6.0
+#  json_annotation: ^4.9.0
+#  flutter_riverpod: ^2.3.3
+  socket_io_client: ^3.1.6
   shared_preferences: ^2.2.1
-
-  #for secure storage like token
   flutter_secure_storage: ^10.0.0
-#  firebase_core: ^4.9.0
-#  firebase_messaging: ^16.1.0
-  flutter_local_notifications: ^21.0.0
+  flutter_local_notifications: ^22.0.1
+
+  # Move these here
+  firebase_core: ^4.7.0
+  firebase_messaging: ^16.1.0
+  device_info_plus: ^13.1.0
+  local_auth: ^3.0.1
+  url_launcher: ^6.2.5
+  webview_flutter: ^4.10.0
+  package_info_plus: ^10.1.0
 
 dev_dependencies:
   flutter_test:
@@ -78,15 +123,7 @@ dev_dependencies:
   json_serializable: ^6.11.4
   flutter_launcher_icons: ^0.14.3
   http: ^1.2.1
-  device_info_plus: ^11.1.0
-  local_auth: ^2.3.0
-  firebase_core: ^4.7.0
-  firebase_messaging: ^16.1.0
-  flutter_local_notifications: ^21.0.0
-  url_launcher: ^6.2.5
-  webview_flutter: ^4.10.0
   table_calendar: ^3.1.2
-
 
 flutter_launcher_icons:
   android: true
@@ -116,7 +153,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/
     - assets/icons/
     - assets/animations/
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -119,10 +120,37 @@ class NotificationService {
     }
   }
 
+  // Future<String?> getToken() async {
+  //   return await _fcm.getToken();
+  // }
   Future<String?> getToken() async {
-    return await _fcm.getToken();
-  }
-}
+    if (Platform.isIOS) {
+      int retryCount = 0;
+
+      while (retryCount < 10) {
+        try {
+          final apnsToken =
+          await FirebaseMessaging.instance.getAPNSToken();
+
+          if (apnsToken != null) {
+            break;
+          }
+        } catch (_) {
+          // APNS token not ready yet
+        }
+
+        retryCount++;
+        await Future.delayed(const Duration(seconds: 1));
+      }
+    }
+
+    try {
+      return await FirebaseMessaging.instance.getToken();
+    } catch (e) {
+      debugPrint('FCM token error: $e');
+      return null;
+    }
+  }}
 
 // Top-level background handler
 @pragma('vm:entry-point')
