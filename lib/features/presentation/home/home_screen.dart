@@ -273,13 +273,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
+                      color: AppColors.navyBlue.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                      border: Border.all(color: AppColors.navyBlue.withOpacity(0.3)),
                     ),
                     child: CustomText(
                       "Upcoming Assignment",
-                      style: AppTextStyles.bodyExtraSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900, letterSpacing: 1),
+                      style: AppTextStyles.bodyExtraSmall.copyWith(color: AppColors.navyBlue, fontWeight: FontWeight.w900, letterSpacing: 1),
                     ),
                   ),
                   const SizedBox(height: 24),

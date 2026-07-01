@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
+import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/features/presentation/holiday/RequestHolidayScreen.dart';
 import 'package:powercare_flutter/features/presentation/job_status/job_status_screen.dart';
 import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dart';
 
 import '../../../app/theme/colors.dart';
+import '../../../app/theme/text_styles.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../home/home_screen.dart';
@@ -73,139 +75,91 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title:_titles[_selectedIndex],
-      actions: [
-        IconButton(
-          icon: Icon(
-              Icons.add,color: Colors.white,
-              size: 25,
+        actions: [
+          // 1. Add Button - Using a slight background or just a clean icon
+          IconButton(
+            tooltip: 'Add New',
+            icon: const Icon(
+              Icons.add_circle_outline_rounded, // A more modern 'plus' icon
+              color: Colors.white,
+              size: 26,
             ),
+            onPressed: () => showAddOptions(),
+          ),
 
-          onPressed: () {
-            showAddOptions();
-
-          },
-        ),
-        Stack(
-          children: [
-
-            IconButton(
-              icon: const Icon(
-                Icons.notifications,color: Colors.white,size: 25,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                    const NotificationScreen(),
-                  ),
-                );
-              },
-            ),
-
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding:
-                const EdgeInsets.all(4),
-                decoration:
-                const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
+          // 2. Notification Button with a refined badge
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.notifications_none_rounded, // Outlined looks cleaner
+                  color: Colors.white,
+                  size: 26,
                 ),
-                child: Text(
-                  "1",
-                  style: const TextStyle(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                  );
+                },
+              ),
+              Positioned(
+                right: 5,
+                top: 5,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    fontSize: 10,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5), // Matches AppBar color
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 14,
+                    minHeight: 14,
+                  ),
+                  child:  CustomText(
+                    "1",
+                    style:  AppTextStyles.bodyExtraSmall.copyWith(color: AppColors.navyBlue),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-/*        IconButton(
-          icon: const CircleAvatar(
-            radius: 16,
-            child: Icon(
-              Icons.notifications,
-              size: 18,
+            ],
+          ),
+
+          // 3. Profile Avatar with a subtle border
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: GestureDetector(
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+                if (result == true) loadProfileImage();
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
+                ),
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.white24,
+                  backgroundImage: profileImage.isNotEmpty
+                      ? FileImage(File(profileImage))
+                      : null,
+                  child: profileImage.isEmpty
+                      ? const Icon(Icons.person, size: 20, color: Colors.white)
+                      : null,
+                ),
+              ),
             ),
           ),
-          onPressed: () {
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                const NotificationScreen(),
-              ),
-            );
-          },
-        ),*/
-/*      IconButton(
-          icon: const CircleAvatar(
-            radius: 16,
-            child: Icon(
-              Icons.person,
-              size: 25,
-            ),
-          ),
-          onPressed: () {
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                const ProfileScreen(),
-              ),
-            );
-          },
-        ),*/
-        IconButton(
-          icon: CircleAvatar(
-            radius: 16,
-            backgroundImage:
-            profileImage.isNotEmpty
-                ? FileImage(
-              File(profileImage),
-            )
-                : null,
-            child: profileImage.isEmpty
-                ? const Icon(
-              Icons.person,
-              size: 18,
-            )
-                : null,
-          ),
-          onPressed: () async {
-
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ProfileScreen(),
-              ),
-            );
-
-            if (result == true) {
-              loadProfileImage();
-            }
-          },
-/*          onPressed: () {
-
-   Navigator.push(
-    context,
-    MaterialPageRoute(
-    builder: (_) =>
-    const ProfileScreen(),
-    ),
-    );
-    },*/
-        ),
-
-        const SizedBox(width: 10),
-      ],),
+          const SizedBox(width: 16), // Proper end spacing
+        ],),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
         layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
