@@ -105,6 +105,10 @@ class _LoginScreenState extends State<LoginScreen>
           'role': user.role,
           'accessToken': user.accessToken,
         });
+        await AppPreferences.saveUserId(
+          user.id.toString(),
+        );
+
         await AppPreferences.setLoggedIn(true);
         if (!mounted) return;
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>

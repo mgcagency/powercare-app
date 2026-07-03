@@ -97,6 +97,8 @@ class JobModel {
   String? jobNumber;
   String? jobName;
   String? siteContactName;
+  String? customerPoNumber;
+
   String? email;
   String? mobileNo;
   String? jobLocation;
@@ -120,6 +122,7 @@ class JobModel {
     this.jobName,
     this.siteContactName,
     this.email,
+    this.customerPoNumber,
     this.mobileNo,
     this.jobLocation,
     this.city,
@@ -144,6 +147,7 @@ class JobModel {
       jobName: json['job_name'],
       siteContactName: json['site_contact_name'],
       email: json['email'],
+      customerPoNumber: json["customer_po_number"],
       mobileNo: json['mobile_no'],
       jobLocation: json['job_location'],
       city: json['city'],

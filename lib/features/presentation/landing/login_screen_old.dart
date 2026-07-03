@@ -87,7 +87,7 @@ class _LoginScreenOldState extends State<LoginScreenOld> {
                     CustomButton(
                       title: "Log In",
                       onPressed: () {
-                        AppNavigator.pushAndRemoveAll(const DashboardScreen());
+                        AppNavigator.push(const DashboardScreen());
                       },
                     ),
                     const SizedBox(height: 16),

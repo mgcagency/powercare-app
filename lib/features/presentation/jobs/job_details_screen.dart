@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../Material/material_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../order/order_material_screen.dart';
 import '../plant/plant_usage_screen.dart';
 import '../webview_screen/web_view_screen.dart';
 
@@ -445,7 +446,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           title: "Add Timesheet",
                           subtitle: "Track engineer hours",
                           onTap: () {
-                            AppNavigator.pushAndRemoveAll(TimeSheetScreen (jobId: job!.id.toString(),
+                            AppNavigator.push(TimeSheetScreen (jobId: job!.id.toString(),
 
                             ));
 
@@ -478,8 +479,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           title: "Order Material",
                           subtitle: "Request site materials",
                           onTap: () {
-                            AppNavigator.pushAndRemoveAll(const MaterialScreen());
-
+                            AppNavigator.push(
+                              OrderMaterialScreen(
+                                job: job,
+                              ),
+                            );
                           },
                         ),
                       ],
@@ -493,9 +497,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTION BUTTON — Grid tile for management tasks
-// ─────────────────────────────────────────────────────────────────────────────
+
 Widget _actionTile({
   required IconData icon,
   required String title,
@@ -558,10 +560,9 @@ Widget _actionTile({
       ),
     ),
   );
-} // ─────────────────────────────────────────────────────────────────────────────
+}
 
-// DOCUMENT ROW  —  icon | title | view button
-// ─────────────────────────────────────────────────────────────────────────────
+
 class _DocumentRow extends StatelessWidget {
   final String title;
   final String url;
