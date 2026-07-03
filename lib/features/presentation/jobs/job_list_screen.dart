@@ -5,6 +5,7 @@ import 'package:powercare_flutter/core/navigation/app_navigator.dart';
 import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../alldata/api_repository/job_repository.dart';
+import '../../alldata/models/UserModel.dart';
 import '../../alldata/models/job_list_response.dart';
 import 'job_details_screen.dart';
 
@@ -367,11 +368,11 @@ class _JobListScreenState extends State<JobListScreen> {
       ),
     );
     final isExpanded = expandedJobIds.contains(job.id);
-    List<Engineer> assignedEngineers = [
+    List<UserModel> assignedEngineers = [
       if (job.leadEngineer != null) job.leadEngineer!,
       ...?job.otherEngineers
           ?.map((e) => e.user)
-          .whereType<Engineer>()
+          .whereType<UserModel>()
           .where((e) => e.id != job.leadEngineer?.id),
     ];
     return GestureDetector(
@@ -552,7 +553,7 @@ class _JobListScreenState extends State<JobListScreen> {
     });
   }
 
-  Widget _engineers(List<Engineer> list) {
+  Widget _engineers(List<UserModel> list) {
     if (list.isEmpty) return const SizedBox.shrink();
     return Wrap(
       spacing: 8,

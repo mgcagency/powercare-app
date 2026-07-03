@@ -5,6 +5,7 @@ import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/core/navigation/app_navigator.dart';
+import 'package:powercare_flutter/features/alldata/models/UserModel.dart';
 import 'package:powercare_flutter/features/presentation/jobs/job_sheet_screen.dart';
 import 'package:powercare_flutter/features/presentation/timelog/TimeSheetScreen.dart';
 import '../../../app/widget/helper.dart';
@@ -169,11 +170,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final job = _detailedJob;
-    List<Engineer> engineers = [];
+    List<UserModel> engineers = [];
     if (job != null) {
-      engineers = <Engineer>[
+      engineers = <UserModel>[
         if (job.leadEngineer != null) job.leadEngineer!,
-        ...?job.otherEngineers?.map((e) => e.user).whereType<Engineer>(),
+        ...?job.otherEngineers?.map((e) => e.user).whereType<UserModel>(),
       ];
     }
 
@@ -447,6 +448,16 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           subtitle: "Track engineer hours",
                           onTap: () {
                             AppNavigator.push(TimeSheetScreen (jobId: job!.id.toString(),
+
+                            ));
+
+                          },
+                        ), _actionTile(
+                          icon: Icons.more_time_rounded,
+                          title: "Add Job Sheet",
+                          subtitle: "Manage the Job Sheets",
+                          onTap: () {
+                            AppNavigator.push(JobSheetScreen (
 
                             ));
 
@@ -855,7 +866,7 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _EngineerRow extends StatelessWidget {
-  final Engineer engineer;
+  final UserModel engineer;
   final bool isLead;
   final bool isLast;
 

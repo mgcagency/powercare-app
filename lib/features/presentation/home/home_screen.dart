@@ -634,19 +634,51 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.teal,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MaterialScreen())),
       ),
-      _QuickAction(
-        title: "Add jobsheet",
-        icon: Icons.description_rounded,
-        color: Colors.blue,
-        onTap: () {
-          // TODO: navigate to your jobsheet screen once it exists.
-        },
-      ),
+      // _QuickAction(
+      //   title: "Add jobsheet",
+      //   icon: Icons.description_rounded,
+      //   color: Colors.blue,
+      //   onTap: () {
+      //     // TODO: navigate to your jobsheet screen once it exists.
+      //   },
+      // ),
       _QuickAction(
         title: "Request holiday",
         icon: Icons.beach_access_rounded,
         color: Colors.green,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestHolidayScreen())),
+      ),
+      _QuickAction(
+        title: "Logout",        icon: Icons.logout_rounded,
+        color: Colors.red,
+        onTap: () {
+          // Add your logout logic here (e.g., clear preferences and navigate to Login)
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text("Logout"),
+              content: const Text("Are you sure you want to logout?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await AppPreferences.setLoggedIn(false);
+                    if (!mounted) return;
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                    );
+                  },
+                  child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     ];
 

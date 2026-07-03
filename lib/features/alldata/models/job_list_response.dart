@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:powercare_flutter/features/alldata/models/UserModel.dart';
+
 class JobListResponse {
   bool? success;
   JobPagination? job;
@@ -109,7 +111,7 @@ class JobModel {
   String? jobDescription;
   String? documentFullLink;
   JobTypeStatus? jobTypeStatus;
-  Engineer? leadEngineer;
+  UserModel? leadEngineer;
   List<OtherEngineer>? otherEngineers;
   List<JobImage>? images;
   List<JobSheet>? jobSheets;
@@ -160,7 +162,7 @@ class JobModel {
           ? JobTypeStatus.fromJson(json['jobtypestatus'])
           : null,
       leadEngineer: json['engineer'] != null
-          ? Engineer.fromJson(json['engineer'])
+          ? UserModel.fromJson(json['engineer'])
           : null,
       otherEngineers: json['other_engineer'] != null
           ? (json['other_engineer'] as List).map((i) => OtherEngineer.fromJson(i)).toList()
@@ -222,7 +224,7 @@ class JobTypeStatus {
 class OtherEngineer {
   int? id;
   String? status;
-  Engineer? user;
+  UserModel? user;
 
   OtherEngineer({this.id, this.status, this.user});
 
@@ -230,7 +232,7 @@ class OtherEngineer {
     return OtherEngineer(
       id: json['id'],
       status: json['status'],
-      user: json['user'] != null ? Engineer.fromJson(json['user']) : null,
+      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );
   }
 }

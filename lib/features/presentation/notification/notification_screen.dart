@@ -23,6 +23,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   bool isFirstLoad = true;
   int page = 1;
   int lastPage = 1;
+  String userId = "";
   final ScrollController scrollController = ScrollController();
 
   @override
@@ -105,6 +106,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> callNotificationApi() async {
+     userId =  await AppPreferences.getUserID();
 
     setState(() => isLoading = true);
 
@@ -148,6 +150,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC), // Modern off-white background
       appBar: const CustomAppBar(title: "Notifications"),
@@ -180,7 +183,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _buildAnimatedItem(int index) {
+  Widget _buildAnimatedItem(int index)  {
     final item = notifications[index];
 
     // Staggered Animation Logic
@@ -196,17 +199,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
         );
       },
-      child: _buildNotificationCard(item),
+      child:  _buildNotificationCard(item),
     );
   }
 
-  Widget _buildNotificationCard(NotificationData item) {
+Widget _buildNotificationCard(NotificationData item)  {
     print(
-        "CARD JOB => ${item.jobId} STATUS => ${item.jobData?.leadEngineerStatus}");
+        "CARD JOB => ${item.body} STATUS => ${item.jobData?.leadEngineerId}");
     bool isUnread = item.isRead == 0;
 
-    return
-      InkWell(
+    return InkWell(
         onTap: () {
 
           openJob(item);
@@ -288,11 +290,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                         ],
                       ),
-                      if (item.type?.toLowerCase() == "job" &&
+                      if (item.type?.toLowerCase() == "job" && item.jobData?.leadEngineerId.toString() == userId &&
                           item.jobData?.leadEngineerStatus == "PENDING")
                         const SizedBox(height: 12),
 
-                      if (item.type?.toLowerCase() == "job" &&
+                      if (item.type?.toLowerCase() == "job" && item.jobData?.leadEngineerId.toString() == userId &&
                           item.jobData?.leadEngineerStatus == "PENDING")                            Row(
                               children: [
                                 Spacer(),
@@ -342,7 +344,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
         ),
             ),
-      );
+    );
   }
   Widget _buildActionBtn(
 

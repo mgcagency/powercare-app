@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-
-import 'confirm_pin_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:powercare_flutter/app/theme/colors.dart';
+import 'package:powercare_flutter/app/theme/text_styles.dart';
+import 'package:powercare_flutter/app/widget/custom_text.dart';
+import 'authentication_screen.dart';
+import 'confirm_pin_screen.dart'; // Import your confirm screen
 
 class CreatePinScreen extends StatefulWidget {
   const CreatePinScreen({super.key});
@@ -9,275 +13,171 @@ class CreatePinScreen extends StatefulWidget {
   State<CreatePinScreen> createState() => _CreatePinScreenState();
 }
 
-class _CreatePinScreenState extends State<CreatePinScreen> {
-
+class _CreatePinScreenState extends State<CreatePinScreen> with TickerProviderStateMixin {
   String pin = "";
+  late AnimationController _animationController;
+  late Animation<Offset> _sheetOffset;
+  late Animation<double> _logoScale;
 
-  void addDigit(String digit) {
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
+    _sheetOffset = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.3, 1.0, curve: Curves.fastLinearToSlowEaseIn)),
+    );
+    _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.0, 0.5, curve: Curves.linear)),
+    );
+    _animationController.forward();
+  }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
-    if (pin.length < 4) {
-
-    setState(() {
-    pin += digit;
-    });
-
+  void onPinComplete() {
     if (pin.length == 4) {
-
-      print("Create PIN = $pin");
-    Future.delayed(
-    const Duration(milliseconds: 200),
-    () {
-      print("Opening Confirm Screen");
-
-    Navigator.push(
-    context,
-   MaterialPageRoute(
-    builder: (_) => ConfirmPinScreen(
-    firstPin: pin,
-    ),
-    ),
-    );
-
-    },
-    );
-    }
-    }
-
-
-  }
-
-  void removeDigit() {
-    if (pin.isNotEmpty) {
-      setState(() {
-        pin = pin.substring(
-          0,
-          pin.length - 1,
-        );
-      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ConfirmPinScreen(originalPin: pin)),
+      );
+      // Optional: Clear PIN so if they come back it's empty
+      Future.delayed(const Duration(milliseconds: 500), () => setState(() => pin = ""));
     }
   }
 
-/*  Widget buildPinCircle(int index) {
-
-
-    return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 8),
-    width: 18,
-    height: 18,
-    decoration: BoxDecoration(
-    shape: BoxShape.circle,
-    color: index < pin.length
-    ? Colors.white
-        : Colors.white30,
-    ),
-    );
-
-
-  }*/
-
-/*  Widget buildNumberButton(String value) {
-
-
-    return GestureDetector(
-    onTap: () => addDigit(value),
-    child: Container(
-    width: 75,
-    height: 75,
-    decoration: const BoxDecoration(
-    color: Colors.white,
-    shape: BoxShape.circle,
-    ),
-    child: Center(
-    child: Text(
-    value,
-    style: const TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.w600,
-    ),
-    ),
-    ),
-    ),
-    );
-
-
-  }*/
-  Widget buildNumberButton(String number) {
-    return GestureDetector(
-      onTap: () => addDigit(number),
-      child: Container(
-        width: 90,
-        height: 90,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-           color: Colors.cyanAccent,
-            width: 1.5,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            number,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 40,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  Widget buildPinCircle(int index) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: pin.length > index
-            ? Colors.white
-            : Colors.transparent,
-        border: Border.all(
-          color: Colors.white70,
-          width: 1.5,
-        ),
-      ),
-    );
-  }
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-   // backgroundColor: const Color(0xFFFF8C00),
-
-    body: Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-      image: AssetImage('assets/icons/login_bg.jpg'),
-      fit: BoxFit.cover,opacity:0.90,
-      ),
-  /*    gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFF2C5364),
-          Color(0xFF203A43),
-          Color(0xFF0F2027),
+      backgroundColor: AppColors.navyBlue,
+      body: Stack(
+        children: [
+          _buildHeroSection(),
+          _buildBottomSheet(),
         ],
-      ),*/
-    ),
-      child: SafeArea(
-      child: Column(
-      children: [
-
-      const SizedBox(height: 60),
-
-      const Icon(
-      Icons.lock_outline,
-      size: 70,
-      color: Colors.white,
       ),
+    );
+  }
 
-      const SizedBox(height: 20),
-
-      const Text(
-      "Create PIN",
-      style: TextStyle(
-      color: Colors.white,
-      fontSize: 22,
-      fontWeight: FontWeight.bold,
-      ),
-      ),
-
-      const SizedBox(height: 10),
-
-      const Text(
-      "Create a PIN to securely access your account",
-      style: TextStyle(
-      color: Colors.white70,
-      ),
-      ),
-
-      const SizedBox(height: 40),
-
-      Row(
-      mainAxisAlignment:
-      MainAxisAlignment.center,
-      children: List.generate(
-      4,
-      (index) =>
-      buildPinCircle(index),
-      ),
-      ),
-        const SizedBox(height: 40),
-
-     // const Spacer(),
-
-      GridView.count(
-      shrinkWrap: true,
-      crossAxisCount: 3,
-      mainAxisSpacing: 20,
-      crossAxisSpacing: 20,
-      padding:
-      const EdgeInsets.symmetric(
-      horizontal: 70,
-      ),
-      children: [
-
-      ...List.generate(
-      9,
-      (index) =>
-      buildNumberButton(
-      "${index + 1}",
-      ),
-      ),
-
-      Container(),
-
-      buildNumberButton("0"),
-        GestureDetector(
-          onTap: removeDigit,
-          child: Container(
-            width: 90,
-            height: 90,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.cyanAccent,
-                width: 1.5,
-              ),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.backspace_outlined,
-                color: Colors.white,
-                size: 35,
+  Widget _buildHeroSection() {
+    return Positioned(
+      top: 0, left: 0, right: 0,
+      height: MediaQuery.of(context).size.height * 0.42,
+      child: Stack(
+        children: [
+          Positioned.fill(child: Image.asset('assets/icons/login_bg.jpg', fit: BoxFit.cover)),
+          Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [AppColors.navyBlue.withOpacity(0.6), AppColors.navyBlue]))),
+          Center(
+            child: ScaleTransition(
+              scale: _logoScale,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)), child: Image.asset('assets/icons/app_logo_dev.png', height: 60)),
+                  const SizedBox(height: 16),
+                  CustomText('POWERCARE', style: AppTextStyles.headline3.copyWith(color: Colors.white, letterSpacing: 4, fontWeight: FontWeight.w900)),
+                ],
               ),
             ),
           ),
-        ),
-/*      GestureDetector(
-      onTap: removeDigit,
-      child: const CircleAvatar(
-      radius: 38,
-      backgroundColor:
-      Colors.white,
-      child: Icon(
-      Icons.backspace_outlined,
-      color: Colors.black,
+        ],
       ),
-      ),
-      ),*/
-      ],
-      ),
-
-      const SizedBox(height: 40),
-      ],
-      ),
-      ),
-    ),
     );
-
   }
+
+  Widget _buildBottomSheet() {
+    return Positioned.fill(
+      child: SlideTransition(
+        position: _sheetOffset,
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.60, minChildSize: 0.60, maxChildSize: 0.60,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(40))),
+              padding: const EdgeInsets.fromLTRB(30, 10, 30, 0),
+              child: Column(
+                children: [
+                  Container(width: 40, height: 4, margin: const EdgeInsets.symmetric(vertical: 15), decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(height: 12),
+                  Align(alignment: Alignment.centerLeft, child: CustomText('Create Your PIN', style: AppTextStyles.headline4.copyWith(fontWeight: FontWeight.w800))),
+                  Align(alignment: Alignment.centerLeft, child: CustomText('Set a 4-digit code to secure your terminal', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey))),
+                  const SizedBox(height: 40),
+                  _buildPinDots(),
+                  const Spacer(),
+                  _buildKeypad(),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPinDots() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(4, (index) {
+        final bool isActive = pin.length > index;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 10),
+          height: 16, width: 16,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: isActive ? AppColors.primary : Colors.transparent, border: Border.all(color: isActive ? AppColors.primary : Colors.grey.shade300, width: 1.5)),
+        );
+      }),
+    );
+  }
+  Widget _keypadRow(List<String> labels) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: labels.map((e) => _numberKey(e)).toList(),
+    );
+  }
+
+  Widget _numberKey(String label) {
+    return KeypadButton(
+      onTap: () {
+        if (pin.length < 4) {
+          HapticFeedback.selectionClick();
+          setState(() => pin += label);
+          if (pin.length == 4) onPinComplete();
+        }
+      },
+      child: CustomText(
+        label,
+        style: AppTextStyles.headline4.copyWith(
+          color: AppColors.navyBlue,
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+  Widget _buildKeypad() {
+    return Column(
+      children: [
+        _keypadRow(["1", "2", "3"]),
+        const SizedBox(height: 14),
+        _keypadRow(["4", "5", "6"]),
+        const SizedBox(height: 14),
+        _keypadRow(["7", "8", "9"]),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            const SizedBox(width: 70), // Spacer for fingerprint spot
+            _numberKey("0"),
+            IconButton(onPressed: () => setState(() => pin = pin.isNotEmpty ? pin.substring(0, pin.length - 1) : ""), icon: Icon(Icons.backspace_outlined, color: AppColors.navyBlue.withOpacity(0.5))),
+          ],
+        ),
+      ],
+    );
+  }
+
+
 }
