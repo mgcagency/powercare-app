@@ -6,6 +6,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../firebase_options_dev.dart';
+
 
 
 class NotificationService {
@@ -153,8 +155,18 @@ class NotificationService {
   }}
 
 // Top-level background handler
-@pragma('vm:entry-point')
+/*@pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  debugPrint("Handling background message: ${message.messageId}");
+}*/
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
   debugPrint("Handling background message: ${message.messageId}");
 }

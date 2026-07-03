@@ -13,7 +13,8 @@ class CustomTextField extends StatefulWidget {
   final VoidCallback? onTap;
   final IconData? prefixIcon;
   final TextInputType? keyboardType;
-
+  final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
   const CustomTextField({
     super.key,
     required this.controller,
@@ -25,6 +26,8 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.keyboardType,
     this.maxLines = 1,
+    this.validator,
+    this.onChanged,
   });
 
   @override
@@ -58,14 +61,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
           ),
         ],
         TextFormField(
+          onTap: widget.onTap,
           controller: widget.controller,
           obscureText: _obscureText,
           readOnly: widget.readOnly,
           keyboardType: widget.keyboardType,
+          validator: widget.validator,
+          onChanged: widget.onChanged,
+          //obscureText: _obscureText,
           maxLines: widget.maxLines,
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey,),
+            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.darkGrey,),
             contentPadding: widget.maxLines > 1
                 ? const EdgeInsets.all(15)
                 : const EdgeInsets.symmetric(horizontal: 15, vertical: 10),

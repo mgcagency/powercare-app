@@ -32,4 +32,15 @@ class MaterialRepository {
 
     return response.data;
   }
+  Future<dynamic> createRaisePO(
+      Map<String, dynamic> body,
+      ) async {
+
+    final response = await ApiClient.postForm(
+      ApiEndpoints.createRaisePO,
+      body,
+    );
+
+    return response.data;
+  }
 }

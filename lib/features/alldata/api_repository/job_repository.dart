@@ -63,4 +63,24 @@ class JobRepository {
 
     return JobListResponse.fromJson(response.data);
   }
+  Future<dynamic> changeEngineerStatus({
+    required String jobId,
+    required String userId,
+    required String status,
+  }) async {
+
+    final response = await ApiClient.post(
+
+      "${ApiEndpoints.changeEngineerStatus}"
+          "?job_id=$jobId"
+          "&user_id=$userId"
+          "&status=$status",
+
+      {},
+
+    );
+    print("Engineer Status Response => ${response.data}");
+
+    return response.data;
+  }
 }

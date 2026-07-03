@@ -145,6 +145,43 @@ class ApiClient {
       throw ApiException.fromDioError(e);
     }
   }
+  static Future<Response> postForm(
+      String endPoint,
+      Map<String, dynamic> body,
+      ) async {
+
+    String? token = await SecureStorage.getToken();
+
+    try {
+
+      return await _dio.post(
+
+        endPoint,
+
+        data: body,
+
+        options: Options(
+
+          contentType: Headers.formUrlEncodedContentType,
+
+          headers: {
+
+            if (token != null)
+              'Authorization': 'Bearer $token',
+
+          },
+
+        ),
+
+      );
+
+    } on DioError catch (e) {
+
+      throw ApiException.fromDioError(e);
+
+    }
+
+  }
 }
 
 class ApiException implements Exception {

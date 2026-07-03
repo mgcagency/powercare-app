@@ -21,4 +21,9 @@ class ApiEndpoints {
   static const String timeSheetCreate =
       '/timesheets/create';
   static const archiveJobList = "/archives/list";
+  static const String createPlantUsage = "/plant-usage/create";
+  static const String createRaisePO = "/raispos/create";
+  static const changeEngineerStatus =
+      "/job/change-engineer-status";
+
 }

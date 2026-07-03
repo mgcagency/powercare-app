@@ -8,12 +8,16 @@ import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dar
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../core/storage/app_preferences.dart';
+import '../../alldata/api_repository/job_repository.dart';
+import '../../alldata/models/job_list_response.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../home/home_screen.dart';
 import '../notification/notification_screen.dart';
 import '../profile/profile_screen.dart';
 import '../timelog/TimeLogScreen.dart';
 import 'dart:io';
+
+import '../timelog/TimeSheetScreen.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -24,7 +28,11 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   static const primary = Color(0xFFff5b1f);
   String profileImage = "";
+  final JobRepository jobRepository = JobRepository();
 
+  List<JobModel> activeJobs = [];
+
+  bool isJobLoading = false;
   int _selectedIndex = 0;
   final List<Widget> _pages = [
     const HomeScreen(),
@@ -56,6 +64,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Icons.insert_chart_rounded,
     Icons.contact_phone_rounded,
   ];
+  Future<void> loadActiveJobs() async {
+
+    try {
+
+      setState(() {
+        isJobLoading = true;
+      });
+
+      final response = await jobRepository.getJobs({
+
+        "page": "1",
+        "my_job": 1,
+        "job_date": "",
+
+      });
+
+      activeJobs.clear();
+
+      if (response.job?.data != null) {
+
+        activeJobs.addAll(response.job!.data!);
+
+      }
+
+      print("TOTAL ACTIVE JOBS = ${activeJobs.length}");
+
+      setState(() {
+        isJobLoading = false;
+      });
+
+    } catch (e) {
+
+      print(e);
+
+      setState(() {
+        isJobLoading = false;
+      });
+
+    }
+
+  }
   Future<void> loadProfileImage() async {
 
     profileImage =
@@ -248,10 +297,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 title: const Text(
                   "Add Time Log",
                 ),
-                onTap: () {
+                onTap: () async {
 
                   Navigator.pop(context);
-
+                  await loadActiveJobs();
                   _showSelectJobDialog();
                 },
               ),
@@ -345,9 +394,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    itemCount: 10, // Replace with your actual list length
+                    itemCount: activeJobs.length,
+                   // itemCount: 10, // Replace with your actual list length
                     itemBuilder: (context, index) {
-                      return _buildPremiumJobCard(index);
+                      return _buildPremiumJobCard(activeJobs[index]);
                     },
                   ),
                 ),
@@ -384,7 +434,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildPremiumJobCard(int index) {
+  Widget _buildPremiumJobCard(JobModel job) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -403,7 +453,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => Navigator.pop(context),
+          onTap: () { Navigator.pop(context);
+          Navigator.push(
+
+          context,
+
+          MaterialPageRoute(
+
+            builder: (_) => TimeSheetScreen(
+
+              jobId: job.id.toString(),
+
+            ),
+
+          ),
+
+        );
+          },
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -425,15 +491,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        "London Site Office ${index + 1}",
-                        style: AppTextStyles.bodyMedium.copyWith(
+                  job.jobName ?? ""  ,
+                  style: AppTextStyles.bodyMedium.copyWith(
                           fontWeight: FontWeight.w800,
                           color: Colors.black87,
                         ),
                       ),
                       const SizedBox(height: 4),
                       CustomText(
-                        "Job No: PC-00${842 + index}",
+                        "Job No : ${job.jobNumber}",
                         style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.grey),
                       ),
                     ],
