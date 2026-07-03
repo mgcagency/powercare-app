@@ -72,7 +72,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ) async {
 
     try {
-
+      print("CLICKED JOB => ${item.jobId}");
       final userId = await AppPreferences.getUserID();
       print("USER ID => $userId");
       await JobRepository().changeEngineerStatus(
@@ -90,6 +90,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       await callNotificationApi();
 
     } catch (e) {
+      print("STATUS => $status");
 
       print(e);
 
@@ -104,19 +105,45 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> callNotificationApi() async {
+
     setState(() => isLoading = true);
+
     try {
+
       final response = await repository.getNotifications(page);
-      if (page == 1) notifications.clear();
+
+      if (page == 1) {
+        notifications.clear();
+      }
+
       notifications.addAll(response.notification?.data ?? []);
+
+      // DEBUG
+      print("Notification Count => ${notifications.length}");
+
+      for (final e in notifications) {
+
+        print(
+            "JobId => ${e.jobId} | Status => ${e.jobData?.leadEngineerStatus}");
+
+      }
+
       lastPage = response.notification?.lastPage ?? 1;
+
     } catch (e) {
+
       debugPrint("Notification Error => $e");
+
     }
+
     setState(() {
+
       isLoading = false;
+
       isFirstLoad = false;
+
     });
+
   }
 
   @override
@@ -174,6 +201,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotificationCard(NotificationData item) {
+    print(
+        "CARD JOB => ${item.jobId} STATUS => ${item.jobData?.leadEngineerStatus}");
     bool isUnread = item.isRead == 0;
 
     return
@@ -259,11 +288,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                         ],
                       ),
-                      if (item.type?.toLowerCase() == "job")
-                      const SizedBox(height: 12),
-        
-                          if (item.type?.toLowerCase() == "job")
-                            Row(
+                      if (item.type?.toLowerCase() == "job" &&
+                          item.jobData?.leadEngineerStatus == "PENDING")
+                        const SizedBox(height: 12),
+
+                      if (item.type?.toLowerCase() == "job" &&
+                          item.jobData?.leadEngineerStatus == "PENDING")                            Row(
                               children: [
                                 Spacer(),
                                 _buildActionBtn(
