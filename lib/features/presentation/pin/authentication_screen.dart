@@ -224,11 +224,11 @@ class _AuthenticationScreenState extends State<AuthenticationScreen>
                           const SizedBox(height: 12),
                           CustomText('Enter Your PIN', style: AppTextStyles.headline4.copyWith(fontWeight: FontWeight.w800)),
                           CustomText('Verify your identity to continue', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey)),
-                          const SizedBox(height: 30),
+                          const SizedBox(height: 20),
 
                           _buildPinDots(),
 
-                          const SizedBox(height: 30),
+                          const SizedBox(height: 20),
                           _buildKeypad(),
                           const SizedBox(height: 20),
                         ],

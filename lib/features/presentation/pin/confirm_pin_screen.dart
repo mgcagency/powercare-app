@@ -160,11 +160,11 @@ class _ConfirmPinScreenState extends State<ConfirmPinScreen> with TickerProvider
                     alignment: Alignment.centerLeft,
                     child: CustomText('Re-enter your 4-digit code to verify', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey)),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
                   _buildPinDots(),
                   const Spacer(),
                   _buildKeypad(),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                 ],
               ),
             );

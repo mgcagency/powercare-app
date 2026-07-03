@@ -416,13 +416,35 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
-      child: Row(
+      child:
+      Row(
+        children: [
+          Flexible(
+            flex: 1,
+            child: CustomButton(
+              title: "Cancel",textClr: Colors.black,
+              background: Colors.grey.shade200,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            flex: 2,
+            child: CustomButton(
+              title: "Submit Timesheet",
+              isLoading: isLoading,
+              onPressed: () => saveTimeSheet(),
+            ),
+          ),
+        ],
+      ),
+      /*Row(
         children: [
           Expanded(child: CustomButton(title: "Cancel", background: Colors.grey.shade200, onPressed: () => Navigator.pop(context))),
           const SizedBox(width: 15),
           Expanded(flex: 2, child: CustomButton(title: "Submit Timesheet", isLoading: isLoading, onPressed: () => saveTimeSheet())),
         ],
-      ),
+      ),*/
     );
   }
 
