@@ -392,7 +392,22 @@ class _OrderMaterialScreenState
             const SizedBox(height: 20),
 
             Center(
-              child: ElevatedButton(
+              child: CustomButton(
+                background: AppColors.primary,
+                title: "Add More",
+                onPressed: () {
+
+                  setState(() {
+
+                    materials.add(
+                      OrderMaterialItem(),
+                    );
+
+                  });
+
+                },
+              ),
+/*              ElevatedButton(
                 onPressed: () {
 
                   setState(() {
@@ -407,7 +422,7 @@ class _OrderMaterialScreenState
                 child: const Text(
                   "Add More",
                 ),
-              ),
+              ),*/
             ),
 
             buildLabel(
@@ -445,15 +460,15 @@ class _OrderMaterialScreenState
 
                 Expanded(
 
-                  child: OutlinedButton(
-
+                  child:  CustomButton(
+                    background: AppColors.primary,
+                    title: "Back",
                     onPressed: () {
                       Navigator.pop(context);
                     },
 
-                    child: const Text("Back"),
-
                   ),
+
 
                 ),
 

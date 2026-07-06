@@ -104,11 +104,11 @@ class _CreatePinScreenState extends State<CreatePinScreen> with TickerProviderSt
                   const SizedBox(height: 12),
                   Align(alignment: Alignment.centerLeft, child: CustomText('Create Your PIN', style: AppTextStyles.headline4.copyWith(fontWeight: FontWeight.w800))),
                   Align(alignment: Alignment.centerLeft, child: CustomText('Set a 4-digit code to secure your terminal', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey))),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
                   _buildPinDots(),
                   const Spacer(),
                   _buildKeypad(),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                 ],
               ),
             );

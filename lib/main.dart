@@ -50,6 +50,7 @@ class PowerCareApp extends StatelessWidget {
       home: SplashScreen(),
     );
   }
+
 }
 // await Firebase.initializeApp(
 // options: DefaultFirebaseOptions.currentPlatform,

@@ -421,11 +421,20 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
         children: [
           Flexible(
             flex: 1,
-            child: CustomButton(
+            child:
+            CustomButton(
+              background: AppColors.primary,
+              title: "Cancel",
+              onPressed: () {
+                Navigator.pop(context);
+              },
+
+            ),
+        /*    CustomButton(
               title: "Cancel",textClr: Colors.black,
               background: Colors.grey.shade200,
               onPressed: () => Navigator.pop(context),
-            ),
+            ),*/
           ),
           const SizedBox(width: 10),
           Flexible(

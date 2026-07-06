@@ -198,12 +198,21 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
                       children: [
 
                         Expanded(
-                          child: OutlinedButton(
+                          child:
+                          CustomButton(
+                            background: AppColors.primary,
+                            title: "Back",
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+
+                          ),
+                     /*     OutlinedButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
                             child: const Text("Back"),
-                          ),
+                          ),*/
                         ),
 
                         const SizedBox(width: 15),

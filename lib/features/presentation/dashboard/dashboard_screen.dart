@@ -7,6 +7,7 @@ import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dar
 
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
+import '../../../app/widget/custom_button.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/models/job_list_response.dart';
@@ -407,7 +408,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
                   child: SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
+                    child:  CustomButton(
+                    background: AppColors.primary,
+                    title: "CLOSE",
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+
+                  ),
+             /*       OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey.shade300),
                         shape: RoundedRectangleBorder(
@@ -423,7 +432,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+                    ),*/
                   ),
                 ),
               ],
