@@ -544,7 +544,12 @@ border: Border.all(color: Colors.black12)
     return Container(
       padding: const EdgeInsets.only(top: 4, left: 1, right: 1, bottom: 1),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: Color(
+          int.parse(
+           widget.job.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+                "0xFF000000",
+          ),
+        ),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Container(
@@ -559,6 +564,7 @@ border: Border.all(color: Colors.black12)
             children: [
 
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
                   Expanded(
@@ -637,24 +643,25 @@ border: Border.all(color: Colors.black12)
                   const SizedBox(width: 12),
 
                   Expanded(
-                    child: _miniInfo(
-                      Icons.email_outlined,
-                      "Email",
-                      emailController.text.isEmpty
-                          ? "-"
-                          : emailController.text,
+                    child:
+                    _miniInfo(
+                      Icons.location_on_outlined,
+                      "Site",
+                      widget.job.jobLocation ?? "-",
                     ),
                   ),
                 ],
               ),
 
               const SizedBox(height: 12),
-
               _miniInfo(
-                Icons.location_on_outlined,
-                "Site",
-                widget.job.jobLocation ?? "-",
+                Icons.email_outlined,
+                "Email",
+                emailController.text.isEmpty
+                    ? "-"
+                    : emailController.text,
               ),
+
             ],
           ),
         ),

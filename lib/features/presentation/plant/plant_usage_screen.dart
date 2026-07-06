@@ -105,15 +105,10 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _HeroCard(job: widget.job),
 
-                  buildLabel("Selected Job"),
+                    // const SizedBox(height: 16),
 
-              CustomTextField(
-                controller: TextEditingController(
-                  text: widget.job.jobName ?? "",
-                ),
-                readOnly: true,
-              ),
 
               buildLabel(
                 "Has the PowerCare Cherrypicker been used?",
@@ -197,16 +192,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
                     Row(
                       children: [
 
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Back"),
-                          ),
-                        ),
 
-                        const SizedBox(width: 15),
 
                         Expanded(
                           child: CustomButton(
@@ -319,5 +305,162 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
 
     }
 
+  }
+}
+class _HeroCard extends StatelessWidget {
+  final JobModel job;
+
+  const _HeroCard({
+    super.key,
+    required this.job,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = Color(
+      int.parse(
+        job.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+            "0xFF000000",
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.only(
+        top: 4,
+        left: 1,
+        right: 1,
+        bottom: 1,
+      ),
+      decoration: BoxDecoration(
+        color: statusColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Header
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "Plant Usage",
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        CustomText(
+                          job.jobName ?? "",
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: CustomText(
+                      job.jobTypeStatus?.status ?? "",
+                      style: AppTextStyles.bodyExtraSmall.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _MiniChip(
+                    icon: Icons.badge_outlined,
+                    label: "Job #${job.jobNumber ?? "-"}",
+                  ),
+                  _MiniChip(
+                    icon: Icons.calendar_today_outlined,
+                    label: job.jobDate ?? "-",
+                  ),
+                  _MiniChip(
+                    icon: Icons.access_time_outlined,
+                    label: job.jobTime ?? "-",
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+class _MiniChip extends StatelessWidget {
+
+
+  final IconData icon;
+  final String label;
+
+  const _MiniChip({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xffF6F6F6),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+
+          Icon(
+            icon,
+            size: 14,
+            color: AppColors.primary,
+          ),
+
+          const SizedBox(width: 5),
+
+          CustomText(
+            label,
+            style: AppTextStyles.caption,
+          ),
+
+        ],
+      ),
+    );
   }
 }
