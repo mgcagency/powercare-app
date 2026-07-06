@@ -7,6 +7,7 @@ import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 
 import '../../../app/widget/helper.dart';
+import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/job_type_status_response.dart';
@@ -44,6 +45,8 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   // Job Data
   List<JobModel> _jobsList = [];
   JobModel? _selectedJobModel;
+  String? _currentUserId; // Add this
+
 
   // Status Data
   List<JobTypeStatus> _statusList = [];
@@ -54,6 +57,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   @override
   void initState() {
     super.initState();
+    _loadCurrentUserId();
     _fetchMyJobs();
     _fetchJobTypeStatuses();
   }
@@ -93,10 +97,23 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
         setState(() {
           _jobsList = response.jobLists ?? response.jobListData ?? response.job?.data ?? [];
           if (_jobsList.isNotEmpty) {
-            if(_selectedJobModel !=null){
-              _selectedJobModel = _jobsList.firstWhere((e) => e.id == _selectedJobModel?.id);
-            }else {
+            if (_selectedJobModel != null) {
+              _selectedJobModel = _jobsList.firstWhere(
+                    (e) => e.id == _selectedJobModel?.id,
+              );
+            } else {
               _selectedJobModel = _jobsList.first;
+            }
+
+            // Set selected status from selected job
+            if (_selectedJobModel?.jobTypeStatus != null) {
+              try {
+                _selectedStatusModel = _statusList.firstWhere(
+                      (e) => e.id == _selectedJobModel!.jobTypeStatus!.id,
+                );
+              } catch (_) {
+                _selectedStatusModel = null;
+              }
             }
           }
         });
@@ -117,7 +134,17 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
         setState(() {
           _statusList = response?.jobTypeStatusLists ?? [];
           if (_statusList.isNotEmpty) {
-            _selectedStatusModel = _statusList.first;
+            if (_selectedJobModel?.jobTypeStatus != null) {
+              try {
+                _selectedStatusModel = _statusList.firstWhere(
+                      (e) => e.id == _selectedJobModel!.jobTypeStatus!.id,
+                );
+              } catch (_) {
+                _selectedStatusModel = _statusList.first;
+              }
+            } else {
+              _selectedStatusModel = _statusList.first;
+            }
           }
         });
       }
@@ -551,7 +578,16 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         const SizedBox(width: 15),
                         Expanded(
                           flex: 3,
-                          child: _buildPrimaryButton("Save & Next", () {
+                          child:  Builder(
+                              builder: (context) {
+                                // Check if the selected job is accepted by the login user
+                                final bool canProceed = _isJobAcceptedByMe(_selectedJobModel);
+
+                                return _buildPrimaryButton("Save & Next", canProceed
+                                    ? () {
+
+                                }
+                                    : null,);
                             // Handle logic
                           }),
                         ),
@@ -563,6 +599,36 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
               ),
             ),
     );
+  }
+  Future<void> _loadCurrentUserId() async {
+    final id = await AppPreferences.getUserID();
+    setState(() {
+      _currentUserId = id;
+    });
+  }
+  bool _isJobAcceptedByMe(JobModel? job) {
+
+    if (job == null || _currentUserId == null) return false;
+
+    // 1. Check if user is the Lead Engineer
+    if (job.leadEngineer?.id?.toString() == _currentUserId ||
+        job.leadEngineer?.id?.toString() == _currentUserId) {
+      return job.leadEngineerStatus == "ACCEPT";
+    }
+
+    // 2. Check if user is in the Other Engineers list
+    if (job.otherEngineers != null) {
+      try {
+        final myEntry = job.otherEngineers!.firstWhere(
+              (e) => e.user?.id?.toString() == _currentUserId ||
+              e.user?.id?.toString() == _currentUserId,
+        );
+        return myEntry.status == "ACCEPT";
+      } catch (_) {
+        return false;
+      }
+    }
+    return false;
   }
   void showJobBottomSheet() {
 
@@ -624,6 +690,18 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         setState(() {
                           _selectedJobModel = job;
                         });
+// Automatically select the job's current status
+                        if (job.jobTypeStatus != null) {
+                          try {
+                            _selectedStatusModel = _statusList.firstWhere(
+                                  (status) => status.id == job.jobTypeStatus!.id,
+                            );
+                          } catch (_) {
+                            _selectedStatusModel = null;
+                          }
+                        } else {
+                          _selectedStatusModel = null;
+                        }
 
                         Navigator.pop(context);
                       },
@@ -636,7 +714,8 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
         );
       },
     );
-  }  void showStatusBottomSheet() {
+  }
+  void showStatusBottomSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -784,7 +863,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   }
 
   // Helper for Primary Orange Button
-  Widget _buildPrimaryButton(String title, VoidCallback onTap) {
+  Widget _buildPrimaryButton(String title, VoidCallback? onTap) {
     return SizedBox(
       height: 52,
       child: ElevatedButton(

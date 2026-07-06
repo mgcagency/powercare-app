@@ -132,12 +132,14 @@ class SectionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final bool isJobSheet;
+  final bool isAccepted;
   final Widget child;
   const SectionCard({
     required this.icon,
     required this.title,
     required this.child,
     this.isJobSheet =false,
+    this.isAccepted =false,
   });
 
   @override
@@ -166,7 +168,7 @@ class SectionCard extends StatelessWidget {
                 ),
                 if(isJobSheet)
                   Spacer(),
-                if(isJobSheet)
+                if(isJobSheet && isAccepted)
                   GestureDetector(
                     onTap: () async {
                       AppNavigator.push(JobSheetScreen());

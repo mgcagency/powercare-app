@@ -108,7 +108,7 @@ class _JobListScreenState extends State<JobListScreen> {
 
         response = await _repository.getJobs({
           "page": _currentPage,
-          "my_job": selected,
+          "my_job": selected.toString(),
           "job_date": "",
         });
 

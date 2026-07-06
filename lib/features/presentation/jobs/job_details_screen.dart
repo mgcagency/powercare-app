@@ -5,6 +5,7 @@ import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/core/navigation/app_navigator.dart';
+import 'package:powercare_flutter/core/storage/app_preferences.dart';
 import 'package:powercare_flutter/features/alldata/models/UserModel.dart';
 import 'package:powercare_flutter/features/presentation/jobs/job_sheet_screen.dart';
 import 'package:powercare_flutter/features/presentation/timelog/TimeSheetScreen.dart';
@@ -29,18 +30,49 @@ class JobDetailsScreen extends StatefulWidget {
 class _JobDetailsScreenState extends State<JobDetailsScreen> {
   bool _isUploading = false;
   bool _isDeleting = false;
+  String? _currentUserId; // Add this
   late final JobModel job = widget.job;
   final JobRepository _repository = JobRepository();
   bool _isLoadingDetails = false;
   int deleteId = -1;
   JobModel? _detailedJob;
+// Inside _JobDetailsScreenState class
+
+  bool _isProcessingStatus = false;
+
+  Future<void> _updateJobStatus(String status) async {
+    setState(() => _isProcessingStatus = true);
+    try {
+      String userId = await AppPreferences.getUserID();
+      // Replace with your actual repository method
+      final response = await JobRepository().changeEngineerStatus(jobId: widget.job.id.toString(),userId: userId, status: status);
+
+      // For now, we simulate success and refresh details
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Job $status successfully")),
+      );
+      _fetchJobDetails();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    } finally {
+      setState(() => _isProcessingStatus = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadCurrentUserId();
     _fetchJobDetails();
   }
-
+  Future<void> _loadCurrentUserId() async {
+    final id = await AppPreferences.getUserID();
+    setState(() {
+      _currentUserId = id;
+    });
+  }
   Future<void> _deleteImage(int imageId) async {
     setState(() => _isDeleting = true);
     deleteId = imageId; // Reuse upload loader or create _isDeleting
@@ -170,6 +202,50 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final job = _detailedJob;
+
+    // Default to REJECT if the user is not found in the job assignment
+    String currentStatus = "PENDING";
+
+    if (job != null && _currentUserId != null) {
+
+      bool isUserPartOfJob = false;
+
+      // 1. Check if user is the Lead Engineer
+      if (job.leadEngineer?.id.toString() == _currentUserId) {
+        currentStatus = job.leadEngineerStatus ?? "PENDING";
+        isUserPartOfJob = true;
+        print("_currentUserId--->"+_currentUserId.toString());
+        print("job--->"+job.toString());
+      }
+      // 2. Otherwise, check the Other Engineers list
+      else if (job.otherEngineers != null) {
+        try {
+          // Look for the user ID within the otherEngineers objects
+          final myEntry = job.otherEngineers!.firstWhere(
+                (e) => e.user?.id.toString() == _currentUserId || e.id?.toString() == _currentUserId,
+          );
+          currentStatus = myEntry.status ?? "PENDING";
+          isUserPartOfJob = true;
+        } catch (e) {
+          // User not found in Other Engineers list
+          isUserPartOfJob = false;
+        }
+        print("isUserPartOfJob--->"+isUserPartOfJob.toString());
+
+      }
+
+      // 3. Final Fallback: If after checking both, user is still not part of the job
+      if (!isUserPartOfJob) {
+        currentStatus = "Not your Job";
+      }
+    }
+
+    final bool isAccepted = currentStatus == "ACCEPT";
+    final bool isPending = currentStatus == "PENDING";
+print("currentStatus--->"+currentStatus);
+print("isAccepted--->"+isAccepted.toString());
+print("isPending--->"+isPending.toString());
+    // ... rest of your build logic
     List<UserModel> engineers = [];
     if (job != null) {
       engineers = <UserModel>[
@@ -188,7 +264,92 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
               child: Column(
                 children: [
                   // ── HERO CARD ──────────────────────────────────────────
-                  _HeroCard(job: job),
+                  _HeroCard(job: job, personalStatus: currentStatus),                  if (isPending)
+                  const SizedBox(height: 12),
+                  // ── NEW: ACCEPT / REJECT SECTION ──────────────────────
+                  if (isPending)
+                    SectionCard(
+                      icon: Icons.pending_actions_rounded,
+                      title: "Action Required",
+                      child: Column(
+                        children: [
+                          CustomText(
+                            "Please review the job details and respond to the invitation.",
+                            style: AppTextStyles.bodySmall,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                    side: const BorderSide(color: Colors.red),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  onPressed: _isProcessingStatus ? null : () => _updateJobStatus("REJECT"),
+                                  child: const Text("Reject"),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  onPressed: _isProcessingStatus ? null : () => _updateJobStatus("ACCEPT"),
+                                  child: const Text("Accept Job", style: TextStyle(color: Colors.white)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // // ── NEW: QUICK ACTIONS (Only if Accepted) ──────────────
+                  // if (isAccepted) ...[
+                  //   const SizedBox(height: 12),
+                  //   SectionCard(
+                  //     icon: Icons.bolt_rounded,
+                  //     title: "Job Terminal",
+                  //     child: GridView.count(
+                  //       shrinkWrap: true,
+                  //       physics: const NeverScrollableScrollPhysics(),
+                  //       crossAxisCount: 2,
+                  //       mainAxisSpacing: 10,
+                  //       crossAxisSpacing: 10,
+                  //       childAspectRatio: 2.5,
+                  //       children: [
+                  //         _QuickAction(
+                  //           title: "Time Sheet",
+                  //           icon: Icons.timer_outlined,
+                  //           color: Colors.orange,
+                  //           onTap: () => AppNavigator.push(TimeSheetScreen(jobId: job.id.toString())),
+                  //         ),
+                  //         _QuickAction(
+                  //           title: "Job Sheet",
+                  //           icon: Icons.description_outlined,
+                  //           color: Colors.blue,
+                  //           onTap: () => AppNavigator.push(JobSheetScreen(jobId: job.id.toString())),
+                  //         ),
+                  //         _QuickAction(
+                  //           title: "Materials",
+                  //           icon: Icons.inventory_2_outlined,
+                  //           color: Colors.teal,
+                  //           onTap: () => AppNavigator.push(MaterialScreen(jobId: job.id.toString())),
+                  //         ),
+                  //         _QuickAction(
+                  //           title: "Plant Order",
+                  //           icon: Icons.local_shipping_outlined,
+                  //           color: Colors.deepPurple,
+                  //           onTap: () => AppNavigator.push(PlantUsageScreen(jobId: job.id.toString())),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ],
                   const SizedBox(height: 12),
 
                   // ── JOB INFORMATION ───────────────────────────────────
@@ -260,11 +421,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                         itemCount: (job.images?.length ?? 0) + 1,
                         itemBuilder: (_, i) {
                           // Add Photo Button
-                          if (i == 0) {
+                          if (i == 0 ) {
                             return GestureDetector(
-                              onTap: () {
+                              onTap: isAccepted?() {
                                 if (!_isUploading) _showPickerOptions();
-                              },
+                              }:null,
                               child: Container(
                                 width: 90,
                                 margin: const EdgeInsets.only(
@@ -272,10 +433,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                   right: 20,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(.05),
+                                  color:  isAccepted?AppColors.primary.withOpacity(.05):AppColors.grey.withOpacity(.05),
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                    color: AppColors.primary.withOpacity(.3),
+                                    color: isAccepted?AppColors.primary.withOpacity(.3):AppColors.grey.withOpacity(.3),
                                     width: 1.2,
                                   ),
                                 ),
@@ -293,13 +454,13 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                           Container(
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
-                                              color: AppColors.primary
-                                                  .withOpacity(.1),
+                                              color: isAccepted?AppColors.primary
+                                                  .withOpacity(.1): Colors.grey.withOpacity(.1),
                                               shape: BoxShape.circle,
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.add_a_photo_outlined,
-                                              color: AppColors.primary,
+                                              color: isAccepted ?AppColors.primary:Colors.grey,
                                               size: 22,
                                             ),
                                           ),
@@ -414,10 +575,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   ],
 
                   // ── JOB SHEETS SECTION ─────────────────────────────────
-                  if (job.jobSheets?.isNotEmpty ?? false) ...[
+
                     const SizedBox(height: 12),
                     SectionCard(
                       isJobSheet: true,
+                      isAccepted: isAccepted,
                       icon: Icons.assignment_outlined,
                       title: "Job Sheets",
                       child: Column(
@@ -429,11 +591,12 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                             url: sheet.documentFullLink ?? "",
                             isLast: index == job.jobSheets!.length - 1,
                             isJobSheet: true,
+                              isAccepted : isAccepted,
                           );
                         }),
                       ),
                     ),
-                  ],
+
 
                   const SizedBox(height: 20),
                   SectionCard(
@@ -443,6 +606,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       children: [
 
                         _actionTile(
+                          isAccepted: isAccepted,
                           icon: Icons.more_time_rounded,
                           title: "Add Timesheet",
                           subtitle: "Track engineer hours",
@@ -452,18 +616,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                             ));
 
                           },
-                        ), _actionTile(
-                          icon: Icons.more_time_rounded,
-                          title: "Add Job Sheet",
-                          subtitle: "Manage the Job Sheets",
-                          onTap: () {
-                            AppNavigator.push(JobSheetScreen (
-
-                            ));
-
-                          },
                         ),
                         _actionTile(
+                          isAccepted: isAccepted,
                           icon: Icons.local_shipping_outlined,
                           title: "Plant Order",
                           subtitle: "Manage equipment requests",
@@ -486,6 +641,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
                         ),
                         _actionTile(
+                          isAccepted: isAccepted,
                           icon: Icons.inventory_2_outlined,
                           title: "Order Material",
                           subtitle: "Request site materials",
@@ -510,6 +666,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
 
 Widget _actionTile({
+  required bool isAccepted,
   required IconData icon,
   required String title,
   required String subtitle,
@@ -521,7 +678,7 @@ Widget _actionTile({
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
+        onTap:isAccepted? onTap:null,
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -536,10 +693,10 @@ Widget _actionTile({
                 width: 35,
 
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(.08),
+                  color:  isAccepted?AppColors.primary.withOpacity(.08):AppColors.grey.withOpacity(.08),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, size: 20, color: AppColors.primary),
+                child: Icon(icon, size: 20, color: isAccepted?AppColors.primary:Colors.grey),
               ),
 
               const SizedBox(width: 14),
@@ -552,10 +709,11 @@ Widget _actionTile({
                       title,
                       style: AppTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.bold,
+                       color:  isAccepted?AppColors.black:Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 3),
-                    CustomText(subtitle, style: AppTextStyles.bodySmall),
+                    CustomText(subtitle, style: AppTextStyles.bodySmall.copyWith( color:  isAccepted?AppColors.black:Colors.grey,)),
                   ],
                 ),
               ),
@@ -579,12 +737,14 @@ class _DocumentRow extends StatelessWidget {
   final String url;
   final bool isLast;
   final bool isJobSheet;
+  final bool isAccepted;
 
   const _DocumentRow({
     required this.title,
     required this.url,
     this.isLast = false,
     this.isJobSheet = false,
+    this.isAccepted = false,
   });
 
   @override
@@ -676,7 +836,7 @@ class _DocumentRow extends StatelessWidget {
               ),
               if (isJobSheet) const SizedBox(width: 10),
               // ── VIEW ICON ──
-              if (isJobSheet)
+              if (isJobSheet && isAccepted)
                 GestureDetector(
                   onTap: () async {
                     AppNavigator.push(JobSheetScreen());
@@ -701,10 +861,54 @@ class _DocumentRow extends StatelessWidget {
     );
   }
 }
+class _QuickAction extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickAction({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.1)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            CustomText(
+              title,
+              style: AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.navyBlue,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _HeroCard extends StatelessWidget {
   final JobModel job;
-  const _HeroCard({required this.job});
+  final String personalStatus; // Add this
+
+  const _HeroCard({required this.job, required this.personalStatus});
 
   @override
   Widget build(BuildContext context) {
@@ -713,6 +917,19 @@ class _HeroCard extends StatelessWidget {
         job.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ?? "0xFF000000",
       ),
     );
+
+    // Define colors for the personal invitation status
+    Color invitationBadgeColor;
+    switch (personalStatus) {
+      case "ACCEPT":
+        invitationBadgeColor = Colors.green;
+        break;
+      case "REJECT":
+        invitationBadgeColor = Colors.red;
+        break;
+      default:
+        invitationBadgeColor = Colors.orange;
+    }
 
     return Container(
       padding: const EdgeInsets.only(top: 4, left: 1, right: 1, bottom: 1),
@@ -744,20 +961,45 @@ class _HeroCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
+                  // Job Category Status
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 11,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3EE),
+                      color: statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: CustomText(
                       job.jobTypeStatus?.status ?? "",
                       style: AppTextStyles.bodyExtraSmall.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFFCC4400),
+                        color: statusColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // NEW: Personal Invitation Status Badge
+              Row(
+                children: [
+                  CustomText(
+                    "Your Status:  ",
+                    style: AppTextStyles.caption.copyWith(color: Colors.grey),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: invitationBadgeColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: CustomText(
+                      personalStatus.isEmpty
+                          ? ""
+                          : "${personalStatus[0].toUpperCase()}${personalStatus.substring(1).toLowerCase()}",
+                      style: AppTextStyles.caption.copyWith(
+                        color: invitationBadgeColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
                       ),
                     ),
                   ),
@@ -791,7 +1033,6 @@ class _HeroCard extends StatelessWidget {
     );
   }
 }
-
 class _MiniChip extends StatelessWidget {
   final IconData icon;
   final String label;
