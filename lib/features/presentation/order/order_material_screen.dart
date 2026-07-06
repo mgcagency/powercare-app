@@ -369,235 +369,453 @@ class _OrderMaterialScreenState
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
-      appBar: const CustomAppBar(
-        title: "Order Materials",
-      ),
-
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: const CustomAppBar(title: "Order Materials"),
       body: SingleChildScrollView(
-
         padding: const EdgeInsets.all(16),
-
         child: Column(
-
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
-
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 1. Job Summary Card
+            _buildHeroCard(),
 
-            buildMaterialTable(),
+            const SizedBox(height: 24),
 
-            const SizedBox(height: 20),
+            // 2. Section Header for Materials
+            SectionHeaderCard(
+              icon: Icons.inventory_2_outlined,
+              title: "Order Materials",
+              child: Column(
+                children: [
 
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
+                  Row(
+                    children: [
 
-                  setState(() {
+                      Expanded(
+                        child: CustomText(
+                          "Select materials required for this job.",
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
 
-                    materials.add(
-                      OrderMaterialItem(),
-                    );
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(.08),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: CustomText(
+                          "${materials.length} Items",
+                          style: AppTextStyles.bodyExtraSmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
 
-                  });
+                  const SizedBox(height: 18),
 
-                },
-                child: const Text(
-                  "Add More",
-                ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: materials.length,
+                    itemBuilder: (_, index) {
+                      return _buildMaterialEntryCard(index);
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
+                 Container(
+                     margin: EdgeInsets.symmetric(horizontal: 30),
+                     child:_buildAddMaterialCard()),
+                ],
               ),
             ),
 
-            buildLabel(
-              "PO Number from Engineer",
-            ),
 
-            CustomTextField(
-              controller: poController,
-              readOnly: true,
-            ),
+            const SizedBox(height: 40),
 
-            buildLabel(
-              "Job Name",
-            ),
-
-            CustomTextField(
-              controller: jobController,
-              readOnly: true,
-            ),
-
-            buildLabel(
-              "Email",
-            ),
-
-            CustomTextField(
-              controller: emailController,
-              readOnly: true,
-            ),
-
-            const SizedBox(height: 30),
-
+            // 5. Final Action Buttons (Not sticky, scrolls with content)
             Row(
-
               children: [
 
                 Expanded(
-
-                  child: OutlinedButton(
-
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-
-                    child: const Text("Back"),
-
+                  flex: 2,
+                  child: CustomButton(
+                    title: isSubmitting ? "Processing..." : "Order Material",
+                    isLoading: isSubmitting,
+                    onPressed: isSubmitting ? null : submitRaisePO,
                   ),
-
                 ),
-
-                const SizedBox(width: 15),
-
-                Expanded(
-
-                  child:CustomButton(
-                    title: isSubmitting
-                        ? "Ordering..."
-                        : "Order",
-                    onPressed: isSubmitting
-                        ? null
-                        : submitRaisePO,
-                  )
-                ),
-
               ],
-
             ),
-
-            const SizedBox(height: 30),
-
+            const SizedBox(height: 40),
           ],
-
         ),
-
       ),
+    );
+  }
+
+// ── MODERN MATERIAL ENTRY CARD ──────────────────────────────────────
+  Widget _buildMaterialEntryCard(int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all( 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+borderRadius: BorderRadius.circular(20),
+border: Border.all(color: Colors.black12)
+      ),
+      child:
+
+          OrderMaterialRow(
+            item: materials[index],
+            materials: materialStockList,
+            showDivider: false,
+            selectedMaterialIds: materials
+                .where((e) => e.materialId != null && e.materialId!.isNotEmpty)
+                .map((e) => e.materialId!)
+                .toList(),
+            onDelete: materials.length > 1
+                ? () {
+              setState(() {
+                materials[index].dispose();
+                materials.removeAt(index);
+              });
+            }
+                : null,
+            onMaterialChanged: (value) {
+              setState(() {
+                materials[index].materialId = value?.id.toString();
+                materials[index].materialName = value?.materialName;
+                materials[index].availableQty =
+                    value?.totalQty ?? 0;
+              });
+            },
+            onQtyChanged: (value) {},
+          ),
 
     );
-
   }
-  Widget buildMaterialTable() {
+  Widget _buildAddMaterialCard() {
 
-    return Column(
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          setState(() {
+            materials.add(OrderMaterialItem());
+          });
+        },
+        icon: const Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 20,
+        ),
+        label: const Text(
+          "Add Material",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildHeroCard() {
+    return Container(
+      padding: const EdgeInsets.only(top: 4, left: 1, right: 1, bottom: 1),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
+              Row(
+                children: [
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+
+                        CustomText(
+                          widget.job.jobName ?? "",
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        CustomText(
+                          "Job #${widget.job.jobNumber}",
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(.08),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 15,
+                          color: AppColors.primary,
+                        ),
+
+                        const SizedBox(width: 6),
+
+                        CustomText(
+                          "${materials.length} Items",
+                          style: AppTextStyles.bodyExtraSmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              Row(
+                children: [
+
+                  Expanded(
+                    child: _miniInfo(
+                      Icons.tag,
+                      "Customer PO",
+                      poController.text.isEmpty
+                          ? "-"
+                          : poController.text,
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: _miniInfo(
+                      Icons.email_outlined,
+                      "Email",
+                      emailController.text.isEmpty
+                          ? "-"
+                          : emailController.text,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              _miniInfo(
+                Icons.location_on_outlined,
+                "Site",
+                widget.job.jobLocation ?? "-",
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _miniInfo(
+      IconData icon,
+      String title,
+      String value,
+      ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
 
         Container(
-
-          padding: const EdgeInsets.all(12),
-
-          decoration: const BoxDecoration(
-
-            color: AppColors.primary,
-
-            borderRadius: BorderRadius.only(
-
-              topLeft: Radius.circular(8),
-
-              topRight: Radius.circular(8),
-
-            ),
-
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(.08),
+            borderRadius: BorderRadius.circular(10),
           ),
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 18,
+          ),
+        ),
 
-          child: const Row(
+        const SizedBox(width: 10),
 
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              Expanded(
-                flex: 5,
-                child: Text(
-                  "Material Name",
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
+              CustomText(
+                title,
+                style: AppTextStyles.bodyExtraSmall.copyWith(
+                  color: Colors.grey,
                 ),
               ),
 
-              Expanded(
-                flex: 2,
-                child: Center(
-                  child: Text(
-                    "Qty",
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
+              const SizedBox(height: 2),
+
+              CustomText(
+                value,
+                maxLines: 2,
+                style: AppTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-
-              SizedBox(
-                width: 40,
-              ),
-
             ],
-
           ),
-
         ),
-
-        Container(
-
-          decoration: BoxDecoration(
-
-            border: Border.all(
-              color: Colors.grey.shade300,
-            ),
-
-          ),
-
-          child: ListView.builder(
-
-            itemCount: materials.length,
-
-            shrinkWrap: true,
-
-            physics:
-            const NeverScrollableScrollPhysics(),
-
-            itemBuilder: (context, index) {
-
-              return OrderMaterialRow(
-                item: materials[index],
-                materials: materialStockList,
-                showDivider: index != materials.length - 1, // <-- ADD THIS
-                onDelete: () {
-                  setState(() {
-                    if (materials.length > 1) {
-                      materials[index].dispose();
-                      materials.removeAt(index);
-                    }
-                  });
-                },
-                onMaterialChanged: (value) {
-                  setState(() {
-                    materials[index].materialId = value?.id.toString();
-                    materials[index].materialName = value?.materialName;
-                    materials[index].availableQty = value?.totalQty ?? 0;
-                  });
-                },
-                onQtyChanged: (value) {},
-              );
-            },
-
-          ),
-
-        ),
-
       ],
-
     );
-
   }
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isLast = false,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 18),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                label,
+                style: AppTextStyles.bodyExtraSmall.copyWith(
+                  color: Colors.grey.shade500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              CustomText(
+                value.isEmpty ? "Not Specified" : value,
+                style: AppTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.navyBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+class SectionHeaderCard extends StatelessWidget {
 
+  final IconData icon;
+  final String title;
+  final Widget child;
+
+  const SectionHeaderCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.border.withOpacity(.7),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Row(
+            children: [
+
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              CustomText(
+                title,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          child,
+        ],
+      ),
+    );
+  }
 }
