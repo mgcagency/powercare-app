@@ -11,6 +11,7 @@ import '../../../core/navigation/app_navigator.dart';
 import '../../../app/widget/custom_button.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
+import '../../alldata/api_repository/notification_repository.dart';
 import '../../alldata/models/job_list_response.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../home/home_screen.dart';
@@ -31,7 +32,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const primary = Color(0xFFff5b1f);
   String profileImage = "";
   final JobRepository jobRepository = JobRepository();
+  final NotificationRepository notificationRepository = NotificationRepository();
 
+  int unreadCount = 0;
   List<JobModel> activeJobs = [];
 
   bool isJobLoading = false;
@@ -66,6 +69,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Icons.insert_chart_rounded,
     Icons.contact_phone_rounded,
   ];
+  Future<void> loadNotificationCount() async {
+    try {
+      final response = await notificationRepository.getNotifications(1);
+
+      final list = response.notification?.data ?? [];
+
+      unreadCount = list.where((e) => e.isRead == 0).length;
+
+      setState(() {});
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<void> loadActiveJobs() async {
     try {
       setState(() {
@@ -133,6 +149,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     loadProfileImage();
+    loadNotificationCount();
+
   }
   @override
   Widget build(BuildContext context) {
@@ -163,14 +181,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: Colors.white,
                   size: 26,
                 ),
-                onPressed: () {
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationScreen(),
+                    ),
+                  );
+
+                  loadNotificationCount();
+                },
+          /*      onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const NotificationScreen()),
                   );
-                },
+                },*/
               ),
-              Positioned(
+              if (unreadCount > 0)
+                Positioned(
                 right: 5,
                 top: 5,
                 child: Container(
@@ -185,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     minHeight: 14,
                   ),
                   child:  CustomText(
-                    "1",
+                    unreadCount > 99 ? "99+" : unreadCount.toString(),
                     style:  AppTextStyles.bodyExtraSmall.copyWith(color: AppColors.navyBlue),
                     textAlign: TextAlign.center,
                   ),
