@@ -106,9 +106,29 @@ Row(children: [
             if (value != null) {
               item.availableQty = value.totalQty ?? 0;
 
-              if (item.qtyController.text.isEmpty) {
-                item.qtyController.text = "1";
+              int qty = int.tryParse(item.qtyController.text) ?? 1;
+
+              if (item.availableQty <= 0) {
+                qty = 0;
+              } else {
+                if (qty <= 0) {
+                  qty = 1;
+                }
+
+                if (qty > item.availableQty) {
+                  qty = item.availableQty;
+                }
               }
+
+              item.qtyController.text = qty.toString();
+
+              item.qtyController.selection = TextSelection.fromPosition(
+                TextPosition(
+                  offset: item.qtyController.text.length,
+                ),
+              );
+
+              onQtyChanged(item.qtyController.text);
             }
           },
         ),
