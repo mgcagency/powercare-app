@@ -567,6 +567,7 @@ print("isPending--->"+isPending.toString());
                       icon: Icons.insert_drive_file_outlined,
                       title: "Job Document",
                       child: _DocumentRow(
+                        job: job,
                         title: "Main Job Document",
                         url: job.documentFullLink!,
                         isLast: true,
@@ -582,10 +583,12 @@ print("isPending--->"+isPending.toString());
                       isAccepted: isAccepted,
                       icon: Icons.assignment_outlined,
                       title: "Job Sheets",
+                      job: job,
                       child: Column(
                         children: List.generate(job.jobSheets!.length, (index) {
                           final sheet = job.jobSheets![index];
                           return _DocumentRow(
+                            job: job,
                             title:
                                 sheet.description ?? "Job Sheet ${index + 1}",
                             url: sheet.documentFullLink ?? "",
@@ -738,10 +741,12 @@ class _DocumentRow extends StatelessWidget {
   final bool isLast;
   final bool isJobSheet;
   final bool isAccepted;
+  final JobModel job;
 
   const _DocumentRow({
     required this.title,
     required this.url,
+    required this.job,
     this.isLast = false,
     this.isJobSheet = false,
     this.isAccepted = false,
@@ -749,6 +754,7 @@ class _DocumentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("sdhjkfashdhsdkfksd----->"+job.toString());
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
@@ -818,7 +824,7 @@ class _DocumentRow extends StatelessWidget {
                       ),
                     );
                   } else {
-                    AppNavigator.push(JobSheetScreen());
+                    AppNavigator.push(JobSheetScreen(job: job,));
                   }
                 },
                 child: Container(
@@ -839,7 +845,7 @@ class _DocumentRow extends StatelessWidget {
               if (isJobSheet && isAccepted)
                 GestureDetector(
                   onTap: () async {
-                    AppNavigator.push(JobSheetScreen());
+                    AppNavigator.push(JobSheetScreen(job: job,));
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),

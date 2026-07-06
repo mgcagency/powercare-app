@@ -4,10 +4,13 @@ import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
-import 'package:powercare_flutter/app/widget/custom_textfield.dart'; // ✅ Added Import
+import 'package:powercare_flutter/app/widget/custom_textfield.dart';
+
+import '../../alldata/models/job_list_response.dart'; // ✅ Added Import
 
 class JobSheetScreen extends StatefulWidget {
-  const JobSheetScreen({super.key});
+  final JobModel? job;
+  const JobSheetScreen({super.key, required this.job,});
 
   @override
   State<JobSheetScreen> createState() => _JobSheetScreenState();
@@ -24,7 +27,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   final _siteAddrController = TextEditingController();
   final _specController = TextEditingController();
   final _serviceReqController = TextEditingController();
-
+  late final JobModel? job = widget.job;
   // Date variables
   String _scheduledDate = "03/06/2026";
   String _orderDate = "16/03/2026";
@@ -35,7 +38,42 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     {"material": "Wood", "qty": "1"},
     {"material": "Metal", "qty": "1"},
   ];
+  @override
+  void initState() {
+    super.initState();
+print("_clientNameController-->"+(job).toString());
+    /// Contact Person
+    _clientNameController.text = job?.siteContactName ?? "";
 
+    /// Company / Job Name
+    _companyNameController.text = job?.jobName ?? "";
+
+    /// Email
+    _emailController.text = job?.email ?? "";
+
+    /// Office Number
+    _officeNumController.text = "";
+
+    /// Mobile Number
+    _mobileNumController.text = job?.mobileNo ?? "";
+
+    /// Office Address
+    _officeAddrController.text = "";
+
+    /// Site Address
+    _siteAddrController.text = job?.jobLocation ?? "";
+
+    /// Specification
+    _specController.text = "";
+
+    /// Service Requested
+    _serviceReqController.text = job?.jobDescription ?? "";
+
+    /// Dates
+    _scheduledDate = job?.jobDate ?? "";
+    _orderDate = job?.jobDate ?? "";
+    _requiredDate = job?.jobDate ?? "";
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

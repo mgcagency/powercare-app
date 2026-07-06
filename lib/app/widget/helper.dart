@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../core/navigation/app_navigator.dart';
+import '../../features/alldata/models/job_list_response.dart';
 import '../../features/presentation/jobs/job_sheet_screen.dart';
 import '../theme/colors.dart';
 import '../theme/text_styles.dart';
@@ -134,10 +135,12 @@ class SectionCard extends StatelessWidget {
   final bool isJobSheet;
   final bool isAccepted;
   final Widget child;
+  final JobModel? job;
   const SectionCard({
     required this.icon,
     required this.title,
     required this.child,
+     this.job,
     this.isJobSheet =false,
     this.isAccepted =false,
   });
@@ -171,7 +174,7 @@ class SectionCard extends StatelessWidget {
                 if(isJobSheet && isAccepted)
                   GestureDetector(
                     onTap: () async {
-                      AppNavigator.push(JobSheetScreen());
+                      AppNavigator.push(JobSheetScreen(job: job,));
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),
