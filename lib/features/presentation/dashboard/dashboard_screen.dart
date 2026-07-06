@@ -7,6 +7,7 @@ import 'package:powercare_flutter/features/presentation/jobs/job_list_screen.dar
 
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
+import '../../../core/navigation/app_navigator.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/models/job_list_response.dart';
@@ -65,45 +66,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Icons.contact_phone_rounded,
   ];
   Future<void> loadActiveJobs() async {
-
     try {
-
       setState(() {
         isJobLoading = true;
       });
 
-      final response = await jobRepository.getJobs({
+      // 1. Get the current logged-in User ID
+      final String? userId = await AppPreferences.getUserID();
 
+      final response = await jobRepository.getJobs({
         "page": "1",
         "my_job": 1,
         "job_date": "",
-
       });
 
       activeJobs.clear();
 
-      if (response.job?.data != null) {
+      if (response.job?.data != null && userId != null) {
+        // 2. Filter: Only keep jobs where the login user has "ACCEPT" status
+        final List<JobModel> filteredJobs = response.job!.data!.where((job) {
 
-        activeJobs.addAll(response.job!.data!);
+          // Check if user is the Lead Engineer and has accepted
+          if (job.leadEngineer?.id.toString() == userId) {
+            return job.leadEngineerStatus == "ACCEPT";
+          }
 
+          // Otherwise, check if user is in Other Engineers and has accepted
+          if (job.otherEngineers != null) {
+            final myEntry = job.otherEngineers!.any((e) =>
+            (e.user?.id.toString() == userId || e.id?.toString() == userId) &&
+                e.status == "ACCEPT"
+            );
+            return myEntry;
+          }
+
+          return false;
+        }).toList();
+
+        activeJobs.addAll(filteredJobs);
       }
 
-      print("TOTAL ACTIVE JOBS = ${activeJobs.length}");
+      debugPrint("TOTAL FILTERED ACTIVE JOBS = ${activeJobs.length}");
 
       setState(() {
         isJobLoading = false;
       });
-
     } catch (e) {
-
-      print(e);
-
+      debugPrint("Error loading active jobs: $e");
       setState(() {
         isJobLoading = false;
       });
-
     }
-
   }
   Future<void> loadProfileImage() async {
 
@@ -124,6 +137,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title:_titles[_selectedIndex],
+         onBack: () {
+    AppNavigator.showExitDialog();
+    },
         actions: [
           // 1. Add Button - Using a slight background or just a clean icon
           IconButton(
