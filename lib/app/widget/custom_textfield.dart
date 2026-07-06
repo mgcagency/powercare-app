@@ -68,6 +68,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           keyboardType: widget.keyboardType,
           validator: widget.validator,
           onChanged: widget.onChanged,
+          style: AppTextStyles.bodyMedium,
           //obscureText: _obscureText,
           maxLines: widget.maxLines,
           decoration: InputDecoration(
