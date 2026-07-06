@@ -214,7 +214,6 @@ Widget _buildNotificationCard(NotificationData item)  {
           openJob(item);
 
         },
-
         child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
