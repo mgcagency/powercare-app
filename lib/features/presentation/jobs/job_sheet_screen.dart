@@ -6,11 +6,16 @@ import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 
-import '../../alldata/models/job_list_response.dart'; // ✅ Added Import
+import '../../../app/widget/helper.dart';
+import '../../alldata/api_repository/material_repository.dart';
+import '../../alldata/models/job_list_response.dart';
+import '../../alldata/models/material_response.dart';
+import '../order/order_material_item.dart';
+import '../order/order_material_row.dart'; // ✅ Added Import
 
 class JobSheetScreen extends StatefulWidget {
   final JobModel? job;
-  const JobSheetScreen({super.key, required this.job,});
+  const JobSheetScreen({super.key, required this.job});
 
   @override
   State<JobSheetScreen> createState() => _JobSheetScreenState();
@@ -34,14 +39,36 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   String _requiredDate = "23/03/2026";
 
   // Dummy list for Materials
-  List<Map<String, dynamic>> workRequired = [
-    {"material": "Wood", "qty": "1"},
-    {"material": "Metal", "qty": "1"},
-  ];
+  List<OrderMaterialItem> materials = [];
+
+  List<MaterialData> materialStockList = [];
+  final MaterialRepository materialRepository = MaterialRepository();
+
+  Future<void> loadMaterials() async {
+    try {
+      final response = await materialRepository.getStockList();
+
+      materialStockList.clear();
+
+      final data = response["material_lists"]?["data"] as List? ?? [];
+
+      for (final item in data) {
+        materialStockList.add(MaterialData.fromJson(item));
+      }
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-print("_clientNameController-->"+(job).toString());
+    print("_clientNameController-->" + (job).toString());
+
     /// Contact Person
     _clientNameController.text = job?.siteContactName ?? "";
 
@@ -73,119 +100,71 @@ print("_clientNameController-->"+(job).toString());
     _scheduledDate = job?.jobDate ?? "";
     _orderDate = job?.jobDate ?? "";
     _requiredDate = job?.jobDate ?? "";
+    materials.add(OrderMaterialItem());
+
+    loadMaterials();
   }
+
+  @override
+  void dispose() {
+    for (final item in materials) {
+      item.dispose();
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: const CustomAppBar(title: "Job Sheet"),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLabel("Client’s name", isRequired: true),
-            CustomTextField(
-              controller: _clientNameController,
-              hintText: "Roger Smith",
-            ),
+            _buildHeroCard(),
 
-            _buildLabel("Company name", isRequired: true),
-            CustomTextField(
-              controller: _companyNameController,
-              hintText: "Company",
-            ),
+            const SizedBox(height: 24),
 
-            _buildLabel("Company email", isRequired: true),
-            CustomTextField(
-              controller: _emailController,
-              hintText: "company@gmail.com",
-            ),
-
-            _buildLabel("Office number"),
-            CustomTextField(
-              controller: _officeNumController,
-              hintText: "Office number",
-            ),
-
-            _buildLabel("Mobile number"),
-            CustomTextField(
-              controller: _mobileNumController,
-              hintText: "Mobile number",
-            ),
-
-            _buildLabel("Office Address"),
-            CustomTextField(
-              controller: _officeAddrController,
-              hintText: "Office Address",
-            ),
-
-            _buildLabel("Site address"),
-            CustomTextField(
-              controller: _siteAddrController,
-              hintText: "Site address",
-            ),
-
-            _buildLabel("Scheduled date"),
-            _buildDatePickerField(_scheduledDate, (val) => setState(() => _scheduledDate = val)),
+            _buildClientInformationCard(),
 
             const SizedBox(height: 20),
-            const Divider(thickness: 1),
-            CustomText(
-              "Work Required",
-              style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
 
-            // --- MATERIAL TABLE ---
-            _buildMaterialTable(),
+            _buildAddressCard(),
 
             const SizedBox(height: 20),
-            _buildLabel("Specification"),
-            CustomTextField(
-              controller: _specController,
-              hintText: "Description..",
-              maxLines: 4, // ✅ Handled multi-line
-            ),
 
-            _buildLabel("Service Requested by the client"),
-            CustomTextField(
-              controller: _serviceReqController,
-              hintText: "service,,....",
-            ),
+            // Part 2 starts here...
+            _buildWorkRequiredCard(),
+            const SizedBox(height: 20),
 
-            _buildLabel("Date of Order"),
-            _buildDatePickerField(_orderDate, (val) => setState(() => _orderDate = val)),
-
-            _buildLabel("Date Required"),
-            _buildDatePickerField(_requiredDate, (val) => setState(() => _requiredDate = val)),
+            _buildJobDetailsCard(),
 
             const SizedBox(height: 20),
-            _buildLabel("Job Documents"),
-            CustomText(
-              "https://powercare.resolveddevelopment.co.uk/storage/upload/job/documents/APeNSo5grQy1lECK0wdacRkdDnI9I0cThcCCGoh8.png",
-              style: AppTextStyles.bodyExtraSmall.copyWith(
-                color: Colors.blue,
-                decoration: TextDecoration.underline,
+
+            _buildScheduleCard(),
+
+            const SizedBox(height: 20),
+
+            _buildDocumentsCard(),
+
+            const SizedBox(height: 20),
+
+            _buildStatusCard(),
+
+            const SizedBox(height: 30),
+
+            SizedBox(
+              width: double.infinity,
+              child: CustomButton(
+                title: "Save Job Sheet",
+                onPressed: () {
+                  // TODO: Save Job Sheet
+                },
               ),
             ),
 
-            const SizedBox(height: 20),
-            _buildLabel("Select status of a job"),
-            CustomTextField(
-              controller: TextEditingController(),
-              hintText: "Select Status",
-            ),
-
-            const SizedBox(height: 40),
-
-            // ✅ Using CustomButton
-            CustomButton(
-              title: "Save Job Sheet",
-              onPressed: () {
-                // Handle Save Logic
-              },
-            ),
             const SizedBox(height: 30),
           ],
         ),
@@ -193,148 +172,669 @@ print("_clientNameController-->"+(job).toString());
     );
   }
 
-  // Helper to build required labels
-  Widget _buildLabel(String text, {bool isRequired = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15, bottom: 8),
-      child: Row(
+  Widget _buildJobDetailsCard() {
+    return SectionHeaderCard(
+      icon: Icons.description_outlined,
+      title: "Job Details",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            text,
-            style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+
+          _fieldLabel("Specification"),
+          CustomTextField(
+            controller: _specController,
+            hintText: "Enter specification",
+            maxLines: 4,
           ),
-          if (isRequired)
-            CustomText(
-              " *",
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.red),
-            ),
+
+          const SizedBox(height: 16),
+
+          _fieldLabel("Service Requested by the Client"),
+          CustomTextField(
+            controller: _serviceReqController,
+            hintText: "Enter service requested",
+            maxLines: 4,
+          ),
+
         ],
       ),
     );
   }
+  Widget _buildScheduleCard() {
+    return SectionHeaderCard(
+      icon: Icons.calendar_month_outlined,
 
-  // Helper for Date Pickers with orange icon
-  Widget _buildDatePickerField(String value, Function(String) onDateSelected) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
+      title: "Schedule",
+
+      child: Column(
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: CustomText(value, style: AppTextStyles.bodySmall),
-            ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
-              );
-              if (picked != null) {
-                onDateSelected("${picked.day}/${picked.month}/${picked.year}");
-              }
+          _modernDateField(
+            title: "Scheduled Date",
+
+            value: _scheduledDate,
+
+            onChanged: (v) {
+              setState(() {
+                _scheduledDate = v;
+              });
             },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.only(topRight: Radius.circular(3), bottomRight: Radius.circular(3)),
-              ),
-              child: const Icon(Icons.calendar_month, color: Colors.white, size: 20),
-            ),
-          )
+          ),
+
+          const SizedBox(height: 15),
+
+          _modernDateField(
+            title: "Date of Order",
+
+            value: _orderDate,
+
+            onChanged: (v) {
+              setState(() {
+                _orderDate = v;
+              });
+            },
+          ),
+
+          const SizedBox(height: 15),
+
+          _modernDateField(
+            title: "Date Required",
+
+            value: _requiredDate,
+
+            onChanged: (v) {
+              setState(() {
+                _requiredDate = v;
+              });
+            },
+          ),
         ],
       ),
     );
   }
 
-  // Material Table Widget
-  Widget _buildMaterialTable() {
+  Widget _modernDateField({
+    required String title,
+
+    required String value,
+
+    required Function(String) onChanged,
+  }) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+
       children: [
-        // Table Header
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-          decoration: const BoxDecoration(
-            color: Color(0xFF1E5398),
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(4)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: CustomText(
-                  "Material Name",
-                  style: AppTextStyles.bodySmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-              CustomText(
-                "Qty",
-                style: AppTextStyles.bodySmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 40),
-            ],
-          ),
+        CustomText(
+          title,
+
+          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600),
         ),
-        // Table Rows
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Column(
-            children: workRequired.map((item) {
-              return Padding(
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: item['material'],
-                            items: ["Wood", "Metal", "Plastic"].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: CustomText(value, style: AppTextStyles.bodySmall),
-                              );
-                            }).toList(),
-                            onChanged: (val) {},
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Center(
-                          child: CustomText(item['qty'], style: AppTextStyles.bodySmall),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+
+        const SizedBox(height: 8),
+
+        InkWell(
+          onTap: () async {
+            DateTime? picked = await showDatePicker(
+              context: context,
+
+              initialDate: DateTime.now(),
+
+              firstDate: DateTime(2020),
+
+              lastDate: DateTime(2100),
+            );
+
+            if (picked != null) {
+              onChanged("${picked.day}/${picked.month}/${picked.year}");
+            }
+          },
+
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+
+            decoration: BoxDecoration(
+              color: Colors.white,
+
+              borderRadius: BorderRadius.circular(12),
+
+              border: Border.all(color: AppColors.border),
+            ),
+
+            child: Row(
+              children: [
+                Expanded(child: CustomText(value)),
+
+                const Icon(Icons.calendar_month, color: AppColors.primary),
+              ],
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDocumentsCard() {
+    return SectionHeaderCard(
+      icon: Icons.attach_file,
+
+      title: "Job Documents",
+
+      child: Container(
+        padding: const EdgeInsets.all(15),
+
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+
+          borderRadius: BorderRadius.circular(12),
+
+          border: Border.all(color: AppColors.border),
+        ),
+
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(.08),
+
+                borderRadius: BorderRadius.circular(10),
+              ),
+
+              child: const Icon(
+                Icons.insert_drive_file,
+
+                color: AppColors.primary,
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
+                children: [
+                  CustomText(
+                    "Job Attachment",
+
+                    style: AppTextStyles.bodySmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 2),
+
+                  CustomText(
+                    "Tap to open",
+
+                    style: AppTextStyles.bodyExtraSmall.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(Icons.open_in_new, color: AppColors.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusCard() {
+    return SectionHeaderCard(
+      icon: Icons.flag_outlined,
+
+      title: "Job Status",
+
+      child: DropdownButtonFormField<String>(
+        value: "Pending",
+
+        decoration: InputDecoration(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+
+        items: const [
+          DropdownMenuItem(value: "Pending", child: Text("Pending")),
+
+          DropdownMenuItem(value: "In Progress", child: Text("In Progress")),
+
+          DropdownMenuItem(value: "Completed", child: Text("Completed")),
+        ],
+
+        onChanged: (v) {},
+      ),
+    );
+  }
+
+  Widget _buildWorkRequiredCard() {
+    return SectionHeaderCard(
+      icon: Icons.inventory_2_outlined,
+
+      title: "Work Required",
+
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  "Select materials required for this job.",
+
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(.08),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+
+                child: CustomText(
+                  "${materials.length} Items",
+
+                  style: AppTextStyles.bodyExtraSmall.copyWith(
+                    color: AppColors.primary,
+
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          ListView.builder(
+            shrinkWrap: true,
+
+            physics: const NeverScrollableScrollPhysics(),
+
+            itemCount: materials.length,
+
+            itemBuilder: (_, index) {
+              return _buildMaterialEntryCard(index);
+            },
+          ),
+
+          const SizedBox(height: 10),
+
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+
+            child: _buildAddMaterialButton(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaterialEntryCard(int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+
+      padding: const EdgeInsets.all(10),
+
+      decoration: BoxDecoration(
+        color: Colors.white,
+
+        borderRadius: BorderRadius.circular(20),
+
+        border: Border.all(color: Colors.black12),
+      ),
+
+      child: OrderMaterialRow(
+        item: materials[index],
+
+        materials: materialStockList,
+
+        showDivider: false,
+
+        selectedMaterialIds: materials
+            .where((e) => e.materialId != null && e.materialId!.isNotEmpty)
+            .map((e) => e.materialId!)
+            .toList(),
+
+        onDelete: materials.length > 1
+            ? () {
+                setState(() {
+                  materials[index].dispose();
+
+                  materials.removeAt(index);
+                });
+              }
+            : null,
+
+        onMaterialChanged: (value) {
+          setState(() {
+            materials[index].materialId = value?.id.toString();
+
+            materials[index].materialName = value?.materialName;
+
+            materials[index].availableQty = value?.totalQty ?? 0;
+          });
+        },
+
+        onQtyChanged: (_) {},
+      ),
+    );
+  }
+
+  Widget _buildAddMaterialButton() {
+    return SizedBox(
+      width: double.infinity,
+
+      child: ElevatedButton.icon(
+        onPressed: () {
+          setState(() {
+            materials.add(OrderMaterialItem());
+          });
+        },
+
+        icon: const Icon(Icons.add, color: Colors.white),
+
+        label: const Text("Add Material"),
+
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+
+          foregroundColor: Colors.white,
+
+          elevation: 0,
+
+          padding: const EdgeInsets.symmetric(vertical: 15),
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroCard() {
+    return Container(
+      padding: const EdgeInsets.only(top: 4, left: 1, right: 1, bottom: 1),
+      decoration: BoxDecoration(
+        color: Color(
+          int.parse(
+            job?.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+                "0xFF1565C0",
+          ),
+        ),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        job?.jobName ?? "",
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      CustomText(
+                        "Job #${job?.jobNumber ?? "-"}",
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Color(
+                      int.parse(
+                        job?.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+                            "0xFF1565C0",
+                      ),
+                    ).withOpacity(.08),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: CustomText(
+                    job?.jobTypeStatus?.status ?? "Active",
+                    style: AppTextStyles.bodyExtraSmall.copyWith(
+                      color: Color(
+                        int.parse(
+                          job?.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+                              "0xFF1565C0",
+                        ),
+                      ),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 18),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _miniInfo(
+                    Icons.calendar_month_outlined,
+                    "Scheduled",
+                    _scheduledDate.isEmpty ? "-" : _scheduledDate,
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: _miniInfo(
+                    Icons.location_on_outlined,
+                    "Site",
+                    job?.jobLocation ?? "-",
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            _miniInfo(
+              Icons.email_outlined,
+              "Email",
+              _emailController.text.isEmpty ? "-" : _emailController.text,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _miniInfo(IconData icon, String title, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 18),
+        ),
+
+        const SizedBox(width: 10),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                title,
+                style: AppTextStyles.bodyExtraSmall.copyWith(
+                  color: Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 2),
+
+              CustomText(
+                value,
+                maxLines: 2,
+                style: AppTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildClientInformationCard() {
+    return SectionHeaderCard(
+      icon: Icons.person_outline,
+      title: "Client Information",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _fieldLabel("Client Name", true),
+          CustomTextField(
+            controller: _clientNameController,
+            hintText: "Enter client name",
+          ),
+
+          const SizedBox(height: 16),
+
+          _fieldLabel("Company Name", true),
+          CustomTextField(
+            controller: _companyNameController,
+            hintText: "Enter company name",
+          ),
+
+          const SizedBox(height: 16),
+
+          _fieldLabel("Company Email", true),
+          CustomTextField(
+            controller: _emailController,
+            hintText: "Enter company email",
+          ),
+
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _fieldLabel("Office Number"),
+                    CustomTextField(
+                      controller: _officeNumController,
+                      hintText: "Office number",
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _fieldLabel("Mobile Number"),
+                    CustomTextField(
+                      controller: _mobileNumController,
+                      hintText: "Mobile number",
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String title, [bool required = false]) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: title,
+              style: AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (required)
+              TextSpan(
+                text: " *",
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddressCard() {
+    return SectionHeaderCard(
+      icon: Icons.location_on_outlined,
+      title: "Address Details",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _fieldLabel("Office Address"),
+          CustomTextField(
+            controller: _officeAddrController,
+            hintText: "Enter office address",
+            maxLines: 2,
+          ),
+
+          const SizedBox(height: 16),
+
+          _fieldLabel("Site Address", true),
+          CustomTextField(
+            controller: _siteAddrController,
+            hintText: "Enter site address",
+            maxLines: 2,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:powercare_flutter/app/theme/colors.dart';
+import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 
@@ -50,12 +52,10 @@ Row(children: [
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
         /// Material
-        Text(
+        CustomText(
           "Material",
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
-          ),
+        //txtColor: AppColors.navyBlue,
+          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 8),
@@ -140,12 +140,10 @@ Row(children: [
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
+        CustomText(
           "Remove",
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
-          ),
+          //txtColor: AppColors.navyBlue,
+          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 8),
@@ -185,12 +183,10 @@ Row(children: [
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  CustomText(
                     "Quantity",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
-                    ),
+                    //txtColor: AppColors.navyBlue,
+                    style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 8),
@@ -200,25 +196,49 @@ Row(children: [
                     keyboardType: TextInputType.number,
                     hintText: "Qty",
                     onChanged: (value) {
-                      int qty = int.tryParse(value) ?? 1;
-
-                      if (qty <= 0) qty = 1;
-
-                      if (item.availableQty > 0 &&
-                          qty > item.availableQty) {
-                        qty = item.availableQty;
+                      if (value.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Quantity must be greater than 0"),
+                          ),
+                        );
+                        return;
                       }
 
-                      item.qtyController.text = qty.toString();
+                      final qty = int.tryParse(value);
 
-                      item.qtyController.selection =
-                          TextSelection.fromPosition(
-                            TextPosition(
-                              offset: item.qtyController.text.length,
+                      if (qty == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Quantity must be greater than 0"),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (qty == 0) {
+                        item.qtyController.clear();
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Quantity must be greater than 0"),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (qty > item.availableQty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Maximum available quantity is ${item.availableQty}",
                             ),
-                          );
+                          ),
+                        );
+                        return;
+                      }
 
-                      onQtyChanged(item.qtyController.text);
+                      onQtyChanged(value);
                     },
                   ),
                 ],
@@ -235,7 +255,8 @@ Row(children: [
                 children: [
                   CustomText(
                     "Available",
-
+                    //txtColor: AppColors.navyBlue,
+                    style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 8),

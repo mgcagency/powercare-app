@@ -6,6 +6,7 @@ import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 
+import '../../../app/widget/helper.dart';
 import '../../alldata/api_repository/material_repository.dart';
 import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/material_response.dart';
@@ -759,70 +760,6 @@ border: Border.all(color: Colors.black12)
           ),
         ),
       ],
-    );
-  }
-}
-class SectionHeaderCard extends StatelessWidget {
-
-  final IconData icon;
-  final String title;
-  final Widget child;
-
-  const SectionHeaderCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.border.withOpacity(.7),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          Row(
-            children: [
-
-              Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: AppColors.primary,
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              CustomText(
-                title,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 18),
-
-          child,
-        ],
-      ),
     );
   }
 }
