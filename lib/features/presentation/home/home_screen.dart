@@ -14,7 +14,7 @@ import '../job_status/job_status_screen.dart';
 import '../jobs/job_list_screen.dart';
 import '../landing/landing_screen.dart';
 import '../timelog/TimeLogScreen.dart';
-
+import '../../alldata/api_repository/dashboard_repository.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -34,7 +34,8 @@ class JobSummary {
 class _HomeScreenState extends State<HomeScreen> {
   String fullName = "Engineer";
   DateTime selectedDay = DateTime.now();
-
+  final DashboardRepository dashboardRepository =
+  DashboardRepository();
   // TODO: replace with real data from your job repository/provider.
   Map<DateTime, List<JobSummary>> jobsByDay = {};
 
@@ -54,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _loadJobs() async {
+/*  void _loadJobs() async {
     // TODO: wire this up to your actual job source (API / local DB / provider).
     final now = DateTime.now();
     setState(() {
@@ -64,8 +65,41 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       };
     });
-  }
+  }*/
+  Future<void> _loadJobs() async {
+    try {
+      final response = await dashboardRepository.getDashboard();
 
+      final upcoming = response["upcomingJobs"];
+
+     /* if (upcoming == null) {
+        return;
+      }*/
+      if (upcoming == null) {
+        setState(() {
+          jobsByDay = {};
+        });
+        return;
+      }
+      final now = DateTime.now();
+
+      setState(() {
+        jobsByDay = {
+          _dayKey(now.add(const Duration(days: 2))): [
+            JobSummary(
+              id: upcoming["job_number"]?.toString() ?? "",
+              title: upcoming["job_name"] ?? "",
+              site:
+              "${upcoming["job_location"] ?? ""}, ${upcoming["city"] ?? ""}",
+              time: upcoming["job_time"] ?? "",
+            ),
+          ],
+        };
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   DateTime _dayKey(DateTime d) => DateTime(d.year, d.month, d.day);
 
   List<JobSummary> _jobsFor(DateTime d) => jobsByDay[_dayKey(d)] ?? [];

@@ -25,5 +25,6 @@ class ApiEndpoints {
   static const String createRaisePO = "/raispos/create";
   static const changeEngineerStatus =
       "/job/change-engineer-status";
+  static const String dashboard = "/dashboard";
 
 }

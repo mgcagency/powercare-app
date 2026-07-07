@@ -4,9 +4,10 @@ import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
-import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 
+import '../../alldata/api_repository/contact_repository.dart';
 import '../../alldata/api_repository/material_repository.dart';
+import '../../alldata/models/contact_book_model.dart';
 import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/material_response.dart';
 import 'order_material_item.dart';
@@ -34,6 +35,31 @@ class _OrderMaterialScreenState
   List<OrderMaterialItem> materials = [];
   bool isLoading = false;
   bool isSubmitting = false;
+
+  //new code
+  List<ContactBookData> supplierList = [];
+  ContactBookData? selectedSupplier;
+  final ContactRepository contactRepository = ContactRepository();
+
+  Future<void> loadSuppliers() async {
+    try {
+      final response = await contactRepository.getContactList(
+        page: 1,
+        search: "",
+      );
+
+      final data = response["contactLists"]["data"] as List;
+
+      supplierList =
+          data.map((e) => ContactBookData.fromJson(e)).toList();
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<void> loadMaterials() async {
 
     try {
@@ -336,6 +362,7 @@ class _OrderMaterialScreenState
       OrderMaterialItem(),
     );
     loadMaterials();
+    loadSuppliers(); // <-- Add this
 
   }
 
@@ -654,13 +681,57 @@ border: Border.all(color: Colors.black12)
               ),
 
               const SizedBox(height: 12),
-              _miniInfo(
+        //new code
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  Text(
+                    "Supplier Email",
+                    style: AppTextStyles.bodyExtraSmall.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  DropdownButtonFormField<ContactBookData>(
+                    value: selectedSupplier,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+
+                    items: supplierList.map((supplier) {
+                      return DropdownMenuItem<ContactBookData>(
+                        value: supplier,
+                        child: Text(
+                          supplier.email ?? "",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSupplier = value;
+
+                        emailController.text = value?.email ?? "";
+                      });
+                    },
+                  ),
+                ],
+              ),
+        /*      _miniInfo(
                 Icons.email_outlined,
                 "Email",
                 emailController.text.isEmpty
                     ? "-"
                     : emailController.text,
-              ),
+              ),*/
 
             ],
           ),
