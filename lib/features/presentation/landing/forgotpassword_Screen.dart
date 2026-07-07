@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../app/widget/custom_text.dart';
+
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -52,7 +54,7 @@ class _ForgotPasswordScreenState
             color: Colors.green,
             size: 60,
           ),
-          content: const Text(
+          content: const CustomText(
             "Password reset link has been sent to your email.",
             textAlign: TextAlign.center,
           ),
@@ -62,7 +64,7 @@ class _ForgotPasswordScreenState
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
-              child: const Text("OK"),
+              child: const CustomText("OK"),
             ),
           ],
         );
@@ -78,7 +80,7 @@ class _ForgotPasswordScreenState
     ScaffoldMessenger.of(context)
         .showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: CustomText(message),
         backgroundColor:
         isError
             ? Colors.red
@@ -138,7 +140,7 @@ class _ForgotPasswordScreenState
                         height: 20,
                       ),
 
-                      const Text(
+                      const CustomText(
                         "Reset Password",
                         style: TextStyle(
                           fontSize: 28,
@@ -151,7 +153,7 @@ class _ForgotPasswordScreenState
                         height: 10,
                       ),
 
-                      const Text(
+                      const CustomText(
                         "Enter your registered email address to receive a password reset link.",
                         textAlign:
                         TextAlign.center,
@@ -219,7 +221,7 @@ class _ForgotPasswordScreenState
                             Colors
                                 .white,
                           )
-                              : const Text(
+                              : const CustomText(
                             "Send Reset Link",
                             style:
                             TextStyle(
@@ -249,7 +251,7 @@ class _ForgotPasswordScreenState
                           Icons
                               .arrow_back,size: 30,
                         ),
-                        label: const Text(
+                        label: const CustomText(
                           "Back To Login",
                         ),
                       ),

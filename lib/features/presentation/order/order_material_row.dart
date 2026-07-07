@@ -91,7 +91,7 @@ Row(children: [
           items: availableMaterials.map(
                 (e) => DropdownMenuItem<MaterialData>(
               value: e,
-              child: Text(e.materialName ?? ""),
+              child: CustomText(e.materialName ?? ""),
             ),
           ).toList(),
 
@@ -194,7 +194,7 @@ Row(children: [
                       if (value.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("Quantity must be greater than 0"),
+                            content: CustomText("Quantity must be greater than 0"),
                           ),
                         );
                         return;
@@ -205,7 +205,7 @@ Row(children: [
                       if (qty == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("Quantity must be greater than 0"),
+                            content: CustomText("Quantity must be greater than 0"),
                           ),
                         );
                         return;
@@ -216,7 +216,7 @@ Row(children: [
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("Quantity must be greater than 0"),
+                            content: CustomText("Quantity must be greater than 0"),
                           ),
                         );
                         return;
@@ -225,7 +225,7 @@ Row(children: [
                       if (qty > item.availableQty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
+                            content: CustomText(
                               "Maximum available quantity is ${item.availableQty}",
                             ),
                           ),
@@ -283,7 +283,7 @@ Row(children: [
                       if (usedQty > orderQty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
+                            content: CustomText(
                               "Used quantity cannot be greater than ordered quantity ($orderQty).",
                             ),
                           ),
@@ -327,7 +327,7 @@ Row(children: [
                             : Colors.red.withOpacity(.25),
                       ),
                     ),
-                    child: Text(
+                    child: CustomText(
                       "${item.availableQty}",
                       style: TextStyle(
                         color: item.availableQty > 0

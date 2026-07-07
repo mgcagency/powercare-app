@@ -52,8 +52,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const JobStatusScreen(),
     const TimeLogScreen(),
     const ContactBookScreen(),
-    //const Center(child: Text("Timelog Content", style: TextStyle(fontSize: 20))),
-   // const Center(child: Text("Contact Book Content", style: TextStyle(fontSize: 20))),
+    //const Center(child: CustomText("Timelog Content", style: TextStyle(fontSize: 20))),
+   // const Center(child: CustomText("Contact Book Content", style: TextStyle(fontSize: 20))),
   ];*/
   final List<String> _titles = [
     "Home",
@@ -340,7 +340,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Icons.access_time,
                   color: Colors.orange,
                 ),
-                title: const Text(
+                title: const CustomText(
                   "Add Time Log",
                 ),
                 onTap: () async {
@@ -356,7 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Icons.beach_access,
                   color: Colors.green,
                 ),
-                title: const Text(
+                title: const CustomText(
                   "Request Holiday",
                 ),
                 onTap: () {
@@ -449,18 +449,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
 
                 // Footer section
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child:  CustomButton(
+                 CustomButton(
                     background: AppColors.primary,
-                    title: "CLOSE",
+                    title: "Close",
                     onPressed: () {
                       Navigator.pop(context);
                     },
 
-                  ),
+
              /*       OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey.shade300),
@@ -478,7 +474,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                     ),*/
-                  ),
+                  
                 ),
               ],
             ),
@@ -577,7 +573,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return AlertDialog(
 
-          title: const Text(
+          title: const CustomText(
             "Select Job",
           ),
 
@@ -591,7 +587,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   (context, index) {
 
                 return ListTile(
-                  title: Text(
+                  title: CustomText(
                     "Job ${index + 1}",
                   ),
                   onTap: () {

@@ -372,12 +372,12 @@ class TimeLogScreenState extends State<TimeLogScreen> {
           selectedBuilder: (context, day, focusedDay) => Container(
             margin: const EdgeInsets.all(6),
             decoration: BoxDecoration(color: AppColors.navyBlue, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: AppColors.navyBlue.withOpacity(0.3), blurRadius: 8)]),
-            child: Center(child: Text('${day.day}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+            child: Center(child: CustomText('${day.day}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
           ),
           todayBuilder: (context, day, focusedDay) => Container(
             margin: const EdgeInsets.all(6),
             decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.primary, width: 1)),
-            child: Center(child: Text('${day.day}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
+            child: Center(child: CustomText('${day.day}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
           ),
         ),
       ),
@@ -493,7 +493,8 @@ class TimeLogScreenState extends State<TimeLogScreen> {
               fontWeight: active ? FontWeight.w900 : FontWeight.w500,
               fontSize: 14,
             ),
-            child: Text(title),
+            child: CustomText(title,txtColor:   active ? Colors.white : Colors.black87,style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),),
+
           ),
         ),
       ),

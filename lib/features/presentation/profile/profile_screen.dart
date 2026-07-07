@@ -242,7 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Profile successfully updated"),
+          content: const CustomText("Profile successfully updated"),
           backgroundColor: AppColors.navyBlue,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(20),

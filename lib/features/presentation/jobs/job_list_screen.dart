@@ -354,7 +354,7 @@ class _JobListScreenState extends State<JobListScreen> {
               color: active ? Colors.white : Colors.black87,
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
             ),
-            child: Text(text),
+            child: CustomText(text,txtColor:   active ? Colors.white : Colors.black87,style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),),
           ),
         ),
       ),
@@ -610,7 +610,7 @@ class _JobListScreenState extends State<JobListScreen> {
         children: [
           Icon(icon, size: 14, color: primaryColor),
           const SizedBox(width: 6),
-          Text(text, style: const TextStyle(fontSize: 12)),
+          CustomText(text, style: const TextStyle(fontSize: 12)),
         ],
       ),
     );

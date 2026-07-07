@@ -6,6 +6,7 @@ import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 
+import '../../../app/widget/custom_button.dart';
 import '../../../app/widget/helper.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
@@ -13,18 +14,16 @@ import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/job_type_status_response.dart';
 
 class JobStatusScreen extends StatefulWidget {
-
   final bool showAppBar;
 
   const JobStatusScreen({
     super.key,
-    this.showAppBar = true,   bool isArchive=false,
-
+    this.showAppBar = true,
+    bool isArchive = false,
   });
 
   @override
-  State<JobStatusScreen> createState() =>
-      _JobStatusScreenState();
+  State<JobStatusScreen> createState() => _JobStatusScreenState();
 }
 /*class JobStatusScreen extends StatefulWidget {
   const JobStatusScreen({super.key});
@@ -47,7 +46,6 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   JobModel? _selectedJobModel;
   String? _currentUserId; // Add this
 
-
   // Status Data
   List<JobTypeStatus> _statusList = [];
   JobTypeStatus? _selectedStatusModel;
@@ -61,6 +59,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     _fetchMyJobs();
     _fetchJobTypeStatuses();
   }
+
   Future<void> _deleteImage(int imageId) async {
     setState(() => _isDeleting = true);
     deleteId = imageId; // Reuse upload loader or create _isDeleting
@@ -68,14 +67,14 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       final response = await _repository.deleteJobImage(imageId);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Image deleted successfully")),
+          const SnackBar(content: CustomText("Image deleted successfully")),
         );
         _fetchMyJobs(showLoading: false); // Refresh the UI
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Delete failed: ${e.toString()}")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: CustomText("Delete failed: ${e.toString()}")),
+      );
     } finally {
       setState(() {
         _isDeleting = false;
@@ -85,8 +84,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   }
 
   Future<void> _fetchMyJobs({bool showLoading = true}) async {
-    if(showLoading)
-    setState(() => _isLoadingJobs = true);
+    if (showLoading) setState(() => _isLoadingJobs = true);
     try {
       final response = await _repository.getJobs({
         "my_job": 1,
@@ -95,11 +93,15 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
       if (response.success == true) {
         setState(() {
-          _jobsList = response.jobLists ?? response.jobListData ?? response.job?.data ?? [];
+          _jobsList =
+              response.jobLists ??
+              response.jobListData ??
+              response.job?.data ??
+              [];
           if (_jobsList.isNotEmpty) {
             if (_selectedJobModel != null) {
               _selectedJobModel = _jobsList.firstWhere(
-                    (e) => e.id == _selectedJobModel?.id,
+                (e) => e.id == _selectedJobModel?.id,
               );
             } else {
               _selectedJobModel = _jobsList.first;
@@ -109,7 +111,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
             if (_selectedJobModel?.jobTypeStatus != null) {
               try {
                 _selectedStatusModel = _statusList.firstWhere(
-                      (e) => e.id == _selectedJobModel!.jobTypeStatus!.id,
+                  (e) => e.id == _selectedJobModel!.jobTypeStatus!.id,
                 );
               } catch (_) {
                 _selectedStatusModel = null;
@@ -121,15 +123,16 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     } catch (e) {
       debugPrint("Error fetching jobs: $e");
     } finally {
-      if(showLoading)
-      setState(() => _isLoadingJobs = false);
+      if (showLoading) setState(() => _isLoadingJobs = false);
     }
   }
 
   Future<void> _fetchJobTypeStatuses() async {
     setState(() => _isLoadingStatuses = true);
     try {
-      final response = await _repository.getJobTypeStatusList(parameters: {'paginate':'1'});
+      final response = await _repository.getJobTypeStatusList(
+        parameters: {'paginate': '1'},
+      );
       if (response.success == true) {
         setState(() {
           _statusList = response?.jobTypeStatusLists ?? [];
@@ -137,7 +140,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
             if (_selectedJobModel?.jobTypeStatus != null) {
               try {
                 _selectedStatusModel = _statusList.firstWhere(
-                      (e) => e.id == _selectedJobModel!.jobTypeStatus!.id,
+                  (e) => e.id == _selectedJobModel!.jobTypeStatus!.id,
                 );
               } catch (_) {
                 _selectedStatusModel = _statusList.first;
@@ -218,7 +221,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   Future<void> _uploadImage(String path) async {
     if (_selectedJobModel == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a job first")),
+        const SnackBar(content: CustomText("Please select a job first")),
       );
       return;
     }
@@ -233,13 +236,13 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Image uploaded successfully")),
+          const SnackBar(content: CustomText("Image uploaded successfully")),
         );
         _fetchMyJobs(showLoading: false);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Upload failed: ${e.toString()}")),
+        SnackBar(content: CustomText("Upload failed: ${e.toString()}")),
       );
     } finally {
       setState(() => _isUploading = false);
@@ -248,13 +251,14 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(   appBar: widget.showAppBar
-        ? const CustomAppBar(
-      title: "Job Status",
-    )
-        : null,
+    return Scaffold(
+      appBar: widget.showAppBar
+          ? const CustomAppBar(title: "Job Status")
+          : null,
       body: (_isLoadingJobs || _isLoadingStatuses)
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : RefreshIndicator(
               onRefresh: () async {
                 await _fetchMyJobs();
@@ -281,13 +285,10 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.border,
-                          ),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Row(
                           children: [
-
                             Expanded(
                               child: CustomText(
                                 _selectedJobModel == null
@@ -309,7 +310,8 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         ),
                       ),
                     ),
-     /*               _buildDropdownContainer(
+
+                    /*               _buildDropdownContainer(
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<JobModel>(
                           value: _selectedJobModel,
@@ -328,7 +330,6 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         ),
                       ),
                     ),*/
-
                     const SizedBox(height: 20),
 
                     // ── JOB STATUS ──
@@ -346,9 +347,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.border,
-                          ),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Row(
                           children: [
@@ -371,7 +370,9 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                           ],
                         ),
                       ),
-                    ),    /*                _buildDropdownContainer(
+                    ),
+
+                    /*                _buildDropdownContainer(
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<JobTypeStatus>(
                           value: _selectedStatusModel,
@@ -390,12 +391,13 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         ),
                       ),
                     ),*/
-
                     const SizedBox(height: 20),
 
                     // ── CLIENT QUESTIONS ──
-                    _buildLabel("Does the client require any other work or questions?"),
-              /*      CustomTextField(
+                    _buildLabel(
+                      "Does the client require any other work or questions?",
+                    ),
+                    /*      CustomTextField(
                       controller: _explanationController,
                       hintText: "Explain here...",
                       maxLines: 5,
@@ -425,7 +427,8 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                         height: 105,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: (_selectedJobModel?.images?.length ?? 0) + 1,
+                          itemCount:
+                              (_selectedJobModel?.images?.length ?? 0) + 1,
                           itemBuilder: (_, i) {
                             // Add Photo Button
                             if (i == 0) {
@@ -449,38 +452,39 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                                   ),
                                   child: _isUploading
                                       ? Center(
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.primary,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
+                                          child: CircularProgressIndicator(
+                                            color: AppColors.primary,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
                                       : Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary
-                                              .withOpacity(.1),
-                                          shape: BoxShape.circle,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withOpacity(.1),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.add_a_photo_outlined,
+                                                color: AppColors.primary,
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            CustomText(
+                                              "Add",
+                                              style: AppTextStyles
+                                                  .bodyExtraSmall
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ],
                                         ),
-                                        child: const Icon(
-                                          Icons.add_a_photo_outlined,
-                                          color: AppColors.primary,
-                                          size: 22,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      CustomText(
-                                        "Add",
-                                        style: AppTextStyles.bodyExtraSmall
-                                            .copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ),
                               );
                             }
@@ -530,7 +534,8 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                                     top: 4,
                                     right: 4,
                                     child: GestureDetector(
-                                      onTap: () => _deleteImage(image?.id ?? -1),
+                                      onTap: () =>
+                                          _deleteImage(image?.id ?? -1),
                                       child: Container(
                                         padding: const EdgeInsets.all(4),
                                         decoration: BoxDecoration(
@@ -571,25 +576,30 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                     // ── ACTION BUTTONS ──
                     Row(
                       children: [
-                        Expanded(
-                          flex: 2,
-                          child: _buildSecondaryButton("Back", () => Navigator.pop(context)),
-                        ),
-                        const SizedBox(width: 15),
+                        // Expanded(
+                        //   flex: 2,
+                        //   child: _buildSecondaryButton(
+                        //     "Back",
+                        //     () => Navigator.pop(context),
+                        //   ),
+                        // ),
+                        // const SizedBox(width: 15),
                         Expanded(
                           flex: 3,
-                          child:  Builder(
-                              builder: (context) {
-                                // Check if the selected job is accepted by the login user
-                                final bool canProceed = _isJobAcceptedByMe(_selectedJobModel);
+                          child: Builder(
+                            builder: (context) {
+                              // Check if the selected job is accepted by the login user
+                              final bool canProceed = _isJobAcceptedByMe(
+                                _selectedJobModel,
+                              );
+                              return CustomButton(
+                                title: "Save & Next",
+                                onPressed: canProceed ? () {} : null,
+                              );
 
-                                return _buildPrimaryButton("Save & Next", canProceed
-                                    ? () {
-
-                                }
-                                    : null,);
-                            // Handle logic
-                          }),
+                              // Handle logic
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -600,14 +610,15 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
             ),
     );
   }
+
   Future<void> _loadCurrentUserId() async {
     final id = await AppPreferences.getUserID();
     setState(() {
       _currentUserId = id;
     });
   }
-  bool _isJobAcceptedByMe(JobModel? job) {
 
+  bool _isJobAcceptedByMe(JobModel? job) {
     if (job == null || _currentUserId == null) return false;
 
     // 1. Check if user is the Lead Engineer
@@ -620,7 +631,8 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     if (job.otherEngineers != null) {
       try {
         final myEntry = job.otherEngineers!.firstWhere(
-              (e) => e.user?.id?.toString() == _currentUserId ||
+          (e) =>
+              e.user?.id?.toString() == _currentUserId ||
               e.user?.id?.toString() == _currentUserId,
         );
         return myEntry.status == "ACCEPT";
@@ -630,10 +642,9 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     }
     return false;
   }
+
   void showJobBottomSheet() {
-
     showModalBottomSheet(
-
       context: context,
 
       isScrollControlled: true,
@@ -641,60 +652,46 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       backgroundColor: Colors.white,
 
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
 
       builder: (context) {
-
         return SizedBox(
-
           height: MediaQuery.of(context).size.height * 0.60,
 
           child: Column(
-
             children: [
-
               const SizedBox(height: 15),
 
-              const Text(
+              const CustomText(
                 "Select Job",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
               const Divider(),
 
               Expanded(
-
                 child: ListView.builder(
-
                   itemCount: _jobsList.length,
 
                   itemBuilder: (_, index) {
-
                     final job = _jobsList[index];
 
                     return ListTile(
-
                       title: CustomText(
                         job.jobName ?? "No Name",
                         style: AppTextStyles.bodyMedium,
                       ),
 
                       onTap: () {
-
                         setState(() {
                           _selectedJobModel = job;
                         });
-// Automatically select the job's current status
+                        // Automatically select the job's current status
                         if (job.jobTypeStatus != null) {
                           try {
                             _selectedStatusModel = _statusList.firstWhere(
-                                  (status) => status.id == job.jobTypeStatus!.id,
+                              (status) => status.id == job.jobTypeStatus!.id,
                             );
                           } catch (_) {
                             _selectedStatusModel = null;
@@ -715,28 +712,23 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       },
     );
   }
+
   void showStatusBottomSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
             const SizedBox(height: 15),
 
-            const Text(
+            const CustomText(
               "Select Status",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
             const Divider(),
@@ -746,9 +738,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                 shrinkWrap: true,
                 itemCount: _statusList.length,
                 itemBuilder: (_, index) {
-
-                  final status =
-                  _statusList[index];
+                  final status = _statusList[index];
 
                   return ListTile(
                     title: CustomText(
@@ -757,10 +747,8 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                     ),
 
                     onTap: () {
-
                       setState(() {
-                        _selectedStatusModel =
-                            status;
+                        _selectedStatusModel = status;
                       });
 
                       Navigator.pop(context);
@@ -774,6 +762,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       },
     );
   }
+
   // Helper for Labels
   Widget _buildLabel(String text) {
     return Padding(
@@ -798,7 +787,10 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2)),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: child,
@@ -828,11 +820,17 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                   ? const SizedBox(
                       height: 18,
                       width: 18,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   : CustomText(
                       "Upload",
-                      style: AppTextStyles.button.copyWith(color: Colors.white, fontSize: 13),
+                      style: AppTextStyles.button.copyWith(
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
                     ),
             ),
             const SizedBox(width: 15),
@@ -853,11 +851,16 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF707070),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 0,
         ),
         onPressed: onTap,
-        child: CustomText(title, style: AppTextStyles.button.copyWith(color: Colors.white)),
+        child: CustomText(
+          title,
+          style: AppTextStyles.button.copyWith(color: Colors.white),
+        ),
       ),
     );
   }
@@ -869,12 +872,17 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 2,
           shadowColor: AppColors.primary.withOpacity(0.3),
         ),
         onPressed: onTap,
-        child: CustomText(title, style: AppTextStyles.button.copyWith(color: Colors.white)),
+        child: CustomText(
+          title,
+          style: AppTextStyles.button.copyWith(color: Colors.white),
+        ),
       ),
     );
   }

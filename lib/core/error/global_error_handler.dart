@@ -10,7 +10,7 @@ class GlobalErrorHandler {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(content: CustomText(message)),
     );
   }
 }

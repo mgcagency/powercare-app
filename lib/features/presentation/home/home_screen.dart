@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
 
-        Text(
+        CustomText(
           "${months[today.month - 1]} ${today.year}",
           style: AppTextStyles.bodyMedium.copyWith(
             fontWeight: FontWeight.bold,
@@ -273,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : AppColors.primary,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text(
+                          child: CustomText(
                             "TODAY",
                             style: TextStyle(
                               fontSize: 9,
@@ -293,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           maintainState: true,
                           child: SizedBox(height: 4)),
 
-                      Text(
+                      CustomText(
                         weekdayLabels[index],
                         style: AppTextStyles.bodyExtraSmall.copyWith(
                           color: isSelected
@@ -304,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 2),
 
-                      Text(
+                      CustomText(
                         "${day.day}",
                         style: AppTextStyles.headline4.copyWith(
                           fontWeight: FontWeight.bold,
@@ -334,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius:
                             BorderRadius.circular(20),
                           ),
-                          child: Text(
+                          child: CustomText(
                             "${jobs.length}",
                             style: TextStyle(
                               fontSize: 10,
@@ -656,12 +656,12 @@ class _HomeScreenState extends State<HomeScreen> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text("Logout"),
-              content: const Text("Are you sure you want to logout?"),
+              title: const CustomText("Logout"),
+              content: const CustomText("Are you sure you want to logout?"),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
+                  child: const CustomText("Cancel"),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -673,7 +673,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           (route) => false,
                     );
                   },
-                  child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                  child: const CustomText("Logout", style: TextStyle(color: Colors.red)),
                 ),
               ],
             ),

@@ -15,9 +15,13 @@ class CustomButton extends StatelessWidget {
   final String? fontFamily;
   final double? height;
   final bool? isLoading;
+  final bool showShadow;
 
   final EdgeInsets? padding;
   final Widget? icon;
+  final bool isOutlined;
+  final Color? borderColor;
+
 
   const CustomButton({
     super.key,
@@ -32,6 +36,9 @@ class CustomButton extends StatelessWidget {
     this.fontFamily,
     this.padding,
     this.icon,
+    this.showShadow = true,
+    this.isOutlined = false,
+    this.borderColor,
   });
 
   @override
@@ -49,23 +56,36 @@ class CustomButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [Container(
         // height: (fontSize ?? 16.sp) + 25.h,
-        decoration: BoxDecoration(
-          color: background ?? AppColors.navyBlue,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25), // shadow color
-              blurRadius: 8, // softness
-              spreadRadius: 1, // size
-              offset: const Offset(0, 4), // position (x, y)
-            ),
-          ],
-        ),
+          decoration: BoxDecoration(
+            color: isOutlined
+                ? Colors.transparent
+                : (background ?? AppColors.primary),
+
+            borderRadius: BorderRadius.circular(999),
+
+            border: isOutlined
+                ? Border.all(
+              color: borderColor ?? AppColors.primary,
+              width: 1.5,
+            )
+                : null,
+
+            boxShadow: showShadow
+                ? [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 8,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
+              ),
+            ]
+                : [],
+          ),
         padding:
             padding ??
             EdgeInsets.only(
-              top: 15,
-              bottom: 15,
+              top: 12,
+              bottom: 12,
               left: icon != null ? 10 : 30,
               right: 30,
             ),
@@ -83,13 +103,20 @@ class CustomButton extends StatelessWidget {
                     height: 20,
                     width: 20,
                     child: Center(
-                      child: CircularProgressIndicator(color: Colors.white),
+                      child: CircularProgressIndicator(
+                        color: isOutlined
+                            ? (borderColor ?? AppColors.primary)
+                            : Colors.white,
+                      ),
                     ),
                   )
                       :  CustomText(
                     "$title",
                     style: AppTextStyles.button,
-                    txtColor: textClr ?? AppColors.textOnPrimary,
+                    txtColor: textClr ??
+                        (isOutlined
+                            ? (borderColor ?? AppColors.primary)
+                            : AppColors.textOnPrimary),
                   ),
                 ],
               ),

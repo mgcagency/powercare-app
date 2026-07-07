@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 // Theme & Widgets
 import '../../app/theme/colors.dart';
 import '../../app/widget/custom_response_dialogs.dart';
+import '../../app/widget/custom_text.dart';
 import 'route_animation.dart';
 
 
@@ -75,7 +76,7 @@ class AppNavigator {
       onConfirm: () {
         if (kIsWeb) {
           ScaffoldMessenger.of(ctx).showSnackBar(
-            const SnackBar(content: Text('Please close the tab manually.')),
+             SnackBar(content: CustomText('Please close the tab manually.')),
           );
         } else if (Platform.isAndroid) {
           SystemNavigator.pop();

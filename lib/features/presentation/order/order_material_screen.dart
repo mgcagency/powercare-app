@@ -84,7 +84,7 @@ class _OrderMaterialScreenState
     if (materials.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please add at least one material"),
+          content: CustomText("Please add at least one material"),
         ),
       );
       return;
@@ -103,7 +103,7 @@ class _OrderMaterialScreenState
       if ((item.materialId ?? "").isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Please select material for row ${i + 1}"),
+            content: CustomText("Please select material for row ${i + 1}"),
           ),
         );
         return;
@@ -112,7 +112,7 @@ class _OrderMaterialScreenState
       if (item.qtyController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Please enter quantity for row ${i + 1}"),
+            content: CustomText("Please enter quantity for row ${i + 1}"),
           ),
         );
         return;
@@ -137,7 +137,7 @@ class _OrderMaterialScreenState
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response["message"] ?? "Order Created Successfully"),
+            content: CustomText(response["message"] ?? "Order Created Successfully"),
           ),
         );
 
@@ -145,14 +145,14 @@ class _OrderMaterialScreenState
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response["message"] ?? "Something went wrong"),
+            content: CustomText(response["message"] ?? "Something went wrong"),
           ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: CustomText(e.toString()),
         ),
       );
     }
@@ -214,7 +214,7 @@ class _OrderMaterialScreenState
 
           SnackBar(
 
-            content: Text(
+            content: CustomText(
                 response["message"]),
 
           ),
@@ -231,7 +231,7 @@ class _OrderMaterialScreenState
 
         SnackBar(
 
-          content: Text(e.toString()),
+          content: CustomText(e.toString()),
 
         ),
 
@@ -289,7 +289,7 @@ class _OrderMaterialScreenState
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response["message"] ?? "Success"),
+            content: CustomText(response["message"] ?? "Success"),
           ),
         );
 
@@ -299,7 +299,7 @@ class _OrderMaterialScreenState
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response["message"] ?? "Something went wrong"),
+            content: CustomText(response["message"] ?? "Something went wrong"),
           ),
         );
       }
@@ -309,7 +309,7 @@ class _OrderMaterialScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: CustomText(e.toString()),
           ),
         );
       }
@@ -522,7 +522,7 @@ border: Border.all(color: Colors.black12)
           color: Colors.white,
           size: 20,
         ),
-        label: const Text(
+        label: const CustomText(
           "Add Material",
           style: TextStyle(
             color: Colors.white,
