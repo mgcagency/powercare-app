@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class OrderMaterialItem {
   String? materialId;
@@ -8,19 +8,26 @@ class OrderMaterialItem {
 
   String markup;
 
- // int? raisePoId;
+  // NEW
+  double unitPrice;
+  double totalPrice;
 
   TextEditingController qtyController;
+  TextEditingController usedController;
 
   OrderMaterialItem({
     this.materialId,
     this.materialName,
     this.availableQty = 0,
     this.markup = "1",
-   // this.raisePoId,
+    this.unitPrice = 0.0,
+    this.totalPrice = 0.0,
     TextEditingController? qtyController,
-  }) : qtyController =
-      qtyController ?? TextEditingController(text: "1");
+    TextEditingController? usedController,
+  })  : qtyController =
+      qtyController ?? TextEditingController(text: "1"),
+        usedController =
+            usedController ?? TextEditingController(text: "0");
 
   String get qty => qtyController.text;
 
@@ -28,7 +35,13 @@ class OrderMaterialItem {
     qtyController.text = value;
   }
 
+  void calculateTotal() {
+    final qty = int.tryParse(qtyController.text) ?? 0;
+    totalPrice = qty * unitPrice;
+  }
+
   void dispose() {
     qtyController.dispose();
+    usedController.dispose();
   }
 }
