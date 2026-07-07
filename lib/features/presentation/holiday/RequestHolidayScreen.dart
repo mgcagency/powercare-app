@@ -1,579 +1,331 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import '../../../app/theme/colors.dart';
-import '../../../app/theme/text_styles.dart';
-import '../../../app/widget/custom_appbar.dart';
-import '../../../app/widget/custom_button.dart';
-import '../../../app/widget/custom_dropdown.dart';
-import '../../../app/widget/custom_text.dart';
-import '../../../app/widget/custom_textfield.dart';
-import '../../../core/storage/app_preferences.dart';
+import 'package:powercare_flutter/app/theme/colors.dart';
+import 'package:powercare_flutter/app/theme/text_styles.dart';
+import 'package:powercare_flutter/app/widget/custom_appbar.dart';
+import 'package:powercare_flutter/app/widget/custom_button.dart';
+import 'package:powercare_flutter/app/widget/custom_text.dart';
+import 'package:powercare_flutter/app/widget/custom_textfield.dart';
+import 'package:powercare_flutter/core/storage/app_preferences.dart';
 import '../../alldata/api_repository/leave_repository.dart';
 
 class RequestHolidayScreen extends StatefulWidget {
   const RequestHolidayScreen({super.key});
 
   @override
-  State<RequestHolidayScreen> createState() =>
-      _RequestHolidayScreenState();
+  State<RequestHolidayScreen> createState() => _RequestHolidayScreenState();
 }
 
-class _RequestHolidayScreenState
-    extends State<RequestHolidayScreen> {
+class _RequestHolidayScreenState extends State<RequestHolidayScreen> {
   bool isLoading = false;
   DateTime? startDate;
   DateTime? endDate;
-  final LeaveRepository repository =
-  LeaveRepository();
-
-  final notesController =
-  TextEditingController();
-
+  final LeaveRepository repository = LeaveRepository();
+  final notesController = TextEditingController();
   String? selectedType;
 
-  final List<String> holidayTypes = [
-    "ANNUAL",
-    "SICK",
-    "PERSONAL",
-  ];
+  final List<String> holidayTypes = ["ANNUAL", "SICK", "PERSONAL"];
 
-  Future<void> pickStartDate() async {
+  int get _calculateDuration {
+    if (startDate == null || endDate == null) return 0;
+    final diff = endDate!.difference(startDate!).inDays + 1;
+    return diff > 0 ? diff : 0;
+  }
 
-    final picked =
-    await showDatePicker(
+  Future<void> _pickDate({required bool isStart}) async {
+    final picked = await showDatePicker(
       context: context,
-      firstDate: DateTime.now(),
+      firstDate: isStart ? DateTime.now() : (startDate ?? DateTime.now()),
       lastDate: DateTime(2100),
-      initialDate:
-      startDate ?? DateTime.now(),
+      initialDate: isStart ? (startDate ?? DateTime.now()) : (endDate ?? startDate ?? DateTime.now()),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.navyBlue,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
       setState(() {
-        startDate = picked;
+        if (isStart) {
+          startDate = picked;
+          if (endDate != null && endDate!.isBefore(startDate!)) {
+            endDate = null;
+          }
+        } else {
+          endDate = picked;
+        }
       });
     }
   }
 
-
-  Future<void> pickEndDate() async {
-
-    if (startDate == null) {
-
-      _showError(
-        "Please select start date first",
-      );
-
-      return;
-    }
-
-    final picked =
-    await showDatePicker(
-      context: context,
-      firstDate: startDate!,
-      lastDate: DateTime(2100),
-      initialDate:
-      endDate ?? startDate!,
-    );
-
-    if (picked != null) {
-      setState(() {
-        endDate = picked;
-      });
-    }
-  }
   void validateAndSave() {
-
-    if(startDate == null){
-      _showError(
-        "Please select start date",
-      );
+    if (startDate == null || endDate == null || selectedType == null || notesController.text.isEmpty) {
+      _showError("Please complete all required fields");
       return;
     }
-
-    if(endDate == null){
-      _showError(
-        "Please select end date",
-      );
-      return;
-    }
-
-    if(selectedType == null){
-      _showError(
-        "Please select holiday type",
-      );
-      return;
-    }
-
-    if(notesController.text.isEmpty){
-      _showError(
-        "Please enter notes",
-      );
-      return;
-    }
-
-    final duration =
-        endDate!
-            .difference(startDate!)
-            .inDays + 1;
-
-    if(duration <= 0){
-      _showError(
-        "End date must be after start date",
-      );
-      return;
-    }
-
-    print(
-      "Start = $startDate",
-    );
-    print(
-      "End = $endDate",
-    );
-    print(
-      "Type = $selectedType",
-    );
-    print(
-      "Duration = $duration",
-    );
     callLeaveCreateApi();
-    // Call API here
   }
+
   Future<void> callLeaveCreateApi() async {
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
     try {
-
-      final duration =
-          endDate!
-              .difference(startDate!)
-              .inDays + 1;
-
-      final userId =
-      await AppPreferences.getUserID();
-
+      final userId = await AppPreferences.getUserID();
       final payload = {
-
         "engineer_id": userId,
-
-        "start_date":
-        formatDate(startDate),
-
-        "end_date":
-        formatDate(endDate),
-
-        "duration":
-        duration.toString(),
-
-        "status":
-        "PENDING",
-
-        "holiday_type":
-        selectedType,
-
-        "additional_notes":
-        notesController.text.trim(),
+        "start_date": DateFormat("dd/MM/yyyy").format(startDate!),
+        "end_date": DateFormat("dd/MM/yyyy").format(endDate!),
+        "duration": _calculateDuration.toString(),
+        "status": "PENDING",
+        "holiday_type": selectedType,
+        "additional_notes": notesController.text.trim(),
       };
 
-      print(payload);
+      final response = await repository.createLeave(payload);
 
-      final response =
-      await repository.createLeave(
-        payload,
-      );
-
-      print(response);
-
-  /*    if(response["statusCode"] == 200 ||
-          response["success"] == true){
-*/
-      if(response["statusCode"] == 200 ||
-          response["status_code"] == 200 ||
-          response["success"] == true){
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Holiday request submitted successfully",
-            ),
-          ),
+      if (response["statusCode"] == 200 || response["success"] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Holiday request submitted successfully"), backgroundColor: Colors.green),
         );
-
         Navigator.pop(context);
-
       } else {
-
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-          SnackBar(
-            content: Text(
-              response["message"] ??
-                  "Something went wrong",
-            ),
-          ),
-        );
+        _showError(response["message"] ?? "Something went wrong");
       }
-
-    } catch(e){
-
-      print(
-        "Leave Error => $e",
-      );
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString(),
-          ),
-        ),
-      );
-    }
-    finally {
-
-      setState(() {
-        isLoading = false;
-      });
-
+    } catch (e) {
+      _showError(e.toString());
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
-  void _showError(
-      String message) {
-
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
     );
-  }
-
-  String formatDate(
-      DateTime? date) {
-
-    if(date == null) return "";
-
-    return DateFormat(
-      "dd/MM/yyyy",
-    ).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
-      appBar: const CustomAppBar(title: "New Holiday Request"),
-
-
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: const CustomAppBar(title: "New Request"),
       body: SingleChildScrollView(
-        padding:
-        const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // --- HEADER INFO ---
+            _buildSectionHeader("Holiday Duration"),
+            const SizedBox(height: 12),
 
-            _buildLabel("Holiday Start Date"),
+            // --- DATE PICKER CARD ---
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 8)),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildDateTile(
+                    title: "Start Date",
+                    date: startDate,
+                    icon: Icons.calendar_today_rounded,
+                    onTap: () => _pickDate(isStart: true),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 20),
+                        Container(width: 2, height: 20, color: Colors.grey.shade100),
+                      ],
+                    ),
+                  ),
+                  _buildDateTile(
+                    title: "End Date",
+                    date: endDate,
+                    icon: Icons.event_available_rounded,
+                    onTap: () => _pickDate(isStart: false),
+                  ),
 
-            _buildDatePickerField(
-              startDate == null
-                  ? "Select Start Date"
-                  : formatDate(startDate),
-                  (val) {
-                setState(() {
-                  startDate = DateFormat(
-                    "dd/MM/yyyy",
-                  ).parse(val);
-                });
-              },
+                  if (_calculateDuration > 0) ...[
+                    const Divider(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText("Total Duration", style: AppTextStyles.bodySmall.copyWith(color: Colors.grey)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: CustomText(
+                            "$_calculateDuration Days",
+                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]
+                ],
+              ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
+            _buildSectionHeader("Request Details"),
+            const SizedBox(height: 12),
 
-            _buildLabel("Holiday End Date"),
-
-            _buildDatePickerField(
-              endDate == null
-                  ? "Select End Date"
-                  : formatDate(endDate),
-                  (val) {
-                setState(() {
-                  endDate = DateFormat(
-                    "dd/MM/yyyy",
-                  ).parse(val);
-                });
-              },
-            ),
-
-            const SizedBox(
-              height: 20,
-            ),
-            _buildLabel("Holiday Type"),
+            // --- TYPE SELECTION ---
             GestureDetector(
               onTap: showHolidayTypeBottomSheet,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: Row(
                   children: [
-
+                    const Icon(Icons.category_outlined, color: AppColors.primary, size: 20),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: CustomText(
-                        selectedType ??
-                            "Select Type",
-                        style: AppTextStyles.bodyMedium,
+                        selectedType ?? "Select Leave Type",
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: selectedType == null ? Colors.grey : AppColors.navyBlue,
+                          fontWeight: selectedType == null ? FontWeight.normal : FontWeight.bold,
+                        ),
                       ),
                     ),
-
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      color: AppColors.primary,
-                    ),
+                    const Icon(Icons.expand_more_rounded, color: Colors.grey),
                   ],
                 ),
               ),
             ),
-       /*     CustomDropdown(
-              value: selectedType,
-              hint: "Select Type",
-              items: holidayTypes
-                  .map(
-                    (e) =>
-                    DropdownMenuItem(
-                      value: e,
-                      child: Text(e),
-                    ),
-              )
-                  .toList(),
-              onChanged: (value) {
 
-                setState(() {
-                  selectedType =
-                      value;
-                });
-              },
-            ),*/
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 16),
 
+            // --- NOTES ---
             CustomTextField(
               controller: notesController,
-              hintText: "Additional Notes",
+              hintText: "Add specific details or reasons for your request...",
               maxLines: 4,
             ),
 
-            const SizedBox(
-              height: 30,
-            ),
+            const SizedBox(height: 40),
 
+            // --- ACTIONS ---
             Row(
               children: [
-
+                // Expanded(
+                //   child: CustomButton(
+                //     title: "CANCEL",
+                //     background: Colors.white,
+                //     // textColor: AppColors.navyBlue,
+                //     onPressed: () => Navigator.pop(context),
+                //   ),
+                // ),
+                // const SizedBox(width: 15),
                 Expanded(
                   child: CustomButton(
-                    title: "Cancel",
-                    background: Colors.grey.shade500,
-               /*     icon: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                    ),*/
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-
-
-                Expanded(
-                  child: CustomButton(
-                    title: "Save",
+                    title: "SUBMIT",
                     isLoading: isLoading,
-                  /*  icon: const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                    ),*/
-                    onPressed: isLoading
-                        ? null
-                        : validateAndSave,
+                    onPressed: isLoading ? null : validateAndSave,
                   ),
                 ),
               ],
-            )          ],
+            ),
+          ],
         ),
       ),
     );
   }
-  void showHolidayTypeBottomSheet() {
 
-    showModalBottomSheet(
-
-      context: context,
-
-      backgroundColor: Colors.white,
-
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Container(width: 2, height: 20, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 10),
+        CustomText(
+          title,
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyBlue, fontWeight: FontWeight.w900, letterSpacing: 1.2),
         ),
-      ),
+      ],
+    );
+  }
 
-      builder: (_) {
-
-        return Column(
-
-          mainAxisSize: MainAxisSize.min,
-
-          children: [
-
-            const SizedBox(height: 15),
-
-            const Text(
-              "Select Holiday Type",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const Divider(),
-
-            ...holidayTypes.map((type) {
-
-              return ListTile(
-
-                title: CustomText(
-                  type,
-                  style: AppTextStyles.bodyMedium,
+  Widget _buildDateTile({required String title, DateTime? date, required IconData icon, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), shape: BoxShape.circle),
+            child: Icon(icon, color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(title, style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.grey)),
+                CustomText(
+                  date == null ? "Pick Date" : DateFormat("EEEE, dd MMM yyyy").format(date),
+                  style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700, color: date == null ? Colors.black : AppColors.navyBlue),
                 ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
+        ],
+      ),
+    );
+  }
 
+  void showHolidayTypeBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+              const SizedBox(height: 20),
+              CustomText("Select Leave Type", style: AppTextStyles.headline4.copyWith(fontSize: 18)),
+              const SizedBox(height: 10),
+              const Divider(),
+              ...holidayTypes.map((type) => ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                title: CustomText(type, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+                trailing: selectedType == type ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
                 onTap: () {
-
-                  setState(() {
-                    selectedType = type;
-                  });
-
+                  setState(() => selectedType = type);
                   Navigator.pop(context);
                 },
-              );
-            }).toList(),
-
-            const SizedBox(height: 10),
-          ],
+              )),
+              const SizedBox(height: 20),
+            ],
+          ),
         );
       },
-    );
-  }
-  Widget _buildLabel(String text, {bool isRequired = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15, bottom: 8),
-      child: Row(
-        children: [
-          CustomText(
-            text,
-            style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
-          ),
-          if (isRequired)
-            CustomText(
-              " *",
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.red),
-            ),
-        ],
-      ),
-    );
-  }
-  Widget _buildDatePickerField(
-      String value,
-      Function(String) onDateSelected,
-      ) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.grey.shade300,
-        ),
-        borderRadius:
-        BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-
-          Expanded(
-            child: Padding(
-              padding:
-              const EdgeInsets.only(
-                left: 12,
-              ),
-              child: CustomText(
-                value,
-                style:
-                AppTextStyles.bodySmall,
-              ),
-            ),
-          ),
-
-          GestureDetector(
-            onTap: () async {
-
-              DateTime? picked =
-              await showDatePicker(
-                context: context,
-                initialDate:
-                DateTime.now(),
-                firstDate:
-                DateTime.now(),
-                lastDate:
-                DateTime(2100),
-              );
-
-              if (picked != null) {
-
-                onDateSelected(
-                  DateFormat(
-                    "dd/MM/yyyy",
-                  ).format(
-                    picked,
-                  ),
-                );
-              }
-            },
-            child: Container(
-              padding:
-              const EdgeInsets.all(
-                12,
-              ),
-              decoration:
-              const BoxDecoration(
-                color:
-                AppColors.primary,
-                borderRadius:
-                BorderRadius.only(
-                  topRight:
-                  Radius.circular(
-                      8),
-                  bottomRight:
-                  Radius.circular(
-                      8),
-                ),
-              ),
-              child: const Icon(
-                Icons.calendar_month,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
