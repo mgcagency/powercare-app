@@ -7,6 +7,7 @@ import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 
 import '../../../app/widget/helper.dart';
+import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/api_repository/material_repository.dart';
 import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/material_response.dart';
@@ -37,12 +38,14 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   String _scheduledDate = "03/06/2026";
   String _orderDate = "16/03/2026";
   String _requiredDate = "23/03/2026";
+  String selectedStatus = "";
 
   // Dummy list for Materials
   List<OrderMaterialItem> materials = [];
 
   List<MaterialData> materialStockList = [];
   final MaterialRepository materialRepository = MaterialRepository();
+  final JobRepository jobRepository = JobRepository();
 
   Future<void> loadMaterials() async {
     try {
@@ -161,7 +164,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               child: CustomButton(
                 title: "Save Job Sheet",
                 onPressed: () {
-                  // TODO: Save Job Sheet
+
                 },
               ),
             ),
@@ -172,7 +175,116 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       ),
     );
   }
+  Future<void> saveJobSheet() async {
+    final Map<String, dynamic> body = {};
 
+    body["client_name"] = _clientNameController.text.trim();
+    body["company_name"] = _companyNameController.text.trim();
+    body["email"] = _emailController.text.trim();
+    body["office_number"] = _officeNumController.text.trim();
+    body["mobile_number"] = _mobileNumController.text.trim();
+    body["office_address"] = _officeAddrController.text.trim();
+    body["site_address"] = _siteAddrController.text.trim();
+
+    body["description"] = _specController.text.trim();
+
+    body["service_request"] =
+        _serviceReqController.text.trim();
+
+    body["date_of_scheduled"] = _scheduledDate;
+
+    body["date_of_order"] = _orderDate;
+
+    body["date_required"] = _requiredDate;
+
+    body["job_status"] = selectedStatus;
+
+    body["job_id"] = widget.job?.id.toString();
+    double subtotal = 0;
+
+    for (int i = 0; i < materials.length; i++) {
+      final item = materials[i];
+
+      final qty =
+          int.tryParse(item.qtyController.text) ?? 0;
+
+      final used =
+          int.tryParse(item.usedController.text) ?? 0;
+
+      final unitPrice = item.unitPrice ?? 0;
+
+      final totalPrice = qty * unitPrice;
+
+      body["material_id[$i]"] =
+          item.materialId;
+
+      body["order_qty[$i]"] =
+          qty.toString();
+
+      body["purchase_qty_used[$i]"] =
+          used.toString();
+
+      body["unit_price[$i]"] =
+          unitPrice.toString();
+
+      body["total_price[$i]"] =
+          totalPrice.toString();
+
+      subtotal += totalPrice;
+    }
+    body["material_sub_total"] =
+        subtotal.toString();
+
+    body["purchase_sub_total"] = "0";
+
+    body["wage_sub_total"] = "0";
+    try {
+      final response =
+      await jobRepository.saveJobSheet(body);
+
+      if (!mounted) return;
+
+      if (response["success"] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+
+          SnackBar(
+
+            content: Text(
+              response["message"] ??
+                  "Job Sheet Saved Successfully",
+            ),
+
+          ),
+
+        );
+
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+
+          SnackBar(
+
+            content: Text(
+              response["message"] ??
+                  "Something went wrong",
+            ),
+
+          ),
+
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+
+        SnackBar(
+
+          content: Text(e.toString()),
+
+        ),
+
+      );
+    }
+  }
   Widget _buildJobDetailsCard() {
     return SectionHeaderCard(
       icon: Icons.description_outlined,
@@ -425,7 +537,9 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
           DropdownMenuItem(value: "Completed", child: Text("Completed")),
         ],
 
-        onChanged: (v) {},
+        onChanged: (v) {
+          selectedStatus = v ?? "";
+        },
       ),
     );
   }
@@ -562,9 +676,9 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
           });
         },
 
-        icon: const Icon(Icons.add, color: Colors.white),
+        // icon: const Icon(Icons.add_outlined, color: Colors.white,size: 20,),
 
-        label: const Text("Add Material"),
+        label:  CustomText("\u002B Add Material",txtColor: Colors.white,style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),),
 
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,

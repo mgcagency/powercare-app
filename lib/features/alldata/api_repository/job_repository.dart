@@ -83,4 +83,14 @@ class JobRepository {
 
     return response.data;
   }
+  Future<Map<String, dynamic>> saveJobSheet(
+      Map<String, dynamic> body,
+      ) async {
+    final response = await ApiClient.post(
+      "/job-sheet",
+      body,
+    );
+
+    return response.data;
+  }
 }

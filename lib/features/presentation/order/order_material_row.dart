@@ -10,16 +10,11 @@ import 'order_material_item.dart';
 class OrderMaterialRow extends StatelessWidget {
 
   final OrderMaterialItem item;
-
   final List<MaterialData> materials;
   final List<String> selectedMaterialIds;
-
   final bool showDivider;
-
   final VoidCallback? onDelete;
-
   final Function(MaterialData?) onMaterialChanged;
-
   final Function(String) onQtyChanged;
 
   const OrderMaterialRow({
@@ -245,9 +240,66 @@ Row(children: [
               ),
             ),
 
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
 
-            /// Available Stock
+            /// Used Qty
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    "Used",
+                    //txtColor: AppColors.navyBlue,
+                    style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  CustomTextField(
+                    controller: item.usedController,
+                    keyboardType: TextInputType.number,
+                    hintText: "Used Qty",
+                    onChanged: (value) {
+                      if (value.isEmpty) {
+                        return;
+                      }
+
+                      final usedQty = int.tryParse(value);
+                      final orderQty = int.tryParse(item.qtyController.text) ?? 0;
+
+                      if (usedQty == null) {
+                        return;
+                      }
+
+                      if (usedQty < 0) {
+                        item.usedController.text = "0";
+                        item.usedController.selection = TextSelection.fromPosition(
+                          TextPosition(offset: item.usedController.text.length),
+                        );
+                        return;
+                      }
+
+                      if (usedQty > orderQty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Used quantity cannot be greater than ordered quantity ($orderQty).",
+                            ),
+                          ),
+                        );
+
+                        item.usedController.text = orderQty.toString();
+                        item.usedController.selection = TextSelection.fromPosition(
+                          TextPosition(offset: item.usedController.text.length),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ), /// Available Stock
+              const SizedBox(width: 10),
             Expanded(
               flex: 2,
               child: Column(
@@ -289,14 +341,9 @@ Row(children: [
                 ],
               ),
             ),
-
-
-
-
           ],
         ),
       ],
     );
   }
-
 }
