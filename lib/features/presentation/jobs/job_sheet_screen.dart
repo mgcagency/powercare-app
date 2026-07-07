@@ -138,11 +138,12 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             // Part 2 starts here...
             _buildWorkRequiredCard(),
             const SizedBox(height: 20),
+            _buildjobNotes(),
 
+            const SizedBox(height: 20),
             _buildJobDetailsCard(),
 
             const SizedBox(height: 20),
-
             _buildScheduleCard(),
 
             const SizedBox(height: 20),
@@ -200,6 +201,27 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       ),
     );
   }
+  Widget _buildjobNotes() {
+    return SectionHeaderCard(
+      icon: Icons.description_outlined,
+      title: "Notes",
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          _fieldLabel("Notes"),
+          CustomTextField(
+            controller: _specController,
+            hintText: "Enter here",
+            maxLines: 4,
+          ),
+
+
+        ],
+      ),
+    );
+  }
+
   Widget _buildScheduleCard() {
     return SectionHeaderCard(
       icon: Icons.calendar_month_outlined,
