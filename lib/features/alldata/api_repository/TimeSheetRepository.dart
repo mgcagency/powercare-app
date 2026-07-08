@@ -9,7 +9,7 @@ class TimeSheetRepository {
       ) async {
 
     final response =
-    await ApiClient.post(
+    await ApiClient.postForm(
       ApiEndpoints.timeSheetCreate,
       payload,
     );

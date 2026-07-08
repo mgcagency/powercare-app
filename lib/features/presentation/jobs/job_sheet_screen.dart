@@ -33,6 +33,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   final _officeAddrController = TextEditingController();
   final _siteAddrController = TextEditingController();
   final _specController = TextEditingController();
+  final _noteController = TextEditingController();
   final _serviceReqController = TextEditingController();
   late final JobModel? job = widget.job;
   final TimeSheetRepository repository = TimeSheetRepository();
@@ -194,6 +195,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             payload["engineer_id[$apiIndex]"] = engineer["userId"];
             payload["start_time[$apiIndex]"] = slot["startTime"];
             payload["end_time[$apiIndex]"] = slot["endTime"];
+
             apiIndex++;
           }
         }
@@ -204,7 +206,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         setState(() => isLoading = false);
         return;
       }
-
+      debugPrint(payload.toString());
       final response = await repository.addTimeSheet(payload);
       if (response["success"] == true) {
         Navigator.pop(context);
@@ -347,8 +349,6 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
             // Part 2 starts here...
             _buildWorkRequiredCard(),
-            const SizedBox(height: 20),
-            _buildjobNotes(),
 
             const SizedBox(height: 20),
             _buildJobDetailsCard(),
@@ -363,6 +363,27 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             const SizedBox(height: 20),
 
             _buildStatusCard(),
+            const SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  "Add Time Sheet",
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.black,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Divider(
+                  color: Colors.black,
+                  thickness: 1,
+                  height: 1,
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
 
             _buildGrandTotalHeader(),
@@ -387,8 +408,10 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               width: double.infinity,
               child: CustomButton(
                 title: "Save Job Sheet",
-                onPressed: () {
+                onPressed: () async {
 
+                  await saveJobSheet();
+                  await saveTimeSheet();
                 },
               ),
             ),
@@ -537,7 +560,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       ),
     );
   }
-  Widget _buildjobNotes() {
+/*  Widget _buildjobNotes() {
     return SectionHeaderCard(
       icon: Icons.description_outlined,
       title: "Notes",
@@ -556,7 +579,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         ],
       ),
     );
-  }
+  }*/
 
   Widget _buildScheduleCard() {
     return SectionHeaderCard(
@@ -642,8 +665,11 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             );
 
             if (picked != null) {
-              onChanged("${picked.day}/${picked.month}/${picked.year}");
-            }
+              onChanged(
+                  //"${picked.day}/${picked.month}/${picked.year}");
+                  "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}",);
+
+                  }
           },
 
           child: Container(
@@ -747,18 +773,19 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       title: "Job Status",
 
       child: DropdownButtonFormField<String>(
-        value: "Pending",
+        value: "Ongoing",
 
         decoration: InputDecoration(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
 
         items: const [
-          DropdownMenuItem(value: "Pending", child: Text("Pending")),
+          DropdownMenuItem(value: "Ongoing", child: Text("Ongoing")),
 
-          DropdownMenuItem(value: "In Progress", child: Text("In Progress")),
+          DropdownMenuItem(value: "Additional Work Required", child: Text("Additional Work Required")),
 
-          DropdownMenuItem(value: "Completed", child: Text("Completed")),
+          DropdownMenuItem(value: "Completed by Engineer", child: Text("Completed by Engineer")),
+          DropdownMenuItem(value: "New Quote Required", child: Text("New Quote Required")),
         ],
 
         onChanged: (v) {
@@ -832,7 +859,26 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 30),
 
             child: _buildAddMaterialButton(),
+
           ),
+          const SizedBox(height: 10),
+
+          Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                _fieldLabel("Notes"),
+                CustomTextField(
+                  controller: _noteController,
+                  hintText: "Enter here",
+                  maxLines: 4,
+                ),
+
+
+              ],
+            ),
+          )
         ],
       ),
     );

@@ -86,8 +86,8 @@ class JobRepository {
   Future<Map<String, dynamic>> saveJobSheet(
       Map<String, dynamic> body,
       ) async {
-    final response = await ApiClient.post(
-      "/job-sheet",
+    final response = await ApiClient.postForm(
+      "/jobsheet/create",
       body,
     );
 
