@@ -168,7 +168,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               fontSize: 15,
             ),
-            child: Text(text),
+            child: CustomText(text),
           ),
         ),
       ),
@@ -181,7 +181,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
     }
 
     if (materials.isEmpty) {
-      return const Center(child: Text("No Materials Found"));
+      return const Center(child: CustomText("No Materials Found"));
     }
 
     return ListView.builder(
@@ -198,18 +198,18 @@ class _MaterialScreenState extends State<MaterialScreen> {
               child: const Icon(Icons.inventory),
             ),
 
-            title: Text(item.materialName ?? ""),
+            title: CustomText(item.materialName ?? ""),
 
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.supplierName ?? ""),
+                CustomText(item.supplierName ?? ""),
 
-                Text("Qty : ${item.totalQty ?? 0}"),
+                CustomText("Qty : ${item.totalQty ?? 0}"),
               ],
             ),
 
-            trailing: Text(
+            trailing: CustomText(
               "£${item.totalPrice ?? "0"}",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -260,12 +260,12 @@ class _MaterialScreenState extends State<MaterialScreen> {
               backgroundColor: Colors.orange.shade100,
               child: const Icon(Icons.inventory),
             ),
-            title: Text(item.materialName ?? ""),
+            title: CustomText(item.materialName ?? ""),
 
-            subtitle: Text(item.supplierName ?? ""),
+            subtitle: CustomText(item.supplierName ?? ""),
 
-            trailing: Text("Qty : ${item.totalQty ?? 0}"),
-            *//*Text(
+            trailing: CustomText("Qty : ${item.totalQty ?? 0}"),
+            *//*CustomText(
                 "£${item.totalPrice ?? "0"}",
               ),*//*
           ),*/

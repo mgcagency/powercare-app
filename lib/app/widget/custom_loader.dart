@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import 'custom_text.dart';
 
 class CustomLoader extends StatelessWidget {
   final String? message;
@@ -15,7 +16,7 @@ class CustomLoader extends StatelessWidget {
           CircularProgressIndicator(color: AppColors.primary),
           if (message != null) ...[
             SizedBox(height: 12),
-            Text(message!)
+            CustomText(message!)
           ]
         ],
       ),

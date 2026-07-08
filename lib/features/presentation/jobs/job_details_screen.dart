@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
+import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/core/navigation/app_navigator.dart';
 import 'package:powercare_flutter/core/storage/app_preferences.dart';
@@ -36,7 +37,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   bool _isLoadingDetails = false;
   int deleteId = -1;
   JobModel? _detailedJob;
-// Inside _JobDetailsScreenState class
+  // Inside _JobDetailsScreenState class
 
   bool _isProcessingStatus = false;
 
@@ -45,17 +46,21 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     try {
       String userId = await AppPreferences.getUserID();
       // Replace with your actual repository method
-      final response = await JobRepository().changeEngineerStatus(jobId: widget.job.id.toString(),userId: userId, status: status);
+      final response = await JobRepository().changeEngineerStatus(
+        jobId: widget.job.id.toString(),
+        userId: userId,
+        status: status,
+      );
 
       // For now, we simulate success and refresh details
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Job $status successfully")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: CustomText("Job $status successfully")));
       _fetchJobDetails();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: CustomText("Error: ${e.toString()}")));
     } finally {
       setState(() => _isProcessingStatus = false);
     }
@@ -67,12 +72,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     _loadCurrentUserId();
     _fetchJobDetails();
   }
+
   Future<void> _loadCurrentUserId() async {
     final id = await AppPreferences.getUserID();
     setState(() {
       _currentUserId = id;
     });
   }
+
   Future<void> _deleteImage(int imageId) async {
     setState(() => _isDeleting = true);
     deleteId = imageId; // Reuse upload loader or create _isDeleting
@@ -80,14 +87,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       final response = await _repository.deleteJobImage(imageId);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Image deleted successfully")),
+          const SnackBar(content: CustomText("Image deleted successfully")),
         );
-        _fetchJobDetails() ; // Refresh the UI
+        _fetchJobDetails(); // Refresh the UI
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Delete failed: ${e.toString()}")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: CustomText("Delete failed: ${e.toString()}")),
+      );
     } finally {
       setState(() {
         _isDeleting = false;
@@ -95,6 +102,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       });
     }
   }
+
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
 
@@ -166,19 +174,20 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Image uploaded successfully")),
+          const SnackBar(content: CustomText("Image uploaded successfully")),
         );
         _fetchJobDetails(); // Refresh details after upload
         // Note: You might want to refresh the job data here to show the new image
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Upload failed: ${e.toString()}")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: CustomText("Upload failed: ${e.toString()}")),
+      );
     } finally {
       setState(() => _isUploading = false);
     }
   }
+
   Future<void> _fetchJobDetails() async {
     setState(() => _isLoadingDetails = true);
     try {
@@ -197,8 +206,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final job = _detailedJob;
@@ -207,22 +214,23 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     String currentStatus = "PENDING";
 
     if (job != null && _currentUserId != null) {
-
       bool isUserPartOfJob = false;
 
       // 1. Check if user is the Lead Engineer
       if (job.leadEngineer?.id.toString() == _currentUserId) {
         currentStatus = job.leadEngineerStatus ?? "PENDING";
         isUserPartOfJob = true;
-        print("_currentUserId--->"+_currentUserId.toString());
-        print("job--->"+job.toString());
+        print("_currentUserId--->" + _currentUserId.toString());
+        print("job--->" + job.toString());
       }
       // 2. Otherwise, check the Other Engineers list
       else if (job.otherEngineers != null) {
         try {
           // Look for the user ID within the otherEngineers objects
           final myEntry = job.otherEngineers!.firstWhere(
-                (e) => e.user?.id.toString() == _currentUserId || e.id?.toString() == _currentUserId,
+            (e) =>
+                e.user?.id.toString() == _currentUserId ||
+                e.id?.toString() == _currentUserId,
           );
           currentStatus = myEntry.status ?? "PENDING";
           isUserPartOfJob = true;
@@ -230,8 +238,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
           // User not found in Other Engineers list
           isUserPartOfJob = false;
         }
-        print("isUserPartOfJob--->"+isUserPartOfJob.toString());
-
+        print("isUserPartOfJob--->" + isUserPartOfJob.toString());
       }
 
       // 3. Final Fallback: If after checking both, user is still not part of the job
@@ -242,9 +249,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
     final bool isAccepted = currentStatus == "ACCEPT";
     final bool isPending = currentStatus == "PENDING";
-print("currentStatus--->"+currentStatus);
-print("isAccepted--->"+isAccepted.toString());
-print("isPending--->"+isPending.toString());
+    print("currentStatus--->" + currentStatus);
+    print("isAccepted--->" + isAccepted.toString());
+    print("isPending--->" + isPending.toString());
     // ... rest of your build logic
     List<UserModel> engineers = [];
     if (job != null) {
@@ -264,8 +271,8 @@ print("isPending--->"+isPending.toString());
               child: Column(
                 children: [
                   // ── HERO CARD ──────────────────────────────────────────
-                  _HeroCard(job: job, personalStatus: currentStatus),                  if (isPending)
-                  const SizedBox(height: 12),
+                  _HeroCard(job: job, personalStatus: currentStatus),
+                  if (isPending) const SizedBox(height: 12),
                   // ── NEW: ACCEPT / REJECT SECTION ──────────────────────
                   if (isPending)
                     SectionCard(
@@ -280,28 +287,25 @@ print("isPending--->"+isPending.toString());
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  onPressed: _isProcessingStatus ? null : () => _updateJobStatus("REJECT"),
-                                  child: const Text("Reject"),
-                                ),
+                              Spacer(),
+                              CustomButton(
+                                isOutlined: true,
+                                showShadow: false,
+                                onPressed: _isProcessingStatus
+                                    ? null
+                                    : () => _updateJobStatus("REJECT"),
+                                title: "Reject Job",
                               ),
+
                               const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  onPressed: _isProcessingStatus ? null : () => _updateJobStatus("ACCEPT"),
-                                  child: const Text("Accept Job", style: TextStyle(color: Colors.white)),
-                                ),
+                              CustomButton(
+                                showShadow: false,
+                                onPressed: _isProcessingStatus
+                                    ? null
+                                    : () => _updateJobStatus("ACCEPT"),
+                                title: "Accept Job",
                               ),
+                              Spacer(),
                             ],
                           ),
                         ],
@@ -421,11 +425,13 @@ print("isPending--->"+isPending.toString());
                         itemCount: (job.images?.length ?? 0) + 1,
                         itemBuilder: (_, i) {
                           // Add Photo Button
-                          if (i == 0 ) {
+                          if (i == 0) {
                             return GestureDetector(
-                              onTap: isAccepted?() {
-                                if (!_isUploading) _showPickerOptions();
-                              }:null,
+                              onTap: isAccepted
+                                  ? () {
+                                      if (!_isUploading) _showPickerOptions();
+                                    }
+                                  : null,
                               child: Container(
                                 width: 90,
                                 margin: const EdgeInsets.only(
@@ -433,10 +439,14 @@ print("isPending--->"+isPending.toString());
                                   right: 20,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:  isAccepted?AppColors.primary.withOpacity(.05):AppColors.grey.withOpacity(.05),
+                                  color: isAccepted
+                                      ? AppColors.primary.withOpacity(.05)
+                                      : AppColors.grey.withOpacity(.05),
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                    color: isAccepted?AppColors.primary.withOpacity(.3):AppColors.grey.withOpacity(.3),
+                                    color: isAccepted
+                                        ? AppColors.primary.withOpacity(.3)
+                                        : AppColors.grey.withOpacity(.3),
                                     width: 1.2,
                                   ),
                                 ),
@@ -454,13 +464,17 @@ print("isPending--->"+isPending.toString());
                                           Container(
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
-                                              color: isAccepted?AppColors.primary
-                                                  .withOpacity(.1): Colors.grey.withOpacity(.1),
+                                              color: isAccepted
+                                                  ? AppColors.primary
+                                                        .withOpacity(.1)
+                                                  : Colors.grey.withOpacity(.1),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
                                               Icons.add_a_photo_outlined,
-                                              color: isAccepted ?AppColors.primary:Colors.grey,
+                                              color: isAccepted
+                                                  ? AppColors.primary
+                                                  : Colors.grey,
                                               size: 22,
                                             ),
                                           ),
@@ -576,30 +590,27 @@ print("isPending--->"+isPending.toString());
                   ],
 
                   // ── JOB SHEETS SECTION ─────────────────────────────────
-
-                    const SizedBox(height: 12),
-                    SectionCard(
-                      isJobSheet: true,
-                      isAccepted: isAccepted,
-                      icon: Icons.assignment_outlined,
-                      title: "Job Sheets",
-                      job: job,
-                      child: Column(
-                        children: List.generate(job.jobSheets!.length, (index) {
-                          final sheet = job.jobSheets![index];
-                          return _DocumentRow(
-                            job: job,
-                            title:
-                                sheet.description ?? "Job Sheet ${index + 1}",
-                            url: sheet.documentFullLink ?? "",
-                            isLast: index == job.jobSheets!.length - 1,
-                            isJobSheet: true,
-                              isAccepted : isAccepted,
-                          );
-                        }),
-                      ),
+                  const SizedBox(height: 12),
+                  SectionCard(
+                    isJobSheet: true,
+                    isAccepted: isAccepted,
+                    icon: Icons.assignment_outlined,
+                    title: "Job Sheets",
+                    job: job,
+                    child: Column(
+                      children: List.generate(job.jobSheets!.length, (index) {
+                        final sheet = job.jobSheets![index];
+                        return _DocumentRow(
+                          job: job,
+                          title: sheet.description ?? "Job Sheet ${index + 1}",
+                          url: sheet.documentFullLink ?? "",
+                          isLast: index == job.jobSheets!.length - 1,
+                          isJobSheet: true,
+                          isAccepted: isAccepted,
+                        );
+                      }),
                     ),
-
+                  ),
 
                   const SizedBox(height: 20),
                   SectionCard(
@@ -607,17 +618,15 @@ print("isPending--->"+isPending.toString());
                     title: "Job Management",
                     child: Column(
                       children: [
-
                         _actionTile(
                           isAccepted: isAccepted,
                           icon: Icons.more_time_rounded,
                           title: "Add Timesheet",
                           subtitle: "Track engineer hours",
                           onTap: () {
-                            AppNavigator.push(TimeSheetScreen (jobId: job!.id.toString(),
-
-                            ));
-
+                            AppNavigator.push(
+                              TimeSheetScreen(jobId: job!.id.toString()),
+                            );
                           },
                         ),
                         _actionTile(
@@ -629,9 +638,7 @@ print("isPending--->"+isPending.toString());
                             final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => PlantUsageScreen(
-                                  job: job,
-                                ),
+                                builder: (_) => PlantUsageScreen(job: job),
                               ),
                             );
 
@@ -639,9 +646,7 @@ print("isPending--->"+isPending.toString());
                               // Refresh Job Details
                             }
                             //AppNavigator.pushAndRemoveAll(const MaterialScreen());
-
-    },
-
+                          },
                         ),
                         _actionTile(
                           isAccepted: isAccepted,
@@ -649,11 +654,7 @@ print("isPending--->"+isPending.toString());
                           title: "Order Material",
                           subtitle: "Request site materials",
                           onTap: () {
-                            AppNavigator.push(
-                              OrderMaterialScreen(
-                                job: job,
-                              ),
-                            );
+                            AppNavigator.push(OrderMaterialScreen(job: job));
                           },
                         ),
                       ],
@@ -666,7 +667,6 @@ print("isPending--->"+isPending.toString());
     );
   }
 }
-
 
 Widget _actionTile({
   required bool isAccepted,
@@ -681,7 +681,7 @@ Widget _actionTile({
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap:isAccepted? onTap:null,
+        onTap: isAccepted ? onTap : null,
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -696,10 +696,16 @@ Widget _actionTile({
                 width: 35,
 
                 decoration: BoxDecoration(
-                  color:  isAccepted?AppColors.primary.withOpacity(.08):AppColors.grey.withOpacity(.08),
+                  color: isAccepted
+                      ? AppColors.primary.withOpacity(.08)
+                      : AppColors.grey.withOpacity(.08),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, size: 20, color: isAccepted?AppColors.primary:Colors.grey),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: isAccepted ? AppColors.primary : Colors.grey,
+                ),
               ),
 
               const SizedBox(width: 14),
@@ -712,11 +718,16 @@ Widget _actionTile({
                       title,
                       style: AppTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.bold,
-                       color:  isAccepted?AppColors.black:Colors.grey,
+                        color: isAccepted ? AppColors.black : Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 3),
-                    CustomText(subtitle, style: AppTextStyles.bodySmall.copyWith( color:  isAccepted?AppColors.black:Colors.grey,)),
+                    CustomText(
+                      subtitle,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: isAccepted ? AppColors.black : Colors.grey,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -733,7 +744,6 @@ Widget _actionTile({
     ),
   );
 }
-
 
 class _DocumentRow extends StatelessWidget {
   final String title;
@@ -754,7 +764,7 @@ class _DocumentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("sdhjkfashdhsdkfksd----->"+job.toString());
+    print("sdhjkfashdhsdkfksd----->" + job.toString());
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
@@ -780,11 +790,7 @@ class _DocumentRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: CustomText(
-              title,
-              style: AppTextStyles.bodySmall.copyWith(
-              ),
-            ),
+            child: CustomText(title, style: AppTextStyles.bodySmall.copyWith()),
           ),
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -824,7 +830,7 @@ class _DocumentRow extends StatelessWidget {
                       ),
                     );
                   } else {
-                    AppNavigator.push(JobSheetScreen(job: job,));
+                    AppNavigator.push(JobSheetScreen(job: job));
                   }
                 },
                 child: Container(
@@ -845,7 +851,7 @@ class _DocumentRow extends StatelessWidget {
               if (isJobSheet && isAccepted)
                 GestureDetector(
                   onTap: () async {
-                    AppNavigator.push(JobSheetScreen(job: job,));
+                    AppNavigator.push(JobSheetScreen(job: job));
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
@@ -867,6 +873,7 @@ class _DocumentRow extends StatelessWidget {
     );
   }
 }
+
 class _QuickAction extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -969,7 +976,10 @@ class _HeroCard extends StatelessWidget {
                   const SizedBox(width: 10),
                   // Job Category Status
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 11,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -993,7 +1003,10 @@ class _HeroCard extends StatelessWidget {
                     style: AppTextStyles.caption.copyWith(color: Colors.grey),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: invitationBadgeColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -1039,6 +1052,7 @@ class _HeroCard extends StatelessWidget {
     );
   }
 }
+
 class _MiniChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1068,7 +1082,6 @@ class _MiniChip extends StatelessWidget {
     );
   }
 }
-
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;

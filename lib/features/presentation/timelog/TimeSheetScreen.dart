@@ -176,7 +176,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
       }
 
       if (apiIndex == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please add at least one time log")));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: CustomText("Please add at least one time log")));
         setState(() => isLoading = false);
         return;
       }
@@ -309,7 +309,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                 TextButton.icon(
                   onPressed: () => addTimeSlot(engIdx),
                   icon: const Icon(Icons.add_alarm, size: 18),
-                  label: const Text("Add Shift/Slot"),
+                  label: const CustomText("Add Shift/Slot"),
                 )
               ],
             ),
@@ -468,7 +468,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 15),
-            const Text("Select Engineer", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const CustomText("Select Engineer", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Divider(),
             Flexible(
               child: ListView.builder(
@@ -477,7 +477,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                 itemBuilder: (_, index) {
                   final user = users[index];
                   return ListTile(
-                    title: Text(user.fullName),
+                    title: CustomText(user.fullName),
                     onTap: () {
                       setState(() {
                         item["userId"] = user.id.toString();

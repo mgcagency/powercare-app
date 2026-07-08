@@ -432,36 +432,24 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     body["mobile_number"] = _mobileNumController.text.trim();
     body["office_address"] = _officeAddrController.text.trim();
     body["site_address"] = _siteAddrController.text.trim();
-
     body["description"] = _specController.text.trim();
-
     body["service_request"] =
         _serviceReqController.text.trim();
-
     body["date_of_scheduled"] = _scheduledDate;
-
     body["date_of_order"] = _orderDate;
-
     body["date_required"] = _requiredDate;
-
     body["job_status"] = selectedStatus;
-
     body["job_id"] = widget.job?.id.toString();
     double subtotal = 0;
 
     for (int i = 0; i < materials.length; i++) {
       final item = materials[i];
-
       final qty =
           int.tryParse(item.qtyController.text) ?? 0;
-
       final used =
           int.tryParse(item.usedController.text) ?? 0;
-
       final unitPrice = item.unitPrice ?? 0;
-
       final totalPrice = qty * unitPrice;
-
       body["material_id[$i]"] =
           item.materialId;
 
@@ -496,7 +484,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
           SnackBar(
 
-            content: Text(
+            content: CustomText(
               response["message"] ??
                   "Job Sheet Saved Successfully",
             ),
@@ -511,7 +499,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
           SnackBar(
 
-            content: Text(
+            content: CustomText(
               response["message"] ??
                   "Something went wrong",
             ),
@@ -525,7 +513,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
         SnackBar(
 
-          content: Text(e.toString()),
+          content: CustomText(e.toString()),
 
         ),
 

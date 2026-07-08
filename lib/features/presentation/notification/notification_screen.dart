@@ -345,6 +345,30 @@ Widget _buildNotificationCard(NotificationData item)  {
             ),
     );
   }
+  // String getCurrentUserJobStatus(JobData? job, String userId) {
+  //   if (job == null) return "Not your Job";
+  //
+  //   // Lead Engineer
+  //   if (job.leadEngineer?.id.toString() == userId ||
+  //       job.leadEngineerId.toString() == userId) {
+  //     return job.leadEngineerStatus ?? "PENDING";
+  //   }
+  //
+  //   // Other Engineers
+  //   if (job.otherEngineers != null) {
+  //     try {
+  //       final engineer = job.otherEngineers!.firstWhere(
+  //             (e) =>
+  //         e.user?.id.toString() == userId ||
+  //             e.id?.toString() == userId,
+  //       );
+  //
+  //       return engineer.status ?? "PENDING";
+  //     } catch (_) {}
+  //   }
+  //
+  //   return "Not your Job";
+  // }
   Widget _buildActionBtn(
 
       String text,

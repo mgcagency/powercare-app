@@ -65,7 +65,7 @@ class _ConfirmPinScreenState extends State<ConfirmPinScreen> with TickerProvider
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("PINs do not match. Try again."),
+          content: const CustomText("PINs do not match. Try again."),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

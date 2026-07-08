@@ -76,7 +76,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   void showToast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: CustomText(message),
       ),
     );
   }
@@ -89,7 +89,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text("Select Engineers"),
+              title: const CustomText("Select Engineers"),
 
               content: SizedBox(
                 width: double.maxFinite,
@@ -102,7 +102,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                     return CheckboxListTile(
                       value: tempList.any((e) => e.id == user.id),
 
-                      title: Text("${user.firstName} ${user.lastName}"),
+                      title: CustomText("${user.firstName} ${user.lastName}"),
 
                       onChanged: (value) {
                         setDialogState(() {
@@ -123,7 +123,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text("Cancel"),
+                  child: const CustomText("Cancel"),
                 ),
 
                 ElevatedButton(
@@ -134,7 +134,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
                     Navigator.pop(context);
                   },
-                  child: const Text("OK"),
+                  child: const CustomText("OK"),
                 ),
               ],
             );
@@ -395,7 +395,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
       /*      Align(
               alignment: Alignment.centerLeft,
-              child: Text(
+              child: CustomText(
                 "Lead Engineer",
                 style: AppTextStyles.bodyMedium.copyWith(
                   fontWeight: FontWeight.w500,
@@ -446,7 +446,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               items: users.map((user) {
                 return DropdownMenuItem<UserModel>(
                   value: user,
-                  child: Text(
+                  child: CustomText(
                     "${user.firstName ?? ""} ${user.lastName ?? ""}",
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -463,7 +463,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
        /*     Align(
               alignment: Alignment.centerLeft,
-              child: Text(
+              child: CustomText(
                 "Job Status",
                 style: AppTextStyles.bodyMedium.copyWith(
                   fontWeight: FontWeight.w600,
@@ -511,7 +511,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
               items: jobStatusList.map((status) {
                 return DropdownMenuItem<JobStatusModel>(
                   value: status,
-                  child: Text(
+                  child: CustomText(
                     status.status ?? "",
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -593,7 +593,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(
+                      child: CustomText(
                         selectedOtherEngineers.isEmpty
                             ? "Select Other Engineers"
                             : "${selectedOtherEngineers.length} Engineers Selected",
@@ -615,7 +615,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
                 return Chip(
                   backgroundColor: Colors.orange.shade50,
 
-                  label: Text("${user.firstName} ${user.lastName}"),
+                  label: CustomText("${user.firstName} ${user.lastName}"),
 
                   deleteIcon: const Icon(Icons.close, size: 18),
 
@@ -652,7 +652,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             }),
 
             /*         ListTile(
-              title: Text(
+              title: CustomText(
                 selectedDate,
               ),
               trailing:
@@ -671,7 +671,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             }),
 
             /*         ListTile(
-              title: Text(
+              title: CustomText(
                 selectedTime,
               ),
               trailing:
@@ -882,7 +882,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
                     const SizedBox(height: 15),
 
-                    const Text(
+                    const CustomText(
                       "Select Other Engineers",
                       style: TextStyle(
                         fontSize: 18,
@@ -911,7 +911,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
                             value: isSelected,
 
-                            title: Text(
+                            title: CustomText(
                               "${user.firstName ?? ""} ${user.lastName ?? ""}",
                             ),
 
@@ -987,7 +987,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
 
             const SizedBox(height: 15),
 
-            const Text(
+            const CustomText(
               "Select Lead Engineer",
               style: TextStyle(
                 fontSize: 18,

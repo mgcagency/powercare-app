@@ -92,7 +92,7 @@ class _RequestHolidayScreenState extends State<RequestHolidayScreen> {
 
       if (response["statusCode"] == 200 || response["success"] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Holiday request submitted successfully"), backgroundColor: Colors.green),
+          const SnackBar(content: CustomText("Holiday request submitted successfully"), backgroundColor: Colors.green),
         );
         Navigator.pop(context);
       } else {
@@ -107,7 +107,7 @@ class _RequestHolidayScreenState extends State<RequestHolidayScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
+      SnackBar(content: CustomText(message), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -240,7 +240,7 @@ class _RequestHolidayScreenState extends State<RequestHolidayScreen> {
                 // const SizedBox(width: 15),
                 Expanded(
                   child: CustomButton(
-                    title: "SUBMIT",
+                    title: "Submit",
                     isLoading: isLoading,
                     onPressed: isLoading ? null : validateAndSave,
                   ),
