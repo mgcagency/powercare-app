@@ -42,7 +42,22 @@ class ApiClient {
 
     return dio;
   }
+  static Future<Response> postWithQuery(
+      String endPoint,
+      Map<String, dynamic> query,
+      ) async {
+    String? token = await SecureStorage.getToken();
 
+    return await _dio.post(
+      endPoint,
+      queryParameters: query,
+      options: Options(
+        headers: token != null
+            ? {'Authorization': 'Bearer $token'}
+            : null,
+      ),
+    );
+  }
 
   static Future<Response> get(String path, {
     Map<String, dynamic>? parameters,

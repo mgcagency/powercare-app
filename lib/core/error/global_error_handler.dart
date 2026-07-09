@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/widget/custom_text.dart';
 import '../api/api_client.dart';
 
 class GlobalErrorHandler {

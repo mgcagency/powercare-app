@@ -654,6 +654,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           title: "Order Material",
                           subtitle: "Request site materials",
                           onTap: () {
+                            print("JOB ID => ${job.id}");
+                            print("JOB NUMBER => ${job.jobNumber}");
+                            print("JOB NAME => ${job.jobName}");
                             AppNavigator.push(OrderMaterialScreen(job: job));
                           },
                         ),

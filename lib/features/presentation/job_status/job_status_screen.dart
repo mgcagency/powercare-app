@@ -12,6 +12,7 @@ import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/job_type_status_response.dart';
+import '../timelog/TimeSheetScreen.dart';
 
 class JobStatusScreen extends StatefulWidget {
   final bool showAppBar;
@@ -82,7 +83,40 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       });
     }
   }
+  Future<void> _saveAndNext() async {
+    if (_selectedJobModel == null || _selectedStatusModel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please select Job and Status"),
+        ),
+      );
+      return;
+    }
 
+    try {
+      await _repository.changeJobStatus(
+        jobId: _selectedJobModel!.id.toString(),
+        jobStatus: _selectedStatusModel!.id.toString(),
+        jobDescription: _selectedStatusModel!.status ?? "",
+        clientRequireDescription: _explanationController.text,
+      );
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TimeSheetScreen(
+            jobId: _selectedJobModel!.id.toString(),
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
   Future<void> _fetchMyJobs({bool showLoading = true}) async {
     if (showLoading) setState(() => _isLoadingJobs = true);
     try {
@@ -594,7 +628,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                               );
                               return CustomButton(
                                 title: "Save & Next",
-                                onPressed: canProceed ? () {} : null,
+                                onPressed: canProceed ? _saveAndNext  : null,
                               );
 
                               // Handle logic

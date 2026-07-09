@@ -357,7 +357,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+backgroundColor: AppColors.pureWhite,
       appBar: const CustomAppBar(title: "Create Job"),
 
       body: SingleChildScrollView(
@@ -833,7 +833,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: AppColors.navyBlue,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(3),
                   bottomRight: Radius.circular(3),
@@ -1110,7 +1110,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: AppColors.navyBlue,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(3),
                   bottomRight: Radius.circular(3),

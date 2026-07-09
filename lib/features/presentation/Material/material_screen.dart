@@ -161,6 +161,15 @@ class _MaterialScreenState extends State<MaterialScreen> {
           }
         },
         child: Center(
+          child: CustomText(
+            text,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: active ? Colors.white : Colors.black87,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
+/*        child: Center(
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 250),
             style: TextStyle(
@@ -170,7 +179,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
             ),
             child: CustomText(text),
           ),
-        ),
+        ),*/
       ),
     );
   }

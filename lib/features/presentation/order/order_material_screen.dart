@@ -267,6 +267,7 @@ class _OrderMaterialScreenState
 
   }
 */
+/*
   Future<void> submitRaisePO() async {
 
     if (materials.isEmpty) {
@@ -298,10 +299,12 @@ class _OrderMaterialScreenState
       body["markup[$i]"] =
           materials[i].markup;
 
-   /*   if (materials[i].raisePoId != null) {
+   */
+/*   if (materials[i].raisePoId != null) {
         body["relationdata_id[$i]"] =
             materials[i].raisePoId.toString();
-      }*/
+      }*//*
+
     }
 
     try {
@@ -331,6 +334,106 @@ class _OrderMaterialScreenState
       }
 
     } catch (e) {
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: CustomText(e.toString()),
+          ),
+        );
+      }
+
+    } finally {
+
+      if (mounted) {
+        setState(() {
+          isSubmitting = false;
+        });
+      }
+
+    }
+  }
+*/
+  Future<void> submitRaisePO() async {
+
+    if (materials.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      isSubmitting = true;
+    });
+
+    Map<String, dynamic> body = {};
+
+    body["job_id"] = widget.job.id;
+    body["customer_po_number"] = poController.text;
+    body["customer_name"] = widget.job.siteContactName ?? "";
+    body["email"] = emailController.text;
+
+    for (int i = 0; i < materials.length; i++) {
+
+      body["purchase_material_id[$i]"] =
+          materials[i].materialId;
+
+      body["material_name[$i]"] =
+          materials[i].materialName;
+
+      body["qty[$i]"] =
+          materials[i].qtyController.text;
+
+      body["markup[$i]"] =
+          materials[i].markup;
+    }
+
+    // ================= DEBUG =================
+    print("========== RAISE PO REQUEST ==========");
+    print("JOB ID => ${widget.job.id}");
+    print("JOB NUMBER => ${widget.job.jobNumber}");
+    print("JOB NAME => ${widget.job.jobName}");
+    print("CUSTOMER => ${widget.job.siteContactName}");
+    print("EMAIL => ${emailController.text}");
+    print("BODY => $body");
+    print("======================================");
+    // ========================================
+
+    try {
+
+      final response =
+      await materialRepository.createRaisePO(body);
+
+      print("========== RAISE PO RESPONSE ==========");
+      print(response);
+      print("=======================================");
+
+      if (!mounted) return;
+
+      if (response["success"] == true) {
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: CustomText(response["message"] ?? "Success"),
+          ),
+        );
+
+        Navigator.pop(context, true);
+
+      } else {
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: CustomText(
+              response["message"] ?? "Something went wrong",
+            ),
+          ),
+        );
+      }
+
+    } catch (e) {
+
+      print("========== RAISE PO ERROR ==========");
+      print(e);
+      print("====================================");
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

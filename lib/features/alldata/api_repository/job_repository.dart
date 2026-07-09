@@ -93,4 +93,20 @@ class JobRepository {
 
     return response.data;
   }
+  Future<void> changeJobStatus({
+    required String jobId,
+    required String jobStatus,
+    required String jobDescription,
+    required String clientRequireDescription,
+  }) async {
+    await ApiClient.postWithQuery(
+      "/job/status",
+      {
+        "job_id": jobId,
+        "job_status": jobStatus,
+        "job_description": jobDescription,
+        "client_require_description": clientRequireDescription,
+      },
+    );
+  }
 }
