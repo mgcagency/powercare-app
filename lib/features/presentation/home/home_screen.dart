@@ -558,11 +558,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: AppTextStyles.headline4.copyWith(color: Colors.black, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Row(
+            /*      Row(
                     children: [
                       const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
                       const SizedBox(width: 6),
                       CustomText(job.site, style: AppTextStyles.bodySmall.copyWith(color: Colors.black)),
+                    ],
+                  ),*/
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.primary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: CustomText(
+                          job.site ?? "",
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: Colors.black,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 14),

@@ -5,6 +5,7 @@ class ApiEndpoints {
   static const String login = '/auth/login';
   static const String jobList = '/job/list';
   static const String jobDetails = '/job/details';
+  static const String editJobSheet = "/jobsheet/edit";
   static const String jobTypeStatusList = '/jobtypestatus/list';
   static const String jobImageUpload = '/job/image';
   static const String jobImageDelete = '/job/image-delete/';
