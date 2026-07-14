@@ -37,8 +37,7 @@ Future<void> main() async {
   // Initialize Notification Service
   await NotificationService().init();
 
-
-
+  
   final info = await PackageInfo.fromPlatform();
 
   print("✅ Package Name: ${info.packageName}");
