@@ -582,6 +582,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       title: "Job Document",
                       child: _DocumentRow(
                         job: job,
+                        jobSheet: null,
                         title: "Main Job Document",
                         url: job.documentFullLink!,
                         isLast: true,
@@ -602,6 +603,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                         final sheet = job.jobSheets![index];
                         return _DocumentRow(
                           job: job,
+                          jobSheet: sheet,
+
                           title: sheet.description ?? "Job Sheet ${index + 1}",
                           url: sheet.documentFullLink ?? "",
                           isLast: index == job.jobSheets!.length - 1,
@@ -755,11 +758,14 @@ class _DocumentRow extends StatelessWidget {
   final bool isJobSheet;
   final bool isAccepted;
   final JobModel job;
+  final JobSheet? jobSheet;
 
   const _DocumentRow({
     required this.title,
     required this.url,
     required this.job,
+    required this.jobSheet,
+
     this.isLast = false,
     this.isJobSheet = false,
     this.isAccepted = false,
@@ -833,7 +839,7 @@ class _DocumentRow extends StatelessWidget {
                       ),
                     );
                   } else {
-                    AppNavigator.push(JobSheetScreen(job: job));
+                    AppNavigator.push(JobSheetScreen(job: job,));
                   }
                 },
                 child: Container(
@@ -853,9 +859,45 @@ class _DocumentRow extends StatelessWidget {
               // ── VIEW ICON ──
               if (isJobSheet && isAccepted)
                 GestureDetector(
-                  onTap: () async {
-                    AppNavigator.push(JobSheetScreen(job: job));
-                  },
+    onTap: () async {
+    // Check Job Sheet exists or not
+    if (job.jobSheets == null || job.jobSheets!.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+    content: Text("No Job Sheet found"),
+    ),
+    );
+    return;
+    }
+
+    final sheet = job.jobSheets!.first;
+
+    debugPrint("JobSheets => ${job.jobSheets}");
+    debugPrint("Length => ${job.jobSheets!.length}");
+    debugPrint("Editing JobSheet => ${sheet.id}");
+
+    AppNavigator.push(
+    JobSheetScreen(
+    job: job,
+    jobSheet: sheet,
+    ),
+    );
+    },
+             /*     onTap: () async {
+                    final sheet = job.jobSheets?.first;
+                    print("Editing JobSheet => ${jobSheet?.id}");
+
+                    print(job.jobSheets);
+                    print(job.jobSheets?.length);
+                    print(job.jobSheets?.first.id);
+                        AppNavigator.push(
+                          JobSheetScreen(
+                            job: job,
+                            jobSheet: sheet,
+                          ),
+
+                    );
+                  },*/
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(

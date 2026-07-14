@@ -444,7 +444,7 @@ class _JobListScreenState extends State<JobListScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 5),
             Wrap(
               spacing: 14,
               runSpacing: 8,
@@ -606,11 +606,18 @@ class _JobListScreenState extends State<JobListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 14, color: primaryColor),
           const SizedBox(width: 6),
-          CustomText(text, style: const TextStyle(fontSize: 12)),
+          Expanded(
+            child: CustomText(
+              text,
+              style: const TextStyle(fontSize: 12),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

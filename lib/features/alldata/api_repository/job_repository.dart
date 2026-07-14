@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:powercare_flutter/core/api/api_endpoints.dart';
 
 import '../../../core/api/api_client.dart';
@@ -24,8 +25,30 @@ class JobRepository {
       ApiEndpoints.jobDetails,
       parameters: {"job_id": jobId},
     );
+    debugPrint(
+      response.data.toString(),
+      wrapWidth: 1024,
+    );
+    print(response.data["jobDetails"]["job_sheet"]);
+    //print(jsonEncode(response.data["jobDetails"]["job_sheet"][0]));
+    print("FULL RESPONSE => ${response.data}");
+    print(response.data);
+    print("JOB DATE => ${response.data["jobDetails"]["job_date"]}");
+    print("CREATED => ${response.data["jobDetails"]["created_at"]}");
+    print("UPDATED => ${response.data["jobDetails"]["updated_at"]}");
     print("getJobDetails response ---->" + response.data.toString());
     return JobDetailsResponse.fromJson(response.data);
+  }
+  Future<Map<String, dynamic>> editJobSheet(
+      String id,
+      Map<String, dynamic> body,
+      ) async {
+    final response = await ApiClient.postForm(
+      "${ApiEndpoints.editJobSheet}?id=$id",
+      body,
+    );
+
+    return response.data;
   }
 
   Future<JobTypeStatusResponse> getJobTypeStatusList({Map<String, dynamic>? parameters}) async {
@@ -63,6 +86,16 @@ class JobRepository {
 
     return JobListResponse.fromJson(response.data);
   }
+  Future<Map<String, dynamic>> saveJobSheet(
+      Map<String, dynamic> body,
+      ) async {
+    final response = await ApiClient.postForm(
+      "/jobsheet/create",
+      body,
+    );
+
+    return response.data;
+  }
   Future<dynamic> changeEngineerStatus({
     required String jobId,
     required String userId,
@@ -80,16 +113,6 @@ class JobRepository {
 
     );
     print("Engineer Status Response => ${response.data}");
-
-    return response.data;
-  }
-  Future<Map<String, dynamic>> saveJobSheet(
-      Map<String, dynamic> body,
-      ) async {
-    final response = await ApiClient.postForm(
-      "/jobsheet/create",
-      body,
-    );
 
     return response.data;
   }

@@ -5,6 +5,7 @@ import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app/widget/helper.dart';
 import '../../alldata/api_repository/job_repository.dart';
@@ -17,7 +18,11 @@ import '../order/order_material_row.dart'; // ✅ Added Import
 import '../../alldata/api_repository/TimeSheetRepository.dart';
 class JobSheetScreen extends StatefulWidget {
   final JobModel? job;
-  const JobSheetScreen({super.key, required this.job});
+  final JobSheet? jobSheet;
+
+
+  const JobSheetScreen({super.key, required this.job , this.jobSheet,
+  });
 
   @override
   State<JobSheetScreen> createState() => _JobSheetScreenState();
@@ -45,6 +50,13 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
   String jobName = "";
 
+  String formatApiDate(String? date) {
+    if (date == null || date.isEmpty) return "";
+
+    final parsed = DateFormat("yyyy-MM-dd").parse(date);
+
+    return DateFormat("dd/MM/yyyy").format(parsed);
+  }
 
   // Date variables
   String _scheduledDate = "03/06/2026";
@@ -68,12 +80,98 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       debugPrint("User Error => $e");
     }
   }
-
+// new code check //
   Future<void> callJobDetails() async {
     try {
+      final response =
+      await JobRepository().getJobDetails(widget.job!.id.toString());
+
+      final detailJob = response.jobDetails;
+
+      if (detailJob == null) return;
+
+      if (widget.jobSheet != null) {
+        final sheet = detailJob.jobSheets?.firstWhere(
+              (e) => e.id == widget.jobSheet!.id,
+          orElse: () => widget.jobSheet!,
+        );
+
+        if (sheet != null) {
+          _clientNameController.text = sheet.clientName ?? "";
+          _companyNameController.text = sheet.companyName ?? "";
+          _emailController.text = sheet.email ?? "";
+          _officeNumController.text = sheet.officeNumber ?? "";
+          _mobileNumController.text = sheet.mobileNumber ?? "";
+          _officeAddrController.text = sheet.officeAddress ?? "";
+          _siteAddrController.text = sheet.siteAddress ?? "";
+          _specController.text = sheet.description ?? "";
+          _noteController.text = sheet.notes ?? "";
+          _serviceReqController.text = sheet.serviceRequest ?? "";
+
+          _orderDate = formatApiDate(sheet.dateOfOrder);
+          _requiredDate = formatApiDate(sheet.dateRequired);
+
+          setState(() {});
+        }
+      }
+
+      setState(() {
+        jobName = detailJob.jobName ?? "";
+
+        engineers.clear();
+
+        if (detailJob.leadEngineer != null) {
+          leadEngineerController.text =
+              detailJob.leadEngineer!.fullName;
+
+          engineers.add({
+            "name": detailJob.leadEngineer!.fullName,
+            "userId": detailJob.leadEngineer!.id.toString(),
+            "isLead": true,
+            "timeSlots": [
+              {
+                "startTime": "",
+                "endTime": "",
+                "total": "00:00",
+              }
+            ]
+          });
+        }
+
+        if (detailJob.otherEngineers != null) {
+          for (final other in detailJob.otherEngineers!) {
+            if (other.user != null) {
+              engineers.add({
+                "name": other.user!.fullName,
+                "userId": other.user!.id.toString(),
+                "isLead": false,
+                "timeSlots": [
+                  {
+                    "startTime": "",
+                    "endTime": "",
+                    "total": "00:00",
+                  }
+                ]
+              });
+            }
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+/*
+  Future<void> callJobDetails() async {
+    print("API JOB DATE => ${job?.jobDate}");
+
+    try {
+
       final response = await JobRepository().getJobDetails(widget.job!.id.toString());
       final job = response.jobDetails;
-
+      print("JOB SHEETS => ${job?.jobSheets}");
+      print("JOB SHEET COUNT => ${job?.jobSheets?.length}");
+      print("JOB SHEET ID => ${job?.jobSheets?.first.id}");
       if (job != null) {
         setState(() {
           jobName = job.jobName ?? "";
@@ -113,6 +211,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       debugPrint("Job Details Error => $e");
     }
   }
+*/
 
   void addEngineerBlock() {
     setState(() {
@@ -207,14 +306,31 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         return;
       }
       debugPrint(payload.toString());
-      final response = await repository.addTimeSheet(payload);
+
+   /*   final response = await repository.addTimeSheet(payload);
       if (response["success"] == true) {
         Navigator.pop(context);
+      }*/
+      final response = await repository.addTimeSheet(payload);
+
+      if (!mounted) return;
+
+      if (response["success"] == true) {
+        Navigator.pop(context, true);
+        return;
       }
     } catch (e) {
       debugPrint("Save Error => $e");
-    } finally {
+    }
+/*    finally {
       setState(() => isLoading = false);
+    }*/
+    finally {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
     }
   }
   void showEngineerBottomSheet(Map<String, dynamic> item) {
@@ -275,12 +391,117 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   }
 
   @override
+  @override
   void initState() {
     super.initState();
+
+    print("RECEIVED JOB SHEET => ${widget.jobSheet}");
+    print("RECEIVED JOB SHEET ID => ${widget.jobSheet?.id}");
+    print("CLIENT => ${widget.jobSheet?.clientName}");
+    print("COMPANY => ${widget.jobSheet?.companyName}");
+    print("EMAIL => ${widget.jobSheet?.email}");
+
+    final sheet = widget.jobSheet;
+
+    if (sheet != null) {
+      // =========================
+      // EDIT MODE
+      // =========================
+
+      _clientNameController.text = sheet.clientName ?? "";
+      _companyNameController.text = sheet.companyName ?? "";
+      _emailController.text = sheet.email ?? "";
+      _officeNumController.text = sheet.officeNumber ?? "";
+      _mobileNumController.text = sheet.mobileNumber ?? "";
+      _officeAddrController.text = sheet.officeAddress ?? "";
+      _siteAddrController.text = sheet.siteAddress ?? "";
+      _specController.text = sheet.description ?? "";
+      _noteController.text = sheet.notes ?? "";
+      _serviceReqController.text = sheet.serviceRequest ?? "";
+      _scheduledDate =
+          formatApiDate(sheet.dateOfScheduled);
+      _scheduledDate = formatApiDate(sheet.dateOfOrder);
+      _orderDate = formatApiDate(sheet.dateOfOrder);
+      _requiredDate = formatApiDate(sheet.dateRequired);
+    } else {
+      // =========================
+      // CREATE MODE
+      // =========================
+
+      _clientNameController.text = job?.siteContactName ?? "";
+      _companyNameController.text = job?.jobName ?? "";
+      _emailController.text = job?.email ?? "";
+      _officeNumController.text = "";
+      _mobileNumController.text = job?.mobileNo ?? "";
+      _officeAddrController.text = "";
+      _siteAddrController.text = job?.jobLocation ?? "";
+      _specController.text = "";
+      _noteController.text = "";
+      _serviceReqController.text = job?.jobDescription ?? "";
+      _scheduledDate =
+          formatApiDate(sheet?.dateOfScheduled);
+      _scheduledDate = formatApiDate(job?.jobDate);
+      _orderDate = formatApiDate(job?.jobDate);
+      _requiredDate = formatApiDate(job?.jobDate);
+    }
+
+    print("Scheduled => $_scheduledDate");
+    print("Order => $_orderDate");
+    print("Required => $_requiredDate");
+
+    materials.add(OrderMaterialItem());
+
+    loadMaterials();
+    loadUsers();
+    callJobDetails();
+  }
+/*
+  void initState() {
+
+    super.initState();
+    print("RECEIVED JOB SHEET => ${widget.jobSheet}");
+    print("RECEIVED JOB SHEET ID => ${widget.jobSheet?.id}");
+    print("RECEIVED JOB SHEET => ${widget.jobSheet}");
+    print("CLIENT => ${widget.jobSheet?.clientName}");
+    print("COMPANY => ${widget.jobSheet?.companyName}");
+    print("EMAIL => ${widget.jobSheet?.email}");
+*/
+/*    final sheet = widget.jobSheet;
+    if (sheet != null) {
+
+      // EDIT MODE
+      _clientNameController.text = sheet.clientName ?? "";
+      _companyNameController.text = sheet.companyName ?? "";
+      _emailController.text = sheet.email ?? "";
+      _officeNumController.text = sheet.officeNumber ?? "";
+      _mobileNumController.text = sheet.mobileNumber ?? "";
+      _officeAddrController.text = sheet.officeAddress ?? "";
+      _siteAddrController.text = sheet.siteAddress ?? "";
+      _specController.text = sheet.description ?? "";
+      _noteController.text = sheet.notes ?? "";
+      _serviceReqController.text = sheet.serviceRequest ?? "";
+
+    } else {
+
+      // CREATE MODE
+      _clientNameController.text = job?.siteContactName ?? "";
+      _companyNameController.text = job?.jobName ?? "";
+      _emailController.text = job?.email ?? "";
+      _officeNumController.text = "";
+      _mobileNumController.text = job?.mobileNo ?? "";
+      _officeAddrController.text = "";
+      _siteAddrController.text = job?.jobLocation ?? "";
+      _specController.text = "";
+      _noteController.text = "";
+      _serviceReqController.text = job?.jobDescription ?? "";
+
+    }*//*
+
+    final sheet = widget.jobSheet;
     print("_clientNameController-->" + (job).toString());
 
     /// Contact Person
-    _clientNameController.text = job?.siteContactName ?? "";
+    //_clientNameController.text = job?.siteContactName ?? "";
 
     /// Company / Job Name
     _companyNameController.text = job?.jobName ?? "";
@@ -307,15 +528,24 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     _serviceReqController.text = job?.jobDescription ?? "";
 
     /// Dates
-    _scheduledDate = job?.jobDate ?? "";
+ */
+/*   _scheduledDate = job?.jobDate ?? "";
     _orderDate = job?.jobDate ?? "";
-    _requiredDate = job?.jobDate ?? "";
+    _requiredDate = job?.jobDate ?? "";*//*
+
+    _scheduledDate = formatApiDate(job?.jobDate);
+    _orderDate = formatApiDate(job?.jobDate);
+    _requiredDate = formatApiDate(job?.jobDate);
     materials.add(OrderMaterialItem());
+    print("Scheduled => $_scheduledDate");
+    print("Order => $_orderDate");
+    print("Required => $_requiredDate");
 
     loadMaterials();
     loadUsers();
     callJobDetails();
   }
+*/
 
   @override
   void dispose() {
@@ -409,7 +639,10 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               child: CustomButton(
                 title: "Save Job Sheet",
                 onPressed: () async {
+                  print("SAVE MODE");
 
+                  print("SAVE JOB SHEET => ${widget.jobSheet}");
+                  print("SAVE JOB SHEET ID => ${widget.jobSheet?.id}");
                   await saveJobSheet();
                   await saveTimeSheet();
                 },
@@ -423,6 +656,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     );
   }
   Future<void> saveJobSheet() async {
+    final sheet = widget.jobSheet;
     final Map<String, dynamic> body = {};
 
     body["client_name"] = _clientNameController.text.trim();
@@ -433,12 +667,24 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     body["office_address"] = _officeAddrController.text.trim();
     body["site_address"] = _siteAddrController.text.trim();
     body["description"] = _specController.text.trim();
+    body["notes"] = _noteController.text.trim();
+    print("==============");
+    print(body);
+    print("Notes => ${body["notes"]}");
+    print("==============");
+
     body["service_request"] =
         _serviceReqController.text.trim();
+   /* body["date_of_scheduled"] = *//*_scheduledDate*//*"10/07/2026";
+    body["date_of_order"] = *//*_orderDate*//*"10/07/2026";
+    body["date_required"] = "10/07/2026";*/
     body["date_of_scheduled"] = _scheduledDate;
     body["date_of_order"] = _orderDate;
     body["date_required"] = _requiredDate;
-    body["job_status"] = selectedStatus;
+    print("Selected Status => $selectedStatus");
+   // body["job_status"] = selectedStatus;
+    //body["job_status"] = "1";
+    body["job_status"] = widget.jobSheet?.jobStatus ?? "1";
     body["job_id"] = widget.job?.id.toString();
     double subtotal = 0;
 
@@ -473,10 +719,35 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     body["purchase_sub_total"] = "0";
 
     body["wage_sub_total"] = "0";
-    try {
-      final response =
-      await jobRepository.saveJobSheet(body);
 
+    try {
+      print("==============");
+      print(body);
+      print("Scheduled => ${body["date_of_scheduled"]}");
+      print("Order => ${body["date_of_order"]}");
+      print("Required => ${body["date_required"]}");
+      print("==============");
+     // final response = await jobRepository.saveJobSheet(body);
+      Map<String, dynamic> response;
+
+      /*if (widget.job?.jobSheets != null &&
+          widget.job!.jobSheets!.isNotEmpty) {*/
+      if (widget.jobSheet != null){
+        //final jobSheetId = widget.job!.jobSheets!.first.id.toString();
+        final jobSheetId = widget.jobSheet!.id.toString();
+        print("EDIT JOB SHEET ID => $jobSheetId");
+
+        response = await jobRepository.editJobSheet(
+          jobSheetId,
+          body,
+        );
+
+      } else {
+
+        print("CREATE NEW JOB SHEET");
+
+        response = await jobRepository.saveJobSheet(body);
+      }
       if (!mounted) return;
 
       if (response["success"] == true) {
@@ -652,12 +923,19 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               lastDate: DateTime(2100),
             );
 
-            if (picked != null) {
+          /*  if (picked != null) {
               onChanged(
                   //"${picked.day}/${picked.month}/${picked.year}");
                   "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}",);
 
-                  }
+                  }*/
+            if (picked != null) {
+              onChanged(
+                "${picked.day.toString().padLeft(2, '0')}/"
+                    "${picked.month.toString().padLeft(2, '0')}/"
+                    "${picked.year}",
+              );
+            }
           },
 
           child: Container(

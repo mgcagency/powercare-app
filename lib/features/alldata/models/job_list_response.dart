@@ -282,7 +282,7 @@ class JobImage {
   }
 }
 
-class JobSheet {
+/*class JobSheet {
   int? id;
   String? description;
   String? documentFullLink;
@@ -296,8 +296,75 @@ class JobSheet {
       documentFullLink: json['document_full_link'],
     );
   }
-}
+}*/
+class JobSheet {
+  int? id;
+  String? clientName;
+  String? companyName;
+  String? email;
+  String? officeNumber;
+  String? mobileNumber;
+  String? officeAddress;
+  String? siteAddress;
+  String? description;
+  String? serviceRequest;
+  String? notes;
+  String? dateOfOrder;
+  String? dateRequired;
+  String? jobStatus;
+  String? materialSubTotal;
+  String? purchaseSubTotal;
+  String? wageSubTotal;
+  String? documentFullLink;
+  String? dateOfScheduled;
 
+  JobSheet({
+    this.id,
+    this.clientName,
+    this.companyName,
+    this.email,
+    this.officeNumber,
+    this.mobileNumber,
+    this.officeAddress,
+    this.siteAddress,
+    this.description,
+    this.serviceRequest,
+    this.notes,
+    this.dateOfOrder,
+    this.dateRequired,
+    this.jobStatus,
+    this.materialSubTotal,
+    this.purchaseSubTotal,
+    this.wageSubTotal,
+    this.documentFullLink,
+    this.dateOfScheduled,
+  });
+
+  factory JobSheet.fromJson(Map<String, dynamic> json) {
+    return JobSheet(
+      id: json["id"],
+      clientName: json["client_name"]?.toString(),
+      companyName: json["company_name"]?.toString(),
+      email: json["email"]?.toString(),
+      officeNumber: json["office_number"]?.toString(),
+      mobileNumber: json["mobile_number"]?.toString(),
+      officeAddress: json["office_address"]?.toString(),
+      siteAddress: json["site_address"]?.toString(),
+      description: json["description"]?.toString(),
+      serviceRequest: json["service_request"]?.toString(),
+      notes: json["notes"]?.toString(),
+      dateOfOrder: json["date_of_order"]?.toString(),
+      dateRequired: json["date_required"]?.toString(),
+      jobStatus: json["job_status"]?.toString(),
+      materialSubTotal: json["material_sub_total"]?.toString(),
+      purchaseSubTotal: json["purchase_sub_total"]?.toString(),
+      wageSubTotal: json["wage_sub_total"]?.toString(),
+      documentFullLink: json["document_full_link"]?.toString(),
+      dateOfScheduled:
+      json["date_of_scheduled"]?.toString(),
+    );
+  }
+}
 class Quote {
   int? id;
   String? quoteNumber;
