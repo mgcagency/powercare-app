@@ -11,6 +11,7 @@ import '../../../app/widget/custom_text.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../pin/authentication_screen.dart';
+import '../pin/create_pin_screen.dart';
 import 'landing_screen.dart';
 import 'login_screen_old.dart';
 
@@ -60,6 +61,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _startAutoScroll();
     checkLogin();
   }
+/*
   Future<void> checkLogin() async {
 
     final isLoggedIn =
@@ -79,6 +81,32 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       );
 
     }
+  }
+*/
+  Future<void> checkLogin() async {
+    final isLoggedIn = await AppPreferences.isLoggedIn();
+
+    if (!isLoggedIn) return;
+
+    final email = await AppPreferences.getUserEmail() ?? "";
+
+    if (email.isEmpty) return;
+
+    final hasPin = await AppPreferences.hasPin(email);
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+
+      if (hasPin) {
+        AppNavigator.pushAndRemoveAll(
+          const AuthenticationScreen(),
+        );
+      } else {
+        AppNavigator.pushAndRemoveAll(
+          const CreatePinScreen(),
+        );
+      }
+    });
   }
   void _startAutoScroll() {
     _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {

@@ -8,6 +8,7 @@ import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 import 'package:powercare_flutter/core/storage/app_preferences.dart';
 
+import '../../alldata/api_repository/dashboard_repository.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -26,8 +27,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker picker = ImagePicker();
   String profileImage = "";
   bool isLoading = false;
-
+  String userId = "";
   @override
+  void initState() {
+    super.initState();
+
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _emailController = TextEditingController();
+    _roleController = TextEditingController();
+    _phoneController = TextEditingController();
+
+    loadProfile();
+  }
+/*  @override
   void initState() {
     super.initState();
     _initControllers();
@@ -40,8 +53,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emailController = TextEditingController(text: "andy@powercare.com");
     _roleController = TextEditingController(text: "FIELD ENGINEER");
     _phoneController = TextEditingController(text: "+44 786 514 569");
-  }
+  }*/
+  Future<void> loadProfile() async {
+    try {
+      final response = await DashboardRepository().getDashboard();
 
+      print(response);
+
+      final user = response["user"];
+
+      if (user == null) return;
+
+      userId = user["id"].toString();
+
+      _firstNameController.text = user["first_name"] ?? "";
+      _lastNameController.text = user["last_name"] ?? "";
+      _emailController.text = user["email"] ?? "";
+      _roleController.text = user["role"] ?? "";
+      _phoneController.text = user["contact_number"] ?? "";
+
+      profileImage = user["user_image"] ?? "";
+
+      setState(() {});
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<void> loadProfileImage() async {
     profileImage = await AppPreferences.getUserImage() ?? "";
     setState(() {});
@@ -147,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white.withOpacity(0.2), width: 4),
                 ),
-                child: CircleAvatar(
+                child: /*CircleAvatar(
                   radius: 55,
                   backgroundColor: Colors.white.withOpacity(0.1),
                   backgroundImage: selectedImage != null
@@ -155,6 +192,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : (profileImage.isNotEmpty ? FileImage(File(profileImage)) : null),
                   child: (profileImage.isEmpty && selectedImage == null)
                       ? const Icon(Icons.person, size: 50, color: Colors.white)
+                      : null,
+                ),*/
+                CircleAvatar(
+                  radius: 55,
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundImage: selectedImage != null
+                      ? FileImage(selectedImage!)
+                      : profileImage.isNotEmpty
+                      ? NetworkImage(profileImage)
+                      : null,
+                  child: selectedImage == null && profileImage.isEmpty
+                      ? const Icon(
+                    Icons.person,
+                    size: 50,
+                    color: Colors.white,
+                  )
                       : null,
                 ),
               ),
@@ -169,11 +222,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          CustomText("Andy Hornsby",
+         // CustomText("Andy Hornsby",
+        CustomText(
+          "${_firstNameController.text} ${_lastNameController.text}",
               style: AppTextStyles.headline3.copyWith(color: Colors.white, fontSize: 22)),
-          CustomText("ID: #PC882100",
-              style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),
-        ],
+          //CustomText("ID: #PC882100",
+/*        CustomText(
+          "ID : ${AppPreferences.getUserID()}",
+
+              style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),*/
+          CustomText(
+            "ID: #$userId",
+            style: AppTextStyles.bodyExtraSmall.copyWith(
+              color: Colors.white70,
+              fontWeight: FontWeight.bold,
+            ),
+          ),        ],
       ),
     );
   }

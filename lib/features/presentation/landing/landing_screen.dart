@@ -55,8 +55,8 @@ class _LoginScreenState extends State<LoginScreen>
     ));
 
     _animationController.forward();
-    _emailController.text = "powercareelectrical@icloud.com";
-    _passwordController.text = "Password@123";
+    //_emailController.text = "powercareelectrical@icloud.com";
+    //_passwordController.text = "Password@123";
   }
 
   @override
@@ -78,8 +78,119 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-
   Future<void> _performLogin() async {
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      _showToastMessage(
+        "Required fields missing",
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final fcmToken =
+          await NotificationService().getToken() ??
+              await SecureStorage.getToken();
+
+      final payload = {
+        "email": _emailController.text.trim(),
+        "password": _passwordController.text.trim(),
+        "deviceId": "123456",
+        "fcmToken": fcmToken,
+      };
+
+      final loginResponse = await _repository.login(payload);
+
+      if (loginResponse.statusCode == 200 ||
+          loginResponse.statusCode == 201) {
+        final user = loginResponse.data!;
+
+        if (loginResponse.token != null) {
+          await SecureStorage.saveToken(loginResponse.token!);
+        }
+
+        // Save user locally
+        await AppPreferences.saveUser({
+          "id": user.id,
+          "firstName": user.firstName,
+          "lastName": user.lastName,
+          "email": user.email,
+          "role": user.role,
+          "contactNumber": user.contactNumber,
+          "userImage": user.userImage,
+        });
+
+        await AppPreferences.saveUserId(
+          user.id.toString(),
+        );
+
+        await AppPreferences.saveUserEmail(
+          user.email ?? "",
+        );
+
+        await AppPreferences.saveUserName(
+          "${user.firstName ?? ""} ${user.lastName ?? ""}",
+        );
+
+        await AppPreferences.saveRole(
+          user.role ?? "",
+        );
+
+        await AppPreferences.saveUserImage(
+          user.userImage ?? "",
+        );
+
+        await AppPreferences.setLoggedIn(true);
+
+        final email = user.email ?? "";
+
+        final hasPin =
+        await AppPreferences.hasPin(email);
+        print("LOGIN EMAIL = $email");
+        print("HAS PIN = $hasPin");
+        if (!mounted) return;
+
+        if (hasPin) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+              const AuthenticationScreen(),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+              const CreatePinScreen(),
+            ),
+          );
+        }
+      } else {
+        _showToastMessage(
+          loginResponse.message ??
+              "Authentication Failed",
+          isError: true,
+        );
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+
+      _showToastMessage(
+        "Connection Error",
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+/*  Future<void> _performLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showToastMessage("Required fields missing", isError: true);
       return;
@@ -94,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen>
         "fcmToken": fcmToken,
       };
       final loginResponse = await _repository.login(payload);
-      if (loginResponse.statusCode == 200 || loginResponse.statusCode == 201) {
+     // if (loginResponse.statusCode == 200 || loginResponse.statusCode == 201) {
         final user = loginResponse.data!;
         if (loginResponse.token != null) await SecureStorage.saveToken(loginResponse.token!);
         await AppPreferences.saveUser({
@@ -110,8 +221,28 @@ class _LoginScreenState extends State<LoginScreen>
         );
 
         await AppPreferences.setLoggedIn(true);
-        if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
+      final email = user.email ?? "";
+
+      final hasPin = await AppPreferences.hasPin(email);
+       // if (!mounted) return;
+      if (!mounted) return;
+
+      if (hasPin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AuthenticationScreen(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const CreatePinScreen(),
+          ),
+        );
+      }
+*//*        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) =>
         user.secretCode != null && user.secretCode! > 0 ? const CreatePinScreen() : const AuthenticationScreen()));
       } else {
         _showToastMessage(loginResponse.message ?? "Authentication Failed", isError: true);
@@ -120,8 +251,8 @@ class _LoginScreenState extends State<LoginScreen>
       _showToastMessage("Connection Error", isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
+    }*//*
+  }*/
 
   @override
   Widget build(BuildContext context) {

@@ -721,6 +721,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 TextButton(
                   onPressed: () async {
                     await AppPreferences.setLoggedIn(false);
+                    //await AppPreferences.setLoggedIn(false);
+                   // await AppPreferences.clear();
                     if (!mounted) return;
                     Navigator.pushAndRemoveUntil(
                       context,

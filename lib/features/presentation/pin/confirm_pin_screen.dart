@@ -47,8 +47,40 @@ class _ConfirmPinScreenState extends State<ConfirmPinScreen> with TickerProvider
     _shakeController.dispose();
     super.dispose();
   }
-
   Future<void> verifyAndSavePin() async {
+    if (pin == widget.originalPin) {
+      HapticFeedback.heavyImpact();
+
+      final email = await AppPreferences.getUserEmail() ?? "";
+      print("EMAIL = $email");
+      print("PIN = $pin");
+      await AppPreferences.setSecretCode(
+        email,
+        pin,
+      );
+
+      print("PIN SAVED");
+      if (mounted) {
+        AppNavigator.pushAndRemoveAll(
+          const DashboardScreen(),
+        );
+      }
+    } else {
+      HapticFeedback.vibrate();
+      _shakeController.forward(from: 0);
+      setState(() => pin = "");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const CustomText(
+            "PINs do not match. Try again.",
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+/*  Future<void> verifyAndSavePin() async {
     if (pin == widget.originalPin) {
       HapticFeedback.heavyImpact();
       // Save PIN to local storage
@@ -72,7 +104,7 @@ class _ConfirmPinScreenState extends State<ConfirmPinScreen> with TickerProvider
         ),
       );
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {

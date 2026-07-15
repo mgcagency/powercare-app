@@ -807,9 +807,14 @@ class _DocumentRow extends StatelessWidget {
               // ── DOWNLOAD ICON ──
               GestureDetector(
                 onTap: () async {
+                  print("DOCUMENT URL => $url");
+                  print(job.documentFullLink);
+                  print("JOB DOC = ${job.documentFullLink}");
+                  print("SHEET DOC = ${jobSheet?.documentFullLink}");
                   if (await canLaunchUrl(Uri.parse(url))) {
                     await launchUrl(
                       Uri.parse(url),
+
                       mode: LaunchMode.externalApplication,
                     );
                   }
