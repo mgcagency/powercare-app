@@ -8,6 +8,7 @@ import '../../../app/widget/custom_text.dart';
 import '../../../app/widget/custom_textfield.dart';
 import '../../alldata/api_repository/TimeSheetRepository.dart';
 import '../../alldata/api_repository/job_repository.dart';
+import '../jobs/job_list_screen.dart';
 
 class TimeSheetScreen extends StatefulWidget {
   final String jobId;
@@ -183,7 +184,17 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
 
       final response = await repository.addTimeSheet(payload);
       if (response["success"] == true) {
-        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: CustomText("success time sheet ")));
+
+        //Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const JobListScreen(),
+          ),
+              (route) => false,
+        );
+
       }
     } catch (e) {
       debugPrint("Save Error => $e");

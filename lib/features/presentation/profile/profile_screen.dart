@@ -231,13 +231,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           "ID : ${AppPreferences.getUserID()}",
 
               style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),*/
-          CustomText(
+      /*    CustomText(
             "ID: #$userId",
             style: AppTextStyles.bodyExtraSmall.copyWith(
               color: Colors.white70,
               fontWeight: FontWeight.bold,
             ),
-          ),        ],
+          ),*/
+
+          CustomText(
+            _roleController.text,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: Colors.white70,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

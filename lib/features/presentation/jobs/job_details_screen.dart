@@ -806,7 +806,7 @@ class _DocumentRow extends StatelessWidget {
             children: [
               // ── DOWNLOAD ICON ──
               GestureDetector(
-                onTap: () async {
+             /*   onTap: () async {
                   print("DOCUMENT URL => $url");
                   print(job.documentFullLink);
                   print("JOB DOC = ${job.documentFullLink}");
@@ -818,7 +818,32 @@ class _DocumentRow extends StatelessWidget {
                       mode: LaunchMode.externalApplication,
                     );
                   }
-                },
+                },*/
+              onTap: () async {
+    if (url.isEmpty ||
+    url == "https://powercare.resolveddevelopment.co.uk/storage") {
+
+    ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+    content: Text("Document is not available for download."),
+    ),
+    );
+    return;
+    }
+
+    if (await canLaunchUrl(Uri.parse(url))) {
+    await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+    );
+    } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+    content: Text("Unable to open document."),
+    ),
+    );
+    }
+    },
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(

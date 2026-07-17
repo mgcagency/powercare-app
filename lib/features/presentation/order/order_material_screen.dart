@@ -355,7 +355,14 @@ class _OrderMaterialScreenState
   }
 */
   Future<void> submitRaisePO() async {
-
+    if (selectedSupplier == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: CustomText("Please select a supplier email."),
+        ),
+      );
+      return;
+    }
     if (materials.isEmpty) {
       return;
     }
@@ -642,7 +649,21 @@ border: Border.all(color: Colors.black12)
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
+     /*   onPressed: () {
+          setState(() {
+            materials.add(OrderMaterialItem());
+          });
+        },*/
         onPressed: () {
+          if (selectedSupplier == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: CustomText("Please select a supplier email first."),
+              ),
+            );
+            return;
+          }
+
           setState(() {
             materials.add(OrderMaterialItem());
           });
@@ -803,6 +824,8 @@ border: Border.all(color: Colors.black12)
                     value: selectedSupplier,
                     isExpanded: true,
                     decoration: InputDecoration(
+                      hintText: "Select Supplier Email",
+
                       prefixIcon: const Icon(Icons.email_outlined),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),

@@ -370,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                               TextButton(
                                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
-                                child: CustomText('Forgot Pin?', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                child: CustomText('Forgot Password ?', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
