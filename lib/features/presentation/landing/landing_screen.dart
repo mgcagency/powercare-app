@@ -108,6 +108,14 @@ class _LoginScreenState extends State<LoginScreen>
         await AppPreferences.saveUserId(
           user.id.toString(),
         );
+await AppPreferences.saveUserName(
+          "${user.firstName} ${user.lastName}",
+        );
+        await AppPreferences.saveRole(
+          "${user.role}",
+        ); await AppPreferences.saveUserEmail(
+          "${user.email}",
+        );
 
         await AppPreferences.setLoggedIn(true);
         if (!mounted) return;

@@ -4,6 +4,7 @@ import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/core/navigation/app_navigator.dart';
 import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_text.dart';
+import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/models/UserModel.dart';
 import '../../alldata/models/job_list_response.dart';
@@ -35,6 +36,7 @@ class JobListScreen extends StatefulWidget {
 class _JobListScreenState extends State<JobListScreen> {
   // Theme and Repository
   final Color primaryColor = AppColors.primary;
+  String? _currentUserId; // Add this
   final Color primaryLightColor = AppColors.primaryLightbubbleBack;
   final JobRepository _repository = JobRepository();
   bool isArchive=false;
@@ -55,6 +57,7 @@ class _JobListScreenState extends State<JobListScreen> {
   void initState() {
     super.initState();
     fetchJobs();
+    _loadCurrentUserId();
 
     isArchive = widget.isArchive;
 
@@ -67,6 +70,12 @@ class _JobListScreenState extends State<JobListScreen> {
       }
     });
   }
+  Future<void> _loadCurrentUserId() async {
+    final id = await AppPreferences.getUserID();
+    setState(() {
+      _currentUserId = id;
+    });
+  }
 
   @override
   void dispose() {
@@ -74,7 +83,7 @@ class _JobListScreenState extends State<JobListScreen> {
     super.dispose();
   }
 
-  Future<void> fetchJobs({bool isRefresh = false}) async {
+  Future<void> fetchJobs({bool isRefresh = false,isMyJob=false}) async {
 
     if (isRefresh) {
       setState(() {
@@ -108,7 +117,7 @@ class _JobListScreenState extends State<JobListScreen> {
 
         response = await _repository.getJobs({
           "page": _currentPage,
-          "my_job": selected.toString(),
+          "my_job": selected,
           "job_date": "",
         });
 
@@ -342,7 +351,7 @@ class _JobListScreenState extends State<JobListScreen> {
         onTap: () {
           if (selected != index) {
             setState(() => selected = index);
-            fetchJobs(isRefresh: true);
+            fetchJobs(isRefresh: true,isMyJob:index==1);
           }
         },
         child: AnimatedContainer(
@@ -367,6 +376,46 @@ class _JobListScreenState extends State<JobListScreen> {
         job.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ?? "0xFF000000",
       ),
     );
+
+    // Default to REJECT if the user is not found in the job assignment
+    String currentStatus = "PENDING";
+
+    if (job != null && _currentUserId != null) {
+      bool isUserPartOfJob = false;
+
+      // 1. Check if user is the Lead Engineer
+      if (job.leadEngineer?.id.toString() == _currentUserId) {
+        currentStatus = job.leadEngineerStatus ?? "PENDING";
+        isUserPartOfJob = true;
+        print("_currentUserId--->" + _currentUserId.toString());
+        print("job--->" + job.toString());
+      }
+      // 2. Otherwise, check the Other Engineers list
+      else if (job.otherEngineers != null) {
+        try {
+          // Look for the user ID within the otherEngineers objects
+          final myEntry = job.otherEngineers!.firstWhere(
+                (e) =>
+            e.user?.id.toString() == _currentUserId ||
+                e.id?.toString() == _currentUserId,
+          );
+          currentStatus = myEntry.status ?? "PENDING";
+          isUserPartOfJob = true;
+        } catch (e) {
+          // User not found in Other Engineers list
+          isUserPartOfJob = false;
+        }
+        print("isUserPartOfJob--->" + isUserPartOfJob.toString());
+      }
+
+      // 3. Final Fallback: If after checking both, user is still not part of the job
+      if (!isUserPartOfJob) {
+        currentStatus = "Not your Job";
+      }
+    }
+
+    final bool isAccepted = currentStatus == "ACCEPT";
+    final bool isPending = currentStatus == "PENDING";
     final isExpanded = expandedJobIds.contains(job.id);
     List<UserModel> assignedEngineers = [
       if (job.leadEngineer != null) job.leadEngineer!,
@@ -376,173 +425,200 @@ class _JobListScreenState extends State<JobListScreen> {
           .where((e) => e.id != job.leadEngineer?.id),
     ];
     return GestureDetector(
-        onTap: (){
+      onTap: () {
         AppNavigator.push(JobDetailsScreen(job: job));
-        },
-        child: Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: statusColor,
-        borderRadius: BorderRadius.circular(18),
-      ),
+      },
       child: Container(
-        margin: const EdgeInsets.only(left: 5),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: statusColor,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    job.jobName ?? "",
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: statusColor.withOpacity(0.4)),
-                  ),
-                  child: CustomText(
-                    job.jobTypeStatus?.status ?? "Unknown",
-                    style: AppTextStyles.bodyExtraSmall.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            CustomText(
-              job.jobDescription ?? "No description",
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.black54),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: _info(
-                    Icons.pin_drop_rounded,
-                    job.jobLocation ?? "No location",
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Wrap(
-              spacing: 14,
-              runSpacing: 8,
-              children: [
-                _info(Icons.phone, job.mobileNo ?? "N/A"),
-                _info(Icons.calendar_month, job.jobDate ?? "N/A"),
-                _info(Icons.access_time, job.jobTime ?? "N/A"),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if(assignedEngineers.isNotEmpty)
-            GestureDetector(
-              onTap: () => toggleEngineers(job.id!),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(40),
-                ),
-                child: Row(
-                  children: [
-                    CustomText(
-                      "Assigned Engineers",
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textColor,
-                      ),
-                    ),
-                    const Spacer(),
-                    Stack(
+        child: Container(
+          margin: const EdgeInsets.only(left: 5),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- TOP ROW: Job Name and Status ---
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Positioned(
-                          left: 0,
-                          child: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: primaryColor,
-                            backgroundImage:
-                                job.leadEngineer?.userImage != null &&
-                                    job.leadEngineer?.userImage != ""
-                                ? NetworkImage(
-                                    job.leadEngineer!.userImage ?? "",
-                                  )
-                                : null,
+                        CustomText(
+                          job.jobName ?? "",
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textColor,
                           ),
                         ),
-                        Container(
-                          padding: EdgeInsets.only(left: 15),
-                          child: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: primaryLightColor,
-
-                            child: CustomText(
-                              "+${(job.otherEngineers ?? []).length}",
-                              style: AppTextStyles.bodyExtraSmall.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                        const SizedBox(height: 2),
+                        // ADDED: Job Number
+                        CustomText(
+                          "#${job.jobNumber ?? job.id}",
+                          style: AppTextStyles.bodyExtraSmall.copyWith(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    AnimatedRotation(
-                      turns: isExpanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 250),
-                      child: const Icon(Icons.keyboard_arrow_down, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: statusColor.withOpacity(0.4)),
                     ),
-                  ],
-                ),
+                    child: CustomText(
+                      job.jobTypeStatus?.status ?? "Unknown",
+                      style: AppTextStyles.bodyExtraSmall.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) {
-                return SizeTransition(
-                  sizeFactor: animation,
-                  axis: Axis.vertical,
-                  axisAlignment: -1.0, // expand downward from top
-                  child: child,
-                );
-              },
-              child: isExpanded
-                  ? Container(
-                      key: const ValueKey('expanded'),
-                      padding: const EdgeInsets.only(top: 12),
-                      child: _engineers(assignedEngineers),
-                    )
-                  : const SizedBox(key: ValueKey('collapsed')),
-            ),
-          ],
+
+              const SizedBox(height: 12),
+
+              // ADDED: Engineer Acceptance Status Row
+              Row(
+                children: [
+                  Icon(Icons.person_pin_circle_rounded, size: 16, color: isAccepted? Colors.green : Colors.red),
+                  const SizedBox(width: 6),
+                  CustomText(
+                    "Your Status: ",
+                    style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.black54),
+                  ),
+                  CustomText(
+                    currentStatus,
+                    style: AppTextStyles.bodyExtraSmall.copyWith(
+                      color: isAccepted? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+              CustomText(
+                enableReadMore: true,
+                readMoreStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.navyBlue),
+                job.jobDescription ?? "No description",
+                style: AppTextStyles.bodyMedium.copyWith(color: Colors.black54),
+              ),
+
+              const SizedBox(height: 12),
+              _info(Icons.pin_drop_rounded, job.jobLocation ?? "No location"),
+
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 14,
+                runSpacing: 8,
+                children: [
+                  _info(Icons.phone, job.mobileNo ?? "N/A"),
+                  _info(Icons.calendar_month, job.jobDate ?? "N/A"),
+                  _info(Icons.access_time, job.jobTime ?? "N/A"),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // --- ENGINEERS SECTION ---
+              if (assignedEngineers.isNotEmpty)
+                GestureDetector(
+                  onTap: () => toggleEngineers(job.id!),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    child: Row(
+                      children: [
+                        CustomText(
+                          "Assigned Engineers",
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textColor,
+                          ),
+                        ),
+                        const Spacer(),
+                        // Avatars logic...
+                        SizedBox(
+                          width: 40,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 12,
+                                backgroundColor: primaryColor,
+                                backgroundImage: job.leadEngineer?.userImage != null && job.leadEngineer?.userImage != ""
+                                    ? NetworkImage(job.leadEngineer!.userImage!)
+                                    : null,
+                              ),
+                              if ((job.otherEngineers ?? []).isNotEmpty)
+                                Positioned(
+                                  left: 15,
+                                  child: CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: primaryLightColor,
+                                    child: CustomText(
+                                      "+${(job.otherEngineers ?? []).length}",
+                                      style: AppTextStyles.bodyExtraSmall.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        AnimatedRotation(
+                          turns: isExpanded ? 0.5 : 0,
+                          duration: const Duration(milliseconds: 250),
+                          child: const Icon(Icons.keyboard_arrow_down, size: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return SizeTransition(
+                    sizeFactor: animation,
+                    axis: Axis.vertical,
+                    axisAlignment: -1.0,
+                    child: child,
+                  );
+                },
+                child: isExpanded
+                    ? Container(
+                  key: const ValueKey('expanded'),
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _engineers(assignedEngineers),
+                )
+                    : const SizedBox(key: ValueKey('collapsed')),
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
-
   void toggleEngineers(int jobId) {
     setState(() {
       if (expandedJobIds.contains(jobId)) {

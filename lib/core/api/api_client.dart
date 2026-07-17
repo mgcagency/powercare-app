@@ -66,6 +66,7 @@ class ApiClient {
     try {
       print("get method url--->" + AppConstants.baseUrl+path);
       print("get method parameters--->$parameters");
+      print("get method token--->$token");
 
       return await _dio.get(
         path,

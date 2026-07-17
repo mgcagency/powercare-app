@@ -6,7 +6,7 @@ class DashboardRepository {
     final response = await ApiClient.get(
       ApiEndpoints.dashboard,
     );
-
+print("response.data---->"+response.data.toString());
     return response.data;
   }
 }

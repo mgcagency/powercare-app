@@ -300,6 +300,7 @@ class JobImage {
 class JobSheet {
   int? id;
   String? clientName;
+  String? company_id;
   String? companyName;
   String? email;
   String? officeNumber;
@@ -313,6 +314,7 @@ class JobSheet {
   String? dateRequired;
   String? jobStatus;
   String? materialSubTotal;
+  String? purchase_order_number;
   String? purchaseSubTotal;
   String? wageSubTotal;
   String? documentFullLink;
@@ -321,6 +323,7 @@ class JobSheet {
   JobSheet({
     this.id,
     this.clientName,
+    this.company_id,
     this.companyName,
     this.email,
     this.officeNumber,
@@ -334,6 +337,7 @@ class JobSheet {
     this.dateRequired,
     this.jobStatus,
     this.materialSubTotal,
+    this.purchase_order_number,
     this.purchaseSubTotal,
     this.wageSubTotal,
     this.documentFullLink,
@@ -344,6 +348,7 @@ class JobSheet {
     return JobSheet(
       id: json["id"],
       clientName: json["client_name"]?.toString(),
+      company_id: json["company_id"]?.toString(),
       companyName: json["company_name"]?.toString(),
       email: json["email"]?.toString(),
       officeNumber: json["office_number"]?.toString(),
@@ -358,6 +363,7 @@ class JobSheet {
       jobStatus: json["job_status"]?.toString(),
       materialSubTotal: json["material_sub_total"]?.toString(),
       purchaseSubTotal: json["purchase_sub_total"]?.toString(),
+      purchase_order_number: json["purchase_order_number"]?.toString(),
       wageSubTotal: json["wage_sub_total"]?.toString(),
       documentFullLink: json["document_full_link"]?.toString(),
       dateOfScheduled:

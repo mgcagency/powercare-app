@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:powercare_flutter/core/navigation/app_navigator.dart';
+import 'package:powercare_flutter/features/alldata/models/job_list_response.dart';
+import 'package:powercare_flutter/features/presentation/jobs/job_details_screen.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../app/theme/colors.dart';
 import '../../../app/widget/custom_button.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../core/storage/app_preferences.dart';
+import '../../alldata/models/dashboard_response.dart'; // Ensure this contains the DashboardResponse and UpcomingJob classes
 import '../Material/material_screen.dart';
 import '../contactbook/contact_book_screen.dart';
 import '../createjob/CreateJobScreen.dart';
@@ -15,6 +19,7 @@ import '../jobs/job_list_screen.dart';
 import '../landing/landing_screen.dart';
 import '../timelog/TimeLogScreen.dart';
 import '../../alldata/api_repository/dashboard_repository.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,22 +27,22 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-// One job's summary, used by both the week strip dot and the Today card.
 class JobSummary {
   final String id;
   final String title;
   final String site;
+  final String date;
   final String time;
-  JobSummary({required this.id, required this.title, required this.site, required this.time});
+  JobSummary({required this.id, required this.title,required this.date, required this.site, required this.time});
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   String fullName = "Engineer";
+  int notificationCount = 0;
+   DashboardResponse? dashboard;
   DateTime selectedDay = DateTime.now();
-  final DashboardRepository dashboardRepository =
-  DashboardRepository();
-  // TODO: replace with real data from your job repository/provider.
-  Map<DateTime, List<JobSummary>> jobsByDay = {};
+  final DashboardRepository dashboardRepository = DashboardRepository();
+  Map<DateTime, List<JobModel>> jobsByDay = {};
 
   @override
   void initState() {
@@ -55,56 +60,58 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-/*  void _loadJobs() async {
-    // TODO: wire this up to your actual job source (API / local DB / provider).
-    final now = DateTime.now();
-    setState(() {
-      jobsByDay = {
-        _dayKey(now.add(const Duration(days: 2))): [
-          JobSummary(id: "JOB-2226", title: "Commercial Site Ph-2 Installation", site: "Stockton Engineering Complex", time: "9:00 AM"),
-        ],
-      };
-    });
-  }*/
   Future<void> _loadJobs() async {
     try {
-      final response = await dashboardRepository.getDashboard();
+      final Map<String, dynamic> responseData = await dashboardRepository.getDashboard();
+       dashboard = DashboardResponse.fromJson(responseData);
 
-      final upcoming = response["upcomingJobs"];
+      setState(() {
+        notificationCount = dashboard?.notificationCount ??0;
+      });
 
-     /* if (upcoming == null) {
-        return;
-      }*/
-      if (upcoming == null) {
+      // Handle cases where upcomingJob might be null
+      if ((dashboard?.upcomingJobs??[]).isEmpty) {
+
         setState(() {
           jobsByDay = {};
         });
         return;
       }
-      final now = DateTime.now();
+
+      // If the API returns a single job object, we wrap it in a list.
+      // If your DashboardResponse is updated to return List<JobModel>, use dashboard.upcomingJobs directly.
+      final List<JobModel> upcomingList = dashboard?.upcomingJobs??[];
+
+      final Map<DateTime, List<JobModel>> newJobsByDay = {};
+
+      for (var job in upcomingList) {
+        DateTime jobDate;
+        try {
+          jobDate = DateTime.parse(job.jobDate??DateTime.now().toString());
+        } catch (e) {
+          jobDate = DateTime.now();
+        }
+
+        final key = _dayKey(jobDate);
+        if (newJobsByDay.containsKey(key)) {
+          newJobsByDay[key]!.add(job);
+        } else {
+          newJobsByDay[key] = [job];
+        }
+      }
 
       setState(() {
-        jobsByDay = {
-          _dayKey(now.add(const Duration(days: 2))): [
-            JobSummary(
-              id: upcoming["job_number"]?.toString() ?? "",
-              title: upcoming["job_name"] ?? "",
-              site:
-              "${upcoming["job_location"] ?? ""}, ${upcoming["city"] ?? ""}",
-              time: upcoming["job_time"] ?? "",
-            ),
-          ],
-        };
+        jobsByDay = newJobsByDay;
       });
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint("Dashboard Error: $e");
     }
   }
+
   DateTime _dayKey(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  List<JobSummary> _jobsFor(DateTime d) => jobsByDay[_dayKey(d)] ?? [];
-
-  JobSummary? _nextUpcomingJob() {
+  List<JobModel> _jobsFor(DateTime d) => jobsByDay[_dayKey(d)] ?? [];
+  JobModel? _nextUpcomingJob() {
     final sortedDays = jobsByDay.keys.where((d) => !d.isBefore(_dayKey(DateTime.now()))).toList()
       ..sort();
     for (final day in sortedDays) {
@@ -113,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return null;
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -133,32 +141,30 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-                  _buildOperationalMetrics(),
-                  const SizedBox(height: 20),
-
-                  _buildSectionHeader("My Jobs"),
-                  const SizedBox(height: 20),
-                  _buildWeekStrip(),
-                  const SizedBox(height: 20),
-
-                  _buildTodayCard(),
-                  const SizedBox(height: 20),
-                  _buildSectionHeader("Quick actions"),
-                  const SizedBox(height: 12),
-                  _buildQuickActionsScroll(),
-                  const SizedBox(height: 20),
-                  // _buildSectionHeader("Service Terminal"),
-                  // const SizedBox(height: 16),
-                  // _buildServiceTerminalList(),
-                ],
+            child: RefreshIndicator(
+              onRefresh: _loadJobs,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 20),
+                    _buildOperationalMetrics(),
+                    const SizedBox(height: 20),
+                    _buildSectionHeader("My Jobs"),
+                    const SizedBox(height: 20),
+                    _buildWeekStrip(),
+                    const SizedBox(height: 20),
+                    _buildTodayCard(),
+                    const SizedBox(height: 20),
+                    _buildSectionHeader("Quick actions"),
+                    const SizedBox(height: 12),
+                    _buildQuickActionsScroll(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
@@ -168,20 +174,166 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CustomText(
-          "Greetings, $fullName",
-          style: AppTextStyles.headline3.copyWith(
-            color: AppColors.navyBlue,
-            fontWeight: FontWeight.w700,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                "Hi, $fullName",
+                style: AppTextStyles.headline3.copyWith(
+                  color: AppColors.navyBlue,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
+        // Notification Icon using count from Dashboard API
+        // Stack(
+        //   children: [
+        //     IconButton(
+        //       icon: const Icon(Icons.notifications_none_rounded, color: AppColors.navyBlue, size: 28),
+        //       onPressed: () {
+        //         // Navigate to notifications screen
+        //       },
+        //     ),
+        //     if (notificationCount > 0)
+        //       Positioned(
+        //         right: 8,
+        //         top: 8,
+        //         child: Container(
+        //           padding: const EdgeInsets.all(4),
+        //           decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+        //           constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+        //           child: Text(
+        //             "$notificationCount",
+        //             textAlign: TextAlign.center,
+        //             style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+        //           ),
+        //         ),
+        //       ),
+        //   ],
+        // ),
       ],
     );
   }
+
+  // Rest of your UI methods (_buildWeekStrip, _buildOperationalMetrics, etc.) remain exactly the same as provided...
+  // _jobCard remains exactly as you wrote it, using JobSummary
+  Widget _jobCard({required String label, required JobModel job, required String dateText}) {
+    return InkWell(
+      onTap: () {
+        AppNavigator.push(JobDetailsScreen(job: job));
+      },
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Icon(Icons.bolt_rounded, size: 180, color: Colors.white.withOpacity(0.04)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                          ),
+                          child: CustomText(
+                            label == "" ? job.jobDate??"" : label.toUpperCase(),
+                            style: AppTextStyles.bodyExtraSmall.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1),
+                          ),
+                        ),
+                        CustomText(
+                          "#${job.id}",
+                          style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.navyBlue.withOpacity(0.5),
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    CustomText(
+                      job.jobName??"",
+                      style: AppTextStyles.headline4.copyWith(
+                          color: Colors.black, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: CustomText(
+                            job.jobLocation??"",
+                            style: AppTextStyles.bodySmall.copyWith(
+                                color: Colors.black87, height: 1.3),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if(label.contains("Your"))
+                    const SizedBox(height: 8),
+                    if(label.contains("Your"))
+                    Row(
+                      children: [
+                        const Icon(Icons.date_range_rounded, color: AppColors.primary, size: 18),
+                        const SizedBox(width: 8),
+                        CustomText(
+                          job.jobDate??"",
+                          style: AppTextStyles.bodySmall.copyWith(color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time_filled_rounded, color: AppColors.primary, size: 18),
+                        const SizedBox(width: 8),
+                        CustomText(
+                          job.jobTime??"",
+                          style: AppTextStyles.bodySmall.copyWith(color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  // I am omitting them here for brevity as no design changes were requested, but you should keep them in your file.
+
+
+
 
   Widget _buildWeekStrip() {
     final today = DateTime.now();
@@ -403,11 +555,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildMetric("Active Jobs", "04", Colors.blue),
+          _buildMetric("Worked Jobs", (dashboard?.workedJobs??0).toString(), Colors.blue),
           _buildDivider(),
-          _buildMetric("Pending", "07", AppColors.primary),
+          _buildMetric("Pending", (dashboard?.pendingJobs??0).toString(), AppColors.primary),
           _buildDivider(),
-          _buildMetric("Log Hours", "32.5", Colors.teal),
+          _buildMetric("Log Hours", (dashboard?.totalTimesheetTime??0).toString(), Colors.teal),
         ],
       ),
     );
@@ -431,17 +583,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final selectedJobs = _jobsFor(selectedDay);
     final isToday = _dayKey(selectedDay) == _dayKey(DateTime.now());
 
-    // Jobs available for selected day
     if (selectedJobs.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
@@ -449,37 +596,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-
-                Icon(
-                  Icons.calendar_today_rounded,
-                  color: AppColors.primary,
-                  size: 18,
-                ),
-
+                const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 18),
                 const SizedBox(width: 10),
-
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       CustomText(
-                        isToday
-                            ? "Today's Jobs"
-                            : _formatDate(selectedDay),
+                        isToday ? "Today's Jobs" : _formatDate(selectedDay),
                         style: AppTextStyles.bodyMedium.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.navyBlue,
                         ),
                       ),
-
                       const SizedBox(height: 2),
-
                       CustomText(
                         "${selectedJobs.length} job${selectedJobs.length > 1 ? 's' : ''} scheduled",
-                        style: AppTextStyles.bodyExtraSmall.copyWith(
-                          color: Colors.grey,
-                        ),
+                        style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.grey),
                       ),
                     ],
                   ),
@@ -487,14 +620,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
           ...selectedJobs.map(
                 (job) => Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: _jobCard(
                 label: isToday ? "TODAY" : "SCHEDULED",
+                // Passing the data directly from JobModel
                 job: job,
                 dateText: _formatDate(selectedDay),
               ),
@@ -503,108 +635,119 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       );
     }
-
-    // No jobs on selected day → show next upcoming job
     final next = _nextUpcomingJob();
-
     if (next != null) {
       return _jobCard(
-        label: "NEXT JOB",
+        label: "Your Upcoming",
         job: next,
         dateText: "Upcoming",
       );
     }
 
-    // No jobs at all
+
     return _emptyStateCard();
   }
 
-  Widget _jobCard({required String label, required JobSummary job, required String dateText}) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -30,
-              top: -30,
-              child: Icon(Icons.bolt_rounded, size: 180, color: Colors.white.withOpacity(0.04)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-                    ),
-                    child: CustomText(
-                      label.toUpperCase(),
-                      style: AppTextStyles.bodyExtraSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900, letterSpacing: 1),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  CustomText(
-                    "${job.id} · ${job.title}",
-                    style: AppTextStyles.headline4.copyWith(color: Colors.black, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-            /*      Row(
-                    children: [
-                      const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
-                      const SizedBox(width: 6),
-                      CustomText(job.site, style: AppTextStyles.bodySmall.copyWith(color: Colors.black)),
-                    ],
-                  ),*/
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.location_on_rounded,
-                        color: AppColors.primary,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: CustomText(
-                          job.site ?? "",
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: Colors.black,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      _buildTag(Icons.calendar_today_rounded, dateText),
-                      const SizedBox(width: 12),
-                      _buildTag(Icons.access_time_rounded, job.time),
-                      const Spacer(),
-                      const Icon(Icons.arrow_forward_ios_rounded, color: Colors.black, size: 16),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // Widget _jobCard({required String label, required dynamic job, required String dateText}) {
+  //   // Note: I'm using dynamic here, but you should use your JobSummary model
+  //   // mapped from the 'upcomingJobs' JSON object.
+  //
+  //   return Container(
+  //     width: double.infinity,
+  //     decoration: BoxDecoration(
+  //       color: AppColors.primary.withOpacity(0.1),
+  //       borderRadius: BorderRadius.circular(28),
+  //     ),
+  //     child: ClipRRect(
+  //       borderRadius: BorderRadius.circular(28),
+  //       child: Stack(
+  //         children: [
+  //           Positioned(
+  //             right: -30,
+  //             top: -30,
+  //             child: Icon(Icons.bolt_rounded, size: 180, color: Colors.white.withOpacity(0.04)),
+  //           ),
+  //           Padding(
+  //             padding: const EdgeInsets.all(24),
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Row(
+  //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                   children: [
+  //                     Container(
+  //                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+  //                       decoration: BoxDecoration(
+  //                         color: AppColors.primary.withOpacity(0.15),
+  //                         borderRadius: BorderRadius.circular(6),
+  //                         border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+  //                       ),
+  //                       child: CustomText(
+  //                         label.toUpperCase(),
+  //                         style: AppTextStyles.bodyExtraSmall.copyWith(
+  //                             color: AppColors.primary,
+  //                             fontWeight: FontWeight.w900,
+  //                             letterSpacing: 1
+  //                         ),
+  //                       ),
+  //                     ),
+  //                     // Displaying Job Number from API
+  //                     CustomText(
+  //                       "#${job.jobNumber ?? job.id}",
+  //                       style: AppTextStyles.bodySmall.copyWith(
+  //                           color: AppColors.navyBlue.withOpacity(0.5),
+  //                           fontWeight: FontWeight.bold
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 const SizedBox(height: 24),
+  //                 // Displaying Job Name from API
+  //                 CustomText(
+  //                   job.jobName ?? job.title,
+  //                   style: AppTextStyles.headline4.copyWith(
+  //                       color: Colors.black,
+  //                       fontWeight: FontWeight.bold
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 12),
+  //                 // Displaying Site Location and City from API
+  //                 Row(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 18),
+  //                     const SizedBox(width: 8),
+  //                     Expanded(
+  //                       child: CustomText(
+  //                         "${job.jobLocation}, ${job.city}",
+  //                         style: AppTextStyles.bodySmall.copyWith(
+  //                             color: Colors.black87,
+  //                             height: 1.3
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 const SizedBox(height: 8),
+  //                 // Adding Job Time from API
+  //                 Row(
+  //                   children: [
+  //                     const Icon(Icons.access_time_filled_rounded, color: AppColors.primary, size: 18),
+  //                     const SizedBox(width: 8),
+  //                     CustomText(
+  //                       job.jobTime ?? "No time set",
+  //                       style: AppTextStyles.bodySmall.copyWith(color: Colors.black87),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
   Widget _emptyStateCard() {
     return Container(
       width: double.infinity,
@@ -738,7 +881,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return SizedBox(
-      height: 92,
+      height: 100,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: items.length,

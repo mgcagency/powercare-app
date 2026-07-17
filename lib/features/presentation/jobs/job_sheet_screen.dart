@@ -8,20 +8,30 @@ import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/widget/helper.dart';
+import '../../../core/navigation/app_navigator.dart';
+import '../../../core/storage/app_preferences.dart';
+import '../../alldata/api_repository/contact_repository.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/api_repository/material_repository.dart';
 import '../../alldata/models/UserModel.dart';
+import '../../alldata/models/contact_book_model.dart';
 import '../../alldata/models/job_list_response.dart';
 import '../../alldata/models/material_response.dart';
 import '../order/order_material_item.dart';
 import '../order/order_material_row.dart'; // ✅ Added Import
 import '../../alldata/api_repository/TimeSheetRepository.dart';
+import '../webview_screen/web_view_screen.dart';
+
 class JobSheetScreen extends StatefulWidget {
   final JobModel? job;
-  final JobSheet? jobSheet;
+  final String? jobSheetId;
+  final bool? isView;
 
-
-  const JobSheetScreen({super.key, required this.job , this.jobSheet,
+  const JobSheetScreen({
+    super.key,
+    required this.job,
+    this.jobSheetId,
+    required this.isView,
   });
 
   @override
@@ -30,6 +40,8 @@ class JobSheetScreen extends StatefulWidget {
 
 class _JobSheetScreenState extends State<JobSheetScreen> {
   // Controllers for text fields
+  String? _currentUserId; // Add this
+
   final _clientNameController = TextEditingController();
   final _companyNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -41,10 +53,10 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   final _noteController = TextEditingController();
   final _serviceReqController = TextEditingController();
   late final JobModel? job = widget.job;
+  late final JobSheet? jobSheet = null;
   final TimeSheetRepository repository = TimeSheetRepository();
 
-  final TextEditingController leadEngineerController =
-  TextEditingController();
+  final TextEditingController leadEngineerController = TextEditingController();
 
   bool isLoading = false;
 
@@ -71,32 +83,68 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   List<MaterialData> materialStockList = [];
   final MaterialRepository materialRepository = MaterialRepository();
   final JobRepository jobRepository = JobRepository();
+  final ContactRepository contactRepository = ContactRepository();
+  List<ContactBookData> contactList = [];
+  ContactBookData? selectedCon;
+
+  Future<void> loadContacts() async {
+    try {
+      // We fetch a large first page or implement a search
+      final response = await contactRepository.getContactList(
+        page: 1,
+        search: "",
+      );
+
+      final data = response["contactLists"]["data"];
+      setState(() {
+        contactList = data
+            .map<ContactBookData>((e) => ContactBookData.fromJson(e))
+            .toList();
+      });
+    } catch (e) {
+      debugPrint("Error loading contacts: $e");
+    }
+  }
 
   Future<void> loadUsers() async {
     try {
       users = await repository.getUsers();
+      users = users.where((u) => u.role?.toLowerCase() != 'admin').toList();
       setState(() {});
     } catch (e) {
       debugPrint("User Error => $e");
     }
   }
-// new code check //
+
+  Future<void> _loadCurrentUserId() async {
+    final id = await AppPreferences.getUserID();
+    setState(() {
+      _currentUserId = id;
+    });
+  }
+
+  // new code check //
   Future<void> callJobDetails() async {
     try {
-      final response =
-      await JobRepository().getJobDetails(widget.job!.id.toString());
+      final response = await JobRepository().getJobDetails(
+        widget.job!.id.toString(),
+      );
 
       final detailJob = response.jobDetails;
 
       if (detailJob == null) return;
 
-      if (widget.jobSheet != null) {
+      if (widget.jobSheetId != null) {
         final sheet = detailJob.jobSheets?.firstWhere(
-              (e) => e.id == widget.jobSheet!.id,
-          orElse: () => widget.jobSheet!,
+          (e) => e.id.toString() == widget.jobSheetId,
+        );
+        selectedCon = contactList?.firstWhere(
+              (e) => e.id.toString() == sheet?.company_id.toString(),
         );
 
         if (sheet != null) {
+          print("sheet--->" + sheet.id.toString());
+          print("sheet--->" + widget.jobSheetId.toString());
           _clientNameController.text = sheet.clientName ?? "";
           _companyNameController.text = sheet.companyName ?? "";
           _emailController.text = sheet.email ?? "";
@@ -107,7 +155,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
           _specController.text = sheet.description ?? "";
           _noteController.text = sheet.notes ?? "";
           _serviceReqController.text = sheet.serviceRequest ?? "";
-
+          selectedStatus = sheet.jobStatus ?? "";
           _orderDate = formatApiDate(sheet.dateOfOrder);
           _requiredDate = formatApiDate(sheet.dateRequired);
 
@@ -119,39 +167,89 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         jobName = detailJob.jobName ?? "";
 
         engineers.clear();
+        // inside callJobDetails() ...
 
         if (detailJob.leadEngineer != null) {
-          leadEngineerController.text =
-              detailJob.leadEngineer!.fullName;
+          leadEngineerController.text = detailJob.leadEngineer!.fullName;
+
+          // 1. Map existing timesheets if available, otherwise start with one empty slot
+          List<Map<String, dynamic>> leadTimeSlots = [];
+
+          if (detailJob.leadEngineer!.timesheet != null &&
+              detailJob.leadEngineer!.timesheet!.isNotEmpty) {
+            for (var ts in detailJob.leadEngineer!.timesheet!) {
+              leadTimeSlots.add({
+                "isDeletable": false,
+                "startTime": ts.startTime ?? "",
+                "endTime": ts.endTime ?? "",
+                "total": calculateTotal(ts.startTime ?? "", ts.endTime ?? ""),
+              });
+            }
+            leadTimeSlots.add({
+              "isDeletable": true,
+              "startTime": "",
+              "endTime": "",
+              "total": "00:00",
+            });
+          } else {
+            // Fallback to one empty slot if no data exists
+            leadTimeSlots.add({
+              "isDeletable": true,
+              "startTime": "",
+              "endTime": "",
+              "total": "00:00",
+            });
+          }
 
           engineers.add({
+            "isDeletable": false,
             "name": detailJob.leadEngineer!.fullName,
             "userId": detailJob.leadEngineer!.id.toString(),
             "isLead": true,
-            "timeSlots": [
-              {
-                "startTime": "",
-                "endTime": "",
-                "total": "00:00",
-              }
-            ]
+            "timeSlots": leadTimeSlots,
           });
         }
 
         if (detailJob.otherEngineers != null) {
           for (final other in detailJob.otherEngineers!) {
             if (other.user != null) {
+              // 2. Map existing timesheets for other engineers
+              List<Map<String, dynamic>> otherTimeSlots = [];
+
+              if (other.user!.timesheet != null &&
+                  other.user!.timesheet!.isNotEmpty) {
+                for (var ts in other.user!.timesheet!) {
+                  otherTimeSlots.add({
+                    "isDeletable": false,
+                    "startTime": ts.startTime ?? "",
+                    "endTime": ts.endTime ?? "",
+                    "total": calculateTotal(
+                      ts.startTime ?? "",
+                      ts.endTime ?? "",
+                    ),
+                  });
+                }
+                otherTimeSlots.add({
+                  "isDeletable": true,
+                  "startTime": "",
+                  "endTime": "",
+                  "total": "00:00",
+                });
+              } else {
+                otherTimeSlots.add({
+                  "isDeletable": true,
+                  "startTime": "",
+                  "endTime": "",
+                  "total": "00:00",
+                });
+              }
+
               engineers.add({
+                "isDeletable": false,
                 "name": other.user!.fullName,
                 "userId": other.user!.id.toString(),
                 "isLead": false,
-                "timeSlots": [
-                  {
-                    "startTime": "",
-                    "endTime": "",
-                    "total": "00:00",
-                  }
-                ]
+                "timeSlots": otherTimeSlots,
               });
             }
           }
@@ -161,66 +259,21 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       debugPrint(e.toString());
     }
   }
-/*
-  Future<void> callJobDetails() async {
-    print("API JOB DATE => ${job?.jobDate}");
-
-    try {
-
-      final response = await JobRepository().getJobDetails(widget.job!.id.toString());
-      final job = response.jobDetails;
-      print("JOB SHEETS => ${job?.jobSheets}");
-      print("JOB SHEET COUNT => ${job?.jobSheets?.length}");
-      print("JOB SHEET ID => ${job?.jobSheets?.first.id}");
-      if (job != null) {
-        setState(() {
-          jobName = job.jobName ?? "";
-          engineers.clear();
-
-          // 1. Map Lead Engineer from API
-          if (job.leadEngineer != null) {
-            leadEngineerController.text = job.leadEngineer!.fullName;
-            engineers.add({
-              "name": job.leadEngineer!.fullName,
-              "userId": job.leadEngineer!.id.toString(),
-              "isLead": true,
-              "timeSlots": [
-                {"startTime": "", "endTime": "", "total": "00:00"}
-              ],
-            });
-          }
-
-          // 2. Map Other Engineers from API
-          if (job.otherEngineers != null) {
-            for (var other in job.otherEngineers!) {
-              if (other.user != null) {
-                engineers.add({
-                  "name": other.user!.fullName,
-                  "userId": other.user!.id.toString(),
-                  "isLead": false,
-                  "timeSlots": [
-                    {"startTime": "", "endTime": "", "total": "00:00"}
-                  ],
-                });
-              }
-            }
-          }
-        });
-      }
-    } catch (e) {
-      debugPrint("Job Details Error => $e");
-    }
-  }
-*/
 
   void addEngineerBlock() {
     setState(() {
       engineers.add({
+        "isDeletable": true,
         "name": "",
         "userId": "",
         "isLead": false,
         "timeSlots": [
-          {"startTime": "", "endTime": "", "total": "00:00"}
+          {
+            "isDeletable": true,
+            "startTime": "",
+            "endTime": "",
+            "total": "00:00",
+          },
         ],
       });
     });
@@ -229,9 +282,10 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   void addTimeSlot(int engineerIndex) {
     setState(() {
       engineers[engineerIndex]["timeSlots"].add({
+        "isDeletable": true,
         "startTime": "",
         "endTime": "",
-        "total": "00:00"
+        "total": "00:00",
       });
     });
   }
@@ -244,7 +298,8 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
     if (picked != null) {
       setState(() {
-        final timeStr = "${picked.hour.toString().padLeft(2, "0")}:${picked.minute.toString().padLeft(2, "0")}";
+        final timeStr =
+            "${picked.hour.toString().padLeft(2, "0")}:${picked.minute.toString().padLeft(2, "0")}";
         engineers[engIdx]["timeSlots"][slotIdx][key] = timeStr;
       });
     }
@@ -263,7 +318,9 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     try {
       final s = start.split(":");
       final e = end.split(":");
-      int diff = (int.parse(e[0]) * 60 + int.parse(e[1])) - (int.parse(s[0]) * 60 + int.parse(s[1]));
+      int diff =
+          (int.parse(e[0]) * 60 + int.parse(e[1])) -
+          (int.parse(s[0]) * 60 + int.parse(s[1]));
       return diff > 0 ? diff : 0;
     } catch (e) {
       return 0;
@@ -285,7 +342,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   Future<void> saveTimeSheet() async {
     try {
       setState(() => isLoading = true);
-      Map<String, dynamic> payload = {"job_id": widget.job!.id.toString()};
+      Map<String, dynamic> payload = {};
       int apiIndex = 0;
 
       for (var engineer in engineers) {
@@ -299,30 +356,39 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
           }
         }
       }
-
-      if (apiIndex == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please add at least one time log")));
-        setState(() => isLoading = false);
-        return;
+      if(apiIndex!=0){
+        payload["job_id"]= widget.job!.id.toString();
       }
-      debugPrint(payload.toString());
 
-   /*   final response = await repository.addTimeSheet(payload);
+      // if (apiIndex == 0) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text("Please add at least one time log")),
+      //   );
+      //
+      //   return;
+      // }
+      print("12121212"+payload.toString());
+
+      /*   final response = await repository.addTimeSheet(payload);
       if (response["success"] == true) {
         Navigator.pop(context);
       }*/
-      final response = await repository.addTimeSheet(payload);
+      if (payload.containsKey("job_id")) {
+        final response = await repository.addTimeSheet(payload);
+        if (!mounted) return;
 
-      if (!mounted) return;
-
-      if (response["success"] == true) {
+        if (response["success"] == true) {
+          Navigator.pop(context, true);
+          return;
+        }
+      }else{
         Navigator.pop(context, true);
-        return;
       }
+
     } catch (e) {
       debugPrint("Save Error => $e");
     }
-/*    finally {
+    /*    finally {
       setState(() => isLoading = false);
     }*/
     finally {
@@ -333,17 +399,23 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       });
     }
   }
+
   void showEngineerBottomSheet(Map<String, dynamic> item) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 15),
-            const Text("Select Engineer", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              "Select Engineer",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const Divider(),
             Flexible(
               child: ListView.builder(
@@ -394,158 +466,16 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   @override
   void initState() {
     super.initState();
-
-    print("RECEIVED JOB SHEET => ${widget.jobSheet}");
-    print("RECEIVED JOB SHEET ID => ${widget.jobSheet?.id}");
-    print("CLIENT => ${widget.jobSheet?.clientName}");
-    print("COMPANY => ${widget.jobSheet?.companyName}");
-    print("EMAIL => ${widget.jobSheet?.email}");
-
-    final sheet = widget.jobSheet;
-
-    if (sheet != null) {
-      // =========================
-      // EDIT MODE
-      // =========================
-
-      _clientNameController.text = sheet.clientName ?? "";
-      _companyNameController.text = sheet.companyName ?? "";
-      _emailController.text = sheet.email ?? "";
-      _officeNumController.text = sheet.officeNumber ?? "";
-      _mobileNumController.text = sheet.mobileNumber ?? "";
-      _officeAddrController.text = sheet.officeAddress ?? "";
-      _siteAddrController.text = sheet.siteAddress ?? "";
-      _specController.text = sheet.description ?? "";
-      _noteController.text = sheet.notes ?? "";
-      _serviceReqController.text = sheet.serviceRequest ?? "";
-      _scheduledDate =
-          formatApiDate(sheet.dateOfScheduled);
-      _scheduledDate = formatApiDate(sheet.dateOfOrder);
-      _orderDate = formatApiDate(sheet.dateOfOrder);
-      _requiredDate = formatApiDate(sheet.dateRequired);
-    } else {
-      // =========================
-      // CREATE MODE
-      // =========================
-
-      _clientNameController.text = job?.siteContactName ?? "";
-      _companyNameController.text = job?.jobName ?? "";
-      _emailController.text = job?.email ?? "";
-      _officeNumController.text = "";
-      _mobileNumController.text = job?.mobileNo ?? "";
-      _officeAddrController.text = "";
-      _siteAddrController.text = job?.jobLocation ?? "";
-      _specController.text = "";
-      _noteController.text = "";
-      _serviceReqController.text = job?.jobDescription ?? "";
-      _scheduledDate =
-          formatApiDate(sheet?.dateOfScheduled);
-      _scheduledDate = formatApiDate(job?.jobDate);
-      _orderDate = formatApiDate(job?.jobDate);
-      _requiredDate = formatApiDate(job?.jobDate);
-    }
-
-    print("Scheduled => $_scheduledDate");
-    print("Order => $_orderDate");
-    print("Required => $_requiredDate");
-
-    materials.add(OrderMaterialItem());
-
-    loadMaterials();
-    loadUsers();
-    callJobDetails();
+    init();
   }
-/*
-  void initState() {
 
-    super.initState();
-    print("RECEIVED JOB SHEET => ${widget.jobSheet}");
-    print("RECEIVED JOB SHEET ID => ${widget.jobSheet?.id}");
-    print("RECEIVED JOB SHEET => ${widget.jobSheet}");
-    print("CLIENT => ${widget.jobSheet?.clientName}");
-    print("COMPANY => ${widget.jobSheet?.companyName}");
-    print("EMAIL => ${widget.jobSheet?.email}");
-*/
-/*    final sheet = widget.jobSheet;
-    if (sheet != null) {
-
-      // EDIT MODE
-      _clientNameController.text = sheet.clientName ?? "";
-      _companyNameController.text = sheet.companyName ?? "";
-      _emailController.text = sheet.email ?? "";
-      _officeNumController.text = sheet.officeNumber ?? "";
-      _mobileNumController.text = sheet.mobileNumber ?? "";
-      _officeAddrController.text = sheet.officeAddress ?? "";
-      _siteAddrController.text = sheet.siteAddress ?? "";
-      _specController.text = sheet.description ?? "";
-      _noteController.text = sheet.notes ?? "";
-      _serviceReqController.text = sheet.serviceRequest ?? "";
-
-    } else {
-
-      // CREATE MODE
-      _clientNameController.text = job?.siteContactName ?? "";
-      _companyNameController.text = job?.jobName ?? "";
-      _emailController.text = job?.email ?? "";
-      _officeNumController.text = "";
-      _mobileNumController.text = job?.mobileNo ?? "";
-      _officeAddrController.text = "";
-      _siteAddrController.text = job?.jobLocation ?? "";
-      _specController.text = "";
-      _noteController.text = "";
-      _serviceReqController.text = job?.jobDescription ?? "";
-
-    }*//*
-
-    final sheet = widget.jobSheet;
-    print("_clientNameController-->" + (job).toString());
-
-    /// Contact Person
-    //_clientNameController.text = job?.siteContactName ?? "";
-
-    /// Company / Job Name
-    _companyNameController.text = job?.jobName ?? "";
-
-    /// Email
-    _emailController.text = job?.email ?? "";
-
-    /// Office Number
-    _officeNumController.text = "";
-
-    /// Mobile Number
-    _mobileNumController.text = job?.mobileNo ?? "";
-
-    /// Office Address
-    _officeAddrController.text = "";
-
-    /// Site Address
-    _siteAddrController.text = job?.jobLocation ?? "";
-
-    /// Specification
-    _specController.text = "";
-
-    /// Service Requested
-    _serviceReqController.text = job?.jobDescription ?? "";
-
-    /// Dates
- */
-/*   _scheduledDate = job?.jobDate ?? "";
-    _orderDate = job?.jobDate ?? "";
-    _requiredDate = job?.jobDate ?? "";*//*
-
-    _scheduledDate = formatApiDate(job?.jobDate);
-    _orderDate = formatApiDate(job?.jobDate);
-    _requiredDate = formatApiDate(job?.jobDate);
-    materials.add(OrderMaterialItem());
-    print("Scheduled => $_scheduledDate");
-    print("Order => $_orderDate");
-    print("Required => $_requiredDate");
-
-    loadMaterials();
-    loadUsers();
-    callJobDetails();
+  init() async {
+   await loadMaterials();
+   await loadUsers();
+   await loadContacts();
+   await callJobDetails();
+   await _loadCurrentUserId();
   }
-*/
 
   @override
   void dispose() {
@@ -578,17 +508,21 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             const SizedBox(height: 20),
 
             // Part 2 starts here...
-            _buildWorkRequiredCard(),
+            if (!(widget.isView ?? false) && materials.isNotEmpty) ...[
+              _buildWorkRequiredCard(),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
+            ],
             _buildJobDetailsCard(),
 
             const SizedBox(height: 20),
             _buildScheduleCard(),
 
-            const SizedBox(height: 20),
+            if (!(jobSheet?.documentFullLink ?? "").endsWith("storage"))
+              const SizedBox(height: 20),
 
-            _buildDocumentsCard(),
+            if (!(jobSheet?.documentFullLink ?? "").endsWith("storage"))
+              _buildDocumentsCard(),
 
             const SizedBox(height: 20),
 
@@ -607,11 +541,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
                 const SizedBox(height: 8),
 
-                Divider(
-                  color: Colors.black,
-                  thickness: 1,
-                  height: 1,
-                ),
+                Divider(color: Colors.black, thickness: 1, height: 1),
               ],
             ),
             const SizedBox(height: 20),
@@ -629,25 +559,23 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               },
             ),
 
-            const SizedBox(height: 20),
-
-            _buildAddEngineerButton(),
+            if (!(widget.isView ?? true)) _buildAddEngineerButton(),
             const SizedBox(height: 30),
+            if (!(widget.isView ?? true))
+              SizedBox(
+                width: double.infinity,
+                child: CustomButton(
+                  title: "Save Job Sheet",
+                  onPressed: () async {
+                    print("SAVE MODE");
 
-            SizedBox(
-              width: double.infinity,
-              child: CustomButton(
-                title: "Save Job Sheet",
-                onPressed: () async {
-                  print("SAVE MODE");
-
-                  print("SAVE JOB SHEET => ${widget.jobSheet}");
-                  print("SAVE JOB SHEET ID => ${widget.jobSheet?.id}");
-                  await saveJobSheet();
-                  await saveTimeSheet();
-                },
+                    print("SAVE JOB SHEET => ${jobSheet}");
+                    print("SAVE JOB SHEET ID => ${widget.jobSheetId}");
+                    await saveJobSheet();
+                    await saveTimeSheet();
+                  },
+                ),
               ),
-            ),
 
             const SizedBox(height: 30),
           ],
@@ -655,12 +583,14 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       ),
     );
   }
+
   Future<void> saveJobSheet() async {
-    final sheet = widget.jobSheet;
+    final sheet = jobSheet;
     final Map<String, dynamic> body = {};
 
     body["client_name"] = _clientNameController.text.trim();
     body["company_name"] = _companyNameController.text.trim();
+    body["company_id"] = selectedCon?.id.toString();
     body["email"] = _emailController.text.trim();
     body["office_number"] = _officeNumController.text.trim();
     body["mobile_number"] = _mobileNumController.text.trim();
@@ -668,82 +598,63 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     body["site_address"] = _siteAddrController.text.trim();
     body["description"] = _specController.text.trim();
     body["notes"] = _noteController.text.trim();
-    print("==============");
-    print(body);
-    print("Notes => ${body["notes"]}");
-    print("==============");
 
-    body["service_request"] =
-        _serviceReqController.text.trim();
-   /* body["date_of_scheduled"] = *//*_scheduledDate*//*"10/07/2026";
-    body["date_of_order"] = *//*_orderDate*//*"10/07/2026";
+    body["service_request"] = _serviceReqController.text.trim();
+
+
+    /* body["date_of_scheduled"] = */ /*_scheduledDate*/ /*"10/07/2026";
+    body["date_of_order"] = */ /*_orderDate*/ /*"10/07/2026";
     body["date_required"] = "10/07/2026";*/
     body["date_of_scheduled"] = _scheduledDate;
     body["date_of_order"] = _orderDate;
     body["date_required"] = _requiredDate;
-    print("Selected Status => $selectedStatus");
-   // body["job_status"] = selectedStatus;
+    // body["job_status"] = selectedStatus;
     //body["job_status"] = "1";
-    body["job_status"] = widget.jobSheet?.jobStatus ?? "1";
+    body["job_status"] = selectedStatus?? jobSheet?.jobStatus ?? "";
     body["job_id"] = widget.job?.id.toString();
     double subtotal = 0;
 
     for (int i = 0; i < materials.length; i++) {
       final item = materials[i];
-      final qty =
-          int.tryParse(item.qtyController.text) ?? 0;
-      final used =
-          int.tryParse(item.usedController.text) ?? 0;
+      final qty = int.tryParse(item.qtyController.text) ?? 0;
+      final used = int.tryParse(item.usedController.text) ?? 0;
       final unitPrice = item.unitPrice ?? 0;
       final totalPrice = qty * unitPrice;
-      body["material_id[$i]"] =
-          item.materialId;
 
-      body["order_qty[$i]"] =
-          qty.toString();
+      body["material_id[$i]"] = item.materialId;
 
-      body["purchase_qty_used[$i]"] =
-          used.toString();
+      body["order_qty[$i]"] = qty.toString();
 
-      body["unit_price[$i]"] =
-          unitPrice.toString();
+      body["purchase_qty_used[$i]"] = used.toString();
 
-      body["total_price[$i]"] =
-          totalPrice.toString();
+      body["unit_price[$i]"] = unitPrice.toString();
+
+      body["total_price[$i]"] = totalPrice.toString();
 
       subtotal += totalPrice;
     }
-    body["material_sub_total"] =
-        subtotal.toString();
+
+    body["material_sub_total"] = subtotal.toString();
 
     body["purchase_sub_total"] = "0";
 
     body["wage_sub_total"] = "0";
 
     try {
-      print("==============");
-      print(body);
-      print("Scheduled => ${body["date_of_scheduled"]}");
-      print("Order => ${body["date_of_order"]}");
-      print("Required => ${body["date_required"]}");
-      print("==============");
-     // final response = await jobRepository.saveJobSheet(body);
+
+      // final response = await jobRepository.saveJobSheet(body);
       Map<String, dynamic> response;
 
       /*if (widget.job?.jobSheets != null &&
           widget.job!.jobSheets!.isNotEmpty) {*/
-      if (widget.jobSheet != null){
+
+      if (widget.jobSheetId != null) {
         //final jobSheetId = widget.job!.jobSheets!.first.id.toString();
-        final jobSheetId = widget.jobSheet!.id.toString();
+        final jobSheetId = widget.jobSheetId.toString();
         print("EDIT JOB SHEET ID => $jobSheetId");
 
-        response = await jobRepository.editJobSheet(
-          jobSheetId,
-          body,
-        );
-
+        response = await jobRepository.editJobSheet(jobSheetId, body);
       } else {
-
         print("CREATE NEW JOB SHEET");
 
         response = await jobRepository.saveJobSheet(body);
@@ -752,45 +663,29 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
       if (response["success"] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-
           SnackBar(
-
             content: CustomText(
-              response["message"] ??
-                  "Job Sheet Saved Successfully",
+              response["message"] ?? "Job Sheet Saved Successfully",
             ),
-
           ),
-
         );
 
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-
           SnackBar(
-
-            content: CustomText(
-              response["message"] ??
-                  "Something went wrong",
-            ),
-
+            content: CustomText(response["message"] ?? "Something went wrong"),
           ),
-
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-
-        SnackBar(
-
-          content: CustomText(e.toString()),
-
-        ),
-
-      );
+      print("kskdlsdksldksd------>"+e.toString());
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: CustomText(e.toString())));
     }
   }
+
   Widget _buildJobDetailsCard() {
     return SectionHeaderCard(
       icon: Icons.description_outlined,
@@ -798,9 +693,9 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           _fieldLabel("Specification"),
           CustomTextField(
+            readOnly: widget.isView ?? true,
             controller: _specController,
             hintText: "Enter specification",
             maxLines: 4,
@@ -810,16 +705,16 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
           _fieldLabel("Service Requested by the Client"),
           CustomTextField(
+            readOnly: widget.isView ?? true,
             controller: _serviceReqController,
             hintText: "Enter service requested",
             maxLines: 4,
           ),
-
         ],
       ),
     );
   }
-/*  Widget _buildjobNotes() {
+  /*  Widget _buildjobNotes() {
     return SectionHeaderCard(
       icon: Icons.description_outlined,
       title: "Notes",
@@ -855,7 +750,9 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
             onChanged: (v) {
               setState(() {
-                _scheduledDate = v;
+                if (widget.isView ?? true) {
+                  _scheduledDate = v;
+                }
               });
             },
           ),
@@ -912,31 +809,33 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         const SizedBox(height: 8),
 
         InkWell(
-          onTap: () async {
-            DateTime? picked = await showDatePicker(
-              context: context,
+          onTap: (widget.isView ?? true)
+              ? () {}
+              : () async {
+                  DateTime? picked = await showDatePicker(
+                    context: context,
 
-              initialDate: DateTime.now(),
+                    initialDate: DateTime.now(),
 
-              firstDate: DateTime(2020),
+                    firstDate: DateTime(2020),
 
-              lastDate: DateTime(2100),
-            );
+                    lastDate: DateTime(2100),
+                  );
 
-          /*  if (picked != null) {
+                  /*  if (picked != null) {
               onChanged(
                   //"${picked.day}/${picked.month}/${picked.year}");
                   "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}",);
 
                   }*/
-            if (picked != null) {
-              onChanged(
-                "${picked.day.toString().padLeft(2, '0')}/"
-                    "${picked.month.toString().padLeft(2, '0')}/"
-                    "${picked.year}",
-              );
-            }
-          },
+                  if (picked != null) {
+                    onChanged(
+                      "${picked.day.toString().padLeft(2, '0')}/"
+                      "${picked.month.toString().padLeft(2, '0')}/"
+                      "${picked.year}",
+                    );
+                  }
+                },
 
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
@@ -968,65 +867,75 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
       title: "Job Documents",
 
-      child: Container(
-        padding: const EdgeInsets.all(15),
-
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-
-          borderRadius: BorderRadius.circular(12),
-
-          border: Border.all(color: AppColors.border),
-        ),
-
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(.08),
-
-                borderRadius: BorderRadius.circular(10),
-              ),
-
-              child: const Icon(
-                Icons.insert_drive_file,
-
-                color: AppColors.primary,
-              ),
+      child: InkWell(
+        onTap: () {
+          AppNavigator.push(
+            WebViewScreen(
+              url: jobSheet?.documentFullLink ?? "",
+              title: "Jobsheet Document", // This passes the document title
             ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(15),
 
-            const SizedBox(width: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
 
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            borderRadius: BorderRadius.circular(12),
 
-                children: [
-                  CustomText(
-                    "Job Attachment",
+            border: Border.all(color: AppColors.border),
+          ),
 
-                    style: AppTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
 
-                  const SizedBox(height: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(.08),
 
-                  CustomText(
-                    "Tap to open",
+                  borderRadius: BorderRadius.circular(10),
+                ),
 
-                    style: AppTextStyles.bodyExtraSmall.copyWith(
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
+                child: const Icon(
+                  Icons.insert_drive_file,
+
+                  color: AppColors.primary,
+                ),
               ),
-            ),
 
-            const Icon(Icons.open_in_new, color: AppColors.primary),
-          ],
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                  children: [
+                    CustomText(
+                      "Job Attachment",
+
+                      style: AppTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 2),
+
+                    CustomText(
+                      jobSheet?.documentFullLink ?? "",
+
+                      style: AppTextStyles.bodyExtraSmall.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Icon(Icons.open_in_new, color: AppColors.primary),
+            ],
+          ),
         ),
       ),
     );
@@ -1039,24 +948,34 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       title: "Job Status",
 
       child: DropdownButtonFormField<String>(
-        value: "Ongoing",
+        value: (selectedStatus != "") ? selectedStatus : "CALL_BACK_REQUIRED",
 
         decoration: InputDecoration(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
 
         items: const [
-          DropdownMenuItem(value: "Ongoing", child: Text("Ongoing")),
+          DropdownMenuItem(
+            value: "GO_AHEAD_WITH_WORK",
+            child: CustomText("GO AHEAD WITH WORK"),
+          ),
 
-          DropdownMenuItem(value: "Additional Work Required", child: Text("Additional Work Required")),
+          DropdownMenuItem(
+            value: "QUOTE_REQUIRED",
+            child: CustomText("QUOTE REQUIRED"),
+          ),
 
-          DropdownMenuItem(value: "Completed by Engineer", child: Text("Completed by Engineer")),
-          DropdownMenuItem(value: "New Quote Required", child: Text("New Quote Required")),
+          DropdownMenuItem(
+            value: "CALL_BACK_REQUIRED",
+            child: CustomText("CALL BACK REQUIRED"),
+          ),
         ],
 
-        onChanged: (v) {
-          selectedStatus = v ?? "";
-        },
+        onChanged: (widget.isView ?? true)
+            ? null
+            : (v) {
+                selectedStatus = v ?? "";
+              },
       ),
     );
   }
@@ -1125,7 +1044,6 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 30),
 
             child: _buildAddMaterialButton(),
-
           ),
           const SizedBox(height: 10),
 
@@ -1133,18 +1051,15 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 _fieldLabel("Notes"),
                 CustomTextField(
                   controller: _noteController,
                   hintText: "Enter here",
                   maxLines: 4,
                 ),
-
-
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -1213,8 +1128,11 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         },
 
         // icon: const Icon(Icons.add_outlined, color: Colors.white,size: 20,),
-
-        label:  CustomText("\u002B Add Material",txtColor: Colors.white,style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),),
+        label: CustomText(
+          "\u002B Add Material",
+          txtColor: Colors.white,
+          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+        ),
 
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -1289,7 +1207,10 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                   decoration: BoxDecoration(
                     color: Color(
                       int.parse(
-                        job?.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+                        job?.jobTypeStatus?.colorCode?.replaceAll(
+                              "#",
+                              "0xFF",
+                            ) ??
                             "0xFF1565C0",
                       ),
                     ).withOpacity(.08),
@@ -1300,7 +1221,10 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                     style: AppTextStyles.bodyExtraSmall.copyWith(
                       color: Color(
                         int.parse(
-                          job?.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+                          job?.jobTypeStatus?.colorCode?.replaceAll(
+                                "#",
+                                "0xFF",
+                              ) ??
                               "0xFF1565C0",
                         ),
                       ),
@@ -1314,6 +1238,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             const SizedBox(height: 18),
 
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: _miniInfo(
@@ -1397,8 +1322,54 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _fieldLabel("Select a contact", true),
+          DropdownButtonFormField<ContactBookData>(
+            isExpanded: true,
+            hint: const CustomText("Select a contact"),
+            // Find current selection in the list or set null
+            value: selectedCon,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              fillColor: (widget.isView ?? true)
+                  ? Colors.grey.shade50
+                  : Colors.white,
+              filled: true,
+            ),
+            // Disable if in view mode
+            onChanged: (widget.isView ?? true)
+                ? null
+                : (ContactBookData? selectedContact) {
+                    if (selectedContact != null) {
+                      selectedCon = selectedContact;
+                      setState(() {
+                        _clientNameController.text = selectedContact.name ?? "";
+                        _companyNameController.text =
+                            selectedContact.companyName ?? "";
+                        _emailController.text = selectedContact.email ?? "";
+                        _mobileNumController.text =
+                            selectedContact.contactNo ?? "";
+                        _siteAddrController.text =
+                            selectedContact.address ?? "";
+                      });
+                    }
+                  },
+            items: contactList.map((contact) {
+              return DropdownMenuItem<ContactBookData>(
+                value: contact,
+                child: CustomText(contact.name ?? ""),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
           _fieldLabel("Client Name", true),
           CustomTextField(
+            readOnly: true,
             controller: _clientNameController,
             hintText: "Enter client name",
           ),
@@ -1407,6 +1378,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
           _fieldLabel("Company Name", true),
           CustomTextField(
+            readOnly: true,
             controller: _companyNameController,
             hintText: "Enter company name",
           ),
@@ -1415,42 +1387,28 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
           _fieldLabel("Company Email", true),
           CustomTextField(
+            readOnly: true,
             controller: _emailController,
             hintText: "Enter company email",
           ),
 
           const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _fieldLabel("Office Number"),
-                    CustomTextField(
-                      controller: _officeNumController,
-                      hintText: "Office number",
-                    ),
-                  ],
-                ),
-              ),
+          _fieldLabel("Mobile Number"),
+          CustomTextField(
+            readOnly: true,
+            controller: _mobileNumController,
+            hintText: "Mobile number",
+          ),
 
-              const SizedBox(width: 16),
+          const SizedBox(height: 16),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _fieldLabel("Mobile Number"),
-                    CustomTextField(
-                      controller: _mobileNumController,
-                      hintText: "Mobile number",
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          _fieldLabel("Site Address", true),
+          CustomTextField(
+            readOnly:  true,
+            controller: _siteAddrController,
+            hintText: "Enter site address",
+            maxLines: 2,
           ),
         ],
       ),
@@ -1486,29 +1444,30 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   Widget _buildAddressCard() {
     return SectionHeaderCard(
       icon: Icons.location_on_outlined,
-      title: "Address Details",
+      title: "Office Details",
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _fieldLabel("Office Address"),
           CustomTextField(
+            readOnly: widget.isView ?? true,
             controller: _officeAddrController,
             hintText: "Enter office address",
             maxLines: 2,
           ),
 
           const SizedBox(height: 16),
-
-          _fieldLabel("Site Address", true),
+          _fieldLabel("Office Number"),
           CustomTextField(
-            controller: _siteAddrController,
-            hintText: "Enter site address",
-            maxLines: 2,
+            readOnly: widget.isView ??true,
+            controller: _officeNumController,
+            hintText: "Office number",
           ),
         ],
       ),
     );
   }
+
   Widget _buildGrandTotalHeader() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1516,8 +1475,18 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const CustomText("Total Project Hours", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          CustomText(calculateGrandTotal(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+          const CustomText(
+            "Total Project Hours",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          CustomText(
+            calculateGrandTotal(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ),
     );
@@ -1528,11 +1497,13 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     final bool isLead = engineer["isLead"] == true;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+        ],
       ),
       child: Column(
         children: [
@@ -1541,20 +1512,27 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isLead ? Colors.blue.shade50 : Colors.grey.shade50,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
             ),
             child: Row(
               children: [
-                Icon(isLead ? Icons.stars : Icons.person, color: AppColors.primary),
+                Icon(
+                  isLead ? Icons.stars : Icons.person,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: CustomText(
                     isLead ? "Lead Engineer" : "Additional Engineer",
-                    style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 // Only show delete button for non-lead engineers
-                if (!isLead)
+                if (engineer["isDeletable"])
                   IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     onPressed: () => setState(() => engineers.removeAt(engIdx)),
@@ -1569,15 +1547,20 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               children: [
                 // --- SELECTION LOGIC ---
                 if (isLead)
-                // Lead is READ ONLY
+                  // Lead is READ ONLY
                   CustomTextField(
+                    readOnly:
+                        (widget.isView) ??
+                        true &&
+                            _currentUserId !=
+                                widget.job?.leadEngineer?.id.toString(),
                     controller: TextEditingController(text: engineer["name"]),
                     label: "Engineer Name",
-                    readOnly: true,
+
                     // fillColor: Colors.grey.shade100,
                   )
                 else
-                // Added engineers get the BottomSheet Dropdown
+                  // Added engineers get the BottomSheet Dropdown
                   _buildEngineerPicker(engIdx),
 
                 const SizedBox(height: 16),
@@ -1587,15 +1570,16 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: engineer["timeSlots"].length,
-                  itemBuilder: (context, slotIdx) => _buildTimeSlotRow(engIdx, slotIdx),
+                  itemBuilder: (context, slotIdx) =>
+                      _buildTimeSlotRow(engIdx, slotIdx),
                 ),
-
-                const Divider(),
-                TextButton.icon(
-                  onPressed: () => addTimeSlot(engIdx),
-                  icon: const Icon(Icons.add_alarm, size: 18),
-                  label: const Text("Add Shift/Slot"),
-                )
+                if (!(widget.isView ?? true)) const Divider(),
+                if (!(widget.isView ?? true))
+                  TextButton.icon(
+                    onPressed: () => addTimeSlot(engIdx),
+                    icon: const Icon(Icons.add_alarm, size: 18),
+                    label: const Text("Add Shift/Slot"),
+                  ),
               ],
             ),
           ),
@@ -1610,36 +1594,73 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Expanded(child: _timeField("In", slot["startTime"], () => _pickTime(engIdx, slotIdx, "startTime"))),
+          Expanded(
+            child: _timeField(
+              "In",
+              slot["startTime"],
+              !slot["isDeletable"]
+                  ? null
+                  : () => _pickTime(engIdx, slotIdx, "startTime"),
+            ),
+          ),
           const SizedBox(width: 8),
-          Expanded(child: _timeField("Out", slot["endTime"], () => _pickTime(engIdx, slotIdx, "endTime"))),
+          Expanded(
+            child: _timeField(
+              "Out",
+              slot["endTime"],
+              !slot["isDeletable"]
+                  ? null
+                  : () => _pickTime(engIdx, slotIdx, "endTime"),
+            ),
+          ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-            child: CustomText(calculateTotal(slot["startTime"], slot["endTime"]), style: const TextStyle(fontWeight: FontWeight.bold)),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: CustomText(
+              calculateTotal(slot["startTime"], slot["endTime"]),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
-          if (engineers[engIdx]["timeSlots"].length > 1)
+          if (slot["isDeletable"])
             IconButton(
               icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
-              onPressed: () => setState(() => engineers[engIdx]["timeSlots"].removeAt(slotIdx)),
-            )
+              onPressed: () => setState(
+                () => engineers[engIdx]["timeSlots"].removeAt(slotIdx),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _timeField(String label, String value, VoidCallback onTap) {
+  Widget _timeField(String label, String value, VoidCallback? onTap) {
     return InkWell(
-      onTap: onTap,
+      onTap:
+          !(widget.isView ?? false) &&
+              _currentUserId != widget.job?.leadEngineer?.id.toString()
+          ? null
+          : onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomText(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-            CustomText(value.isEmpty ? "--:--" : value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            CustomText(
+              label,
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+            CustomText(
+              value.isEmpty ? "--:--" : value,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -1650,7 +1671,8 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     return InkWell(
       onTap: () => addEngineerBlock(),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
+        margin: EdgeInsetsDirectional.symmetric(horizontal: 30),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.primary),
           borderRadius: BorderRadius.circular(12),
@@ -1661,7 +1683,13 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
           children: [
             Icon(Icons.person_add_alt_1_rounded, color: AppColors.primary),
             const SizedBox(width: 10),
-            CustomText("Add Additional Engineer", style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            CustomText(
+              "Add Additional Engineer",
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
@@ -1670,8 +1698,22 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
   Widget _buildEngineerPicker(int engIdx) {
     final engineer = engineers[engIdx];
+
+    print(
+      "object1---->${engineer["name"]}--->" +
+          (widget.isView ?? false).toString(),
+    );
+    print(
+      "object2---->${_currentUserId != widget.job?.leadEngineer?.id.toString()}",
+    );
+    print("object2---->" + (!engineer["isDeletable"]).toString());
     return GestureDetector(
-      onTap: () => showEngineerBottomSheet(engineer),
+      onTap:
+          (widget.isView ?? false) ||
+              (!engineer["isDeletable"] &&
+                  _currentUserId != widget.job?.leadEngineer?.id.toString())
+          ? null
+          : () => showEngineerBottomSheet(engineer),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
         decoration: BoxDecoration(
@@ -1681,17 +1723,28 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         ),
         child: Row(
           children: [
-            Icon(Icons.person_search_rounded, size: 18, color: Colors.grey.shade600),
+            Icon(
+              Icons.person_search_rounded,
+              size: 18,
+              color: Colors.grey.shade600,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: CustomText(
-                engineer["name"].isEmpty ? "Select Engineer from List" : engineer["name"],
+                engineer["name"].isEmpty
+                    ? "Select Engineer from List"
+                    : engineer["name"],
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: engineer["name"].isEmpty ? Colors.grey : Colors.black87,
+                  color: engineer["name"].isEmpty
+                      ? Colors.grey
+                      : Colors.black87,
                 ),
               ),
             ),
-            const Icon(Icons.arrow_drop_down_circle_outlined, color: Colors.grey),
+            const Icon(
+              Icons.arrow_drop_down_circle_outlined,
+              color: Colors.grey,
+            ),
           ],
         ),
       ),
@@ -1701,20 +1754,26 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   Widget _buildBottomActions() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
-      child:
-      Row(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
           Flexible(
             flex: 1,
-            child:
-            CustomButton(
+            child: CustomButton(
               background: AppColors.primary,
               title: "Cancel",
               onPressed: () {
                 Navigator.pop(context);
               },
-
             ),
             /*    CustomButton(
               title: "Cancel",textClr: Colors.black,

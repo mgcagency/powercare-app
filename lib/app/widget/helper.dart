@@ -238,7 +238,7 @@ class SectionCard extends StatelessWidget {
                 if(isJobSheet && isAccepted)
                   GestureDetector(
                     onTap: () async {
-                      AppNavigator.push(JobSheetScreen(job: job,));
+                      AppNavigator.push(JobSheetScreen(job: job,isView: false,));
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),

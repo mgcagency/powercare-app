@@ -54,7 +54,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-- flavor dev"
+            argument = "--flavor dev"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

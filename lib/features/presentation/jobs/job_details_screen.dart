@@ -405,6 +405,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                     icon: Icons.description_outlined,
                     title: "Description",
                     child: CustomText(
+                      enableReadMore: true,
                       job.jobDescription ?? "No description available.",
                       style: AppTextStyles.bodySmall.copyWith(
                         color: const Color(0xFF555555),
@@ -605,7 +606,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           job: job,
                           jobSheet: sheet,
 
-                          title: sheet.description ?? "Job Sheet ${index + 1}",
+                          title: sheet.purchase_order_number ?? "Sheet #${sheet.id}",
                           url: sheet.documentFullLink ?? "",
                           isLast: index == job.jobSheets!.length - 1,
                           isJobSheet: true,
@@ -627,9 +628,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           title: "Add Timesheet",
                           subtitle: "Track engineer hours",
                           onTap: () {
-                            AppNavigator.push(
-                              TimeSheetScreen(jobId: job!.id.toString()),
-                            );
+                            if(_currentUserId.toString() == job.leadEngineer?.id.toString()) {
+                              AppNavigator.push(
+                                TimeSheetScreen(jobId: job!.id.toString()),
+                              );
+                            }
                           },
                         ),
                         _actionTile(
@@ -839,7 +842,7 @@ class _DocumentRow extends StatelessWidget {
                       ),
                     );
                   } else {
-                    AppNavigator.push(JobSheetScreen(job: job,));
+                    AppNavigator.push(JobSheetScreen(job: job, isView: true));
                   }
                 },
                 child: Container(
@@ -859,31 +862,22 @@ class _DocumentRow extends StatelessWidget {
               // ── VIEW ICON ──
               if (isJobSheet && isAccepted)
                 GestureDetector(
-    onTap: () async {
-    // Check Job Sheet exists or not
-    if (job.jobSheets == null || job.jobSheets!.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-    content: Text("No Job Sheet found"),
-    ),
-    );
-    return;
-    }
+                  onTap: () async {
+                    // Check Job Sheet exists or not
+                    if (job.jobSheets == null || job.jobSheets!.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("No Job Sheet found")),
+                      );
+                      return;
+                    }
 
-    final sheet = job.jobSheets!.first;
 
-    debugPrint("JobSheets => ${job.jobSheets}");
-    debugPrint("Length => ${job.jobSheets!.length}");
-    debugPrint("Editing JobSheet => ${sheet.id}");
 
-    AppNavigator.push(
-    JobSheetScreen(
-    job: job,
-    jobSheet: sheet,
-    ),
-    );
-    },
-             /*     onTap: () async {
+                    AppNavigator.push(
+                      JobSheetScreen(job: job, jobSheetId: jobSheet?.id.toString(), isView: false),
+                    );
+                  },
+                  /*     onTap: () async {
                     final sheet = job.jobSheets?.first;
                     print("Editing JobSheet => ${jobSheet?.id}");
 

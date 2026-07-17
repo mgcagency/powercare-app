@@ -8,6 +8,8 @@ import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 import 'package:powercare_flutter/core/storage/app_preferences.dart';
 
+import '../landing/landing_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -226,7 +228,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildLogoutButton() {
     return TextButton.icon(
-      onPressed: () {},
+      onPressed: () {  showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const CustomText("Logout"),
+          content: const CustomText("Are you sure you want to logout?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const CustomText("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                await AppPreferences.setLoggedIn(false);
+                if (!mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                );
+              },
+              child: const CustomText("Logout", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );},
       icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 18),
       label: CustomText("Sign out from device",
           style: AppTextStyles.bodySmall.copyWith(color: Colors.redAccent, fontWeight: FontWeight.bold)),
