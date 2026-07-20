@@ -95,7 +95,7 @@ Row(children: [
             ),
           ).toList(),
 
-          onChanged: (value) {
+          onChanged: !item.isEditable?null:(value) {
             onMaterialChanged(value);
 
             if (value != null) {
@@ -130,7 +130,7 @@ Row(children: [
   ],)),
   const SizedBox(width: 16),
   /// Delete Button
-  if (onDelete != null)
+  if (onDelete != null && item.isEditable)
     Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -187,6 +187,7 @@ Row(children: [
                   const SizedBox(height: 8),
 
                   CustomTextField(
+                    readOnly: !item.isEditable,
                     controller: item.qtyController,
                     keyboardType: TextInputType.number,
                     hintText: "Qty",
@@ -257,6 +258,7 @@ Row(children: [
                   const SizedBox(height: 8),
 
                   CustomTextField(
+                    readOnly: !item.isUsedEditable,
                     controller: item.usedController,
                     keyboardType: TextInputType.number,
                     hintText: "Used Qty",

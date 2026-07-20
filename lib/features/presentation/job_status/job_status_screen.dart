@@ -103,6 +103,15 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
       if (!mounted) return;
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: CustomText("Job status updated successfully."),
+          backgroundColor: Colors.green,
+        ),
+
+      );
+      await Future.delayed(const Duration(seconds: 2));
+
       Navigator.push(
         context,
         MaterialPageRoute(

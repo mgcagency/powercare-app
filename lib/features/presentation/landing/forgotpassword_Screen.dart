@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../app/widget/custom_text.dart';
-
+import '../../alldata/api_repository/auth_repository.dart';
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -13,12 +13,87 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState
     extends State<ForgotPasswordScreen> {
-
+  final AuthRepository _repository = AuthRepository();
   final TextEditingController _emailController =
   TextEditingController();
 
   bool _isLoading = false;
+  Future<void> _sendResetLink() async {
+    if (_emailController.text.trim().isEmpty) {
+      _showMessage(
+        "Please enter your email address",
+        true,
+      );
+      return;
+    }
 
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _repository.forgotPassword(
+        _emailController.text.trim(),
+      );
+
+      // Stop Loader
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
+      if (response["status_code"] == 200 ||
+          response["status_code"] == 201) {
+
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 60,
+            ),
+            content: CustomText(
+              response["message"] ??
+                  "Password reset link has been sent to your email.",
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const CustomText("OK"),
+              ),
+            ],
+          ),
+        );
+
+      } else {
+
+        _showMessage(
+          response["message"] ??
+              "No account found with this email address",
+          true,
+        );
+      }
+
+    } catch (e) {
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
+      _showMessage(
+        e.toString(),
+        true,
+      );
+    }
+  }  /*
   void _sendResetLink() async {
 
     if (_emailController.text.trim().isEmpty) {
@@ -71,6 +146,7 @@ class _ForgotPasswordScreenState
       },
     );
   }
+*/
 
   void _showMessage(
       String message,
@@ -126,136 +202,141 @@ class _ForgotPasswordScreenState
                       ),
                     ],
                   ),
-                  child: Column(
-                    mainAxisSize:
-                    MainAxisSize.min,
-                    children: [
-
-                      Image.asset(
-                        "assets/icons/app_logo_dev.png",
-                        height: 80,
-                      ),
-
-                      const SizedBox(
-                        height: 20,
-                      ),
-
-                      const CustomText(
-                        "Reset Password",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight:
-                          FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(
-                        height: 10,
-                      ),
-
-                      const CustomText(
-                        "Enter your registered email address to receive a password reset link.",
-                        textAlign:
-                        TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.grey,
-                        ),
-                      ),
-
-                      const SizedBox(
-                        height: 30,
-                      ),
-
-                      TextField(
-                        controller:
-                        _emailController,
-                        decoration:
-                        InputDecoration(
-                          hintText:
-                          "Email Address",
-                          prefixIcon:
-                          const Icon(
-                            Icons.email,
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize:
+                        MainAxisSize.min,
+                        children: [
+                      
+                          Image.asset(
+                            "assets/icons/app_logo_dev.png",
+                            height: 80,
                           ),
-                          border:
-                          OutlineInputBorder(
-                            borderRadius:
-                            BorderRadius
-                                .circular(
-                                30),
+                      
+                          const SizedBox(
+                            height: 20,
                           ),
-                        ),
-                      ),
-
-                      const SizedBox(
-                        height: 25,
-                      ),
-
-                      SizedBox(
-                        width:
-                        double.infinity,
-                        height: 55,
-                        child:
-                        ElevatedButton(
-                          onPressed:
-                          _isLoading
-                              ? null
-                              : _sendResetLink,
-                          style:
-                          ElevatedButton
-                              .styleFrom(
-                            backgroundColor:
-                            const Color(
-                                0xFFFF6B00),
-                            shape:
-                            RoundedRectangleBorder(
-                              borderRadius:
-                              BorderRadius.circular(
-                                  40),
-                            ),
-                          ),
-                          child:
-                          _isLoading
-                              ? const CircularProgressIndicator(
-                            color:
-                            Colors
-                                .white,
-                          )
-                              : const CustomText(
-                            "Send Reset Link",
-                            style:
-                            TextStyle(
-                              color:
-                              Colors
-                                  .white,
-                              fontSize:
-                              16,
+                      
+                          const CustomText(
+                            "Reset Password",
+                            style: TextStyle(
+                              fontSize: 28,
                               fontWeight:
-                              FontWeight
-                                  .bold,
+                              FontWeight.bold,
                             ),
                           ),
-                        ),
+                      
+                          const SizedBox(
+                            height: 10,
+                          ),
+                      
+                          const CustomText(
+                            "Enter your registered email address to receive a password reset link.",
+                            textAlign:
+                            TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ),
+                          ),
+                      
+                          const SizedBox(
+                            height: 30,
+                          ),
+                      
+                          TextField(
+                            controller:
+                            _emailController,
+                            decoration:
+                            InputDecoration(
+                              hintText:
+                              "Email Address",
+                              prefixIcon:
+                              const Icon(
+                                Icons.email,
+                              ),
+                              border:
+                              OutlineInputBorder(
+                                borderRadius:
+                                BorderRadius
+                                    .circular(
+                                    30),
+                              ),
+                            ),
+                          ),
+                      
+                          const SizedBox(
+                            height: 25,
+                          ),
+                      
+                          SizedBox(
+                            width:
+                            double.infinity,
+                            height: 55,
+                            child:
+                            ElevatedButton(
+                              onPressed:
+                              _isLoading
+                                  ? null
+                                  : _sendResetLink,
+                              style:
+                              ElevatedButton
+                                  .styleFrom(
+                                backgroundColor:
+                                const Color(
+                                    0xFFFF6B00),
+                                shape:
+                                RoundedRectangleBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(
+                                      40),
+                                ),
+                              ),
+                              child:
+                              _isLoading
+                                  ? const CircularProgressIndicator(
+                                color:
+                                Colors
+                                    .white,
+                              )
+                                  : const CustomText(
+                                "Send Reset Link",
+                                style:
+                                TextStyle(
+                                  color:
+                                  Colors
+                                      .white,
+                                  fontSize:
+                                  16,
+                                  fontWeight:
+                                  FontWeight
+                                      .bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      
+                          const SizedBox(
+                            height: 20,
+                          ),
+                      
+                          TextButton.icon(
+                            onPressed: () {
+                              Navigator.pop(
+                                  context);
+                            },
+                            icon: const Icon(
+                              Icons
+                                  .arrow_back,size: 30,
+                            ),
+                            label: const CustomText(
+                              "Back To Login",
+                            ),
+                          ),
+                        ],
                       ),
-
-                      const SizedBox(
-                        height: 20,
-                      ),
-
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.pop(
-                              context);
-                        },
-                        icon: const Icon(
-                          Icons
-                              .arrow_back,size: 30,
-                        ),
-                        label: const CustomText(
-                          "Back To Login",
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),

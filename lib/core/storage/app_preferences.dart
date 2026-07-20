@@ -138,14 +138,37 @@ class AppPreferences {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
-  static Future<void> setSecretCode(String value) async {
+/*  static Future<void> setSecretCode(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_secretCode, value);
-  }
+  }*/
 
-  static Future<String> getSecretCode() async {
+ /* static Future<String> getSecretCode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_secretCode) ?? "";
+  }*/
+  static Future<void> setSecretCode(
+      String email,
+      String pin,
+      ) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString("secret_code_$email", pin);
   }
 
+  static Future<String> getSecretCode(
+      String email,
+      ) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString("secret_code_$email") ?? "";
+  }
+
+  static Future<bool> hasPin(
+      String email,
+      ) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.containsKey("secret_code_$email");
+  }
 }

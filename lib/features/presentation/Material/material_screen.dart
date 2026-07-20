@@ -52,12 +52,12 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
         print("PURCHASE RESPONSE => $response");
 
-        final list = response["purchase_material_lists"]["data"];
+        List<MaterialData> list = response["purchase_material_lists"]["data"];
 
         print("PURCHASE LIST => $list");
 
         materials = list
-            .map<MaterialData>((e) => MaterialData.fromJson(e))
+            .map<MaterialData>((e) => MaterialData.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 
@@ -112,7 +112,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                           child: Container(
                             width: tabWidth - 4,
                             decoration: BoxDecoration(
-                              color: AppColors.navyBlue,
+                              color: AppColors.primary,
                               borderRadius: BorderRadius.circular(26),
                             ),
                           ),

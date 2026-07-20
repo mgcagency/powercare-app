@@ -42,5 +42,25 @@ class MaterialRepository {
     );
 
     return response.data;
+  }Future<dynamic> createRaisePOWithEmail(
+      Map<String, dynamic> body,
+      ) async {
+
+    final response = await ApiClient.postForm(
+      ApiEndpoints.createRaisePOWithEmail,
+      body,
+    );
+
+    return response.data;
+  }Future<dynamic> createRaisePOWithOutEmail(
+      Map<String, dynamic> body,
+      ) async {
+
+    final response = await ApiClient.postForm(
+      ApiEndpoints.createRaisePOWithOutEmail,
+      body,
+    );
+
+    return response.data;
   }
 }

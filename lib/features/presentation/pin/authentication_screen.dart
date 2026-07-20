@@ -91,8 +91,33 @@ class _AuthenticationScreenState extends State<AuthenticationScreen>
       debugPrint("Biometric Error: $e");
     }
   }
-
   Future<void> verifyPin() async {
+    if (pin.length != 4) return;
+
+    final email = await AppPreferences.getUserEmail() ?? "";
+
+    final savedPin = await AppPreferences.getSecretCode(email);
+
+    if (savedPin == pin) {
+      HapticFeedback.heavyImpact();
+
+      AppNavigator.pushAndRemoveAll(
+        const DashboardScreen(),
+      );
+    } else {
+      HapticFeedback.vibrate();
+
+      _shakeController.forward(from: 0);
+
+      setState(() => pin = "");
+
+      _showToastMessage(
+        "Incorrect PIN. Try again.",
+        isError: true,
+      );
+    }
+  }
+/*  Future<void> verifyPin() async {
     if (pin.length != 4) return;
     final savedPin = await AppPreferences.getSecretCode();
 
@@ -105,7 +130,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen>
       setState(() => pin = "");
       _showToastMessage("Incorrect PIN. Try again.", isError: true);
     }
-  }
+  }*/
 
   void _showToastMessage(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(

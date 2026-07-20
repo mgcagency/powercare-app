@@ -11,7 +11,8 @@ class OrderMaterialItem {
   // NEW
   double unitPrice;
   double totalPrice;
-
+bool isEditable = true;
+bool isUsedEditable = true;
   TextEditingController qtyController;
   TextEditingController usedController;
 
@@ -22,6 +23,8 @@ class OrderMaterialItem {
     this.markup = "1",
     this.unitPrice = 0.0,
     this.totalPrice = 0.0,
+    this.isEditable = true,
+    this.isUsedEditable = true,
     TextEditingController? qtyController,
     TextEditingController? usedController,
   })  : qtyController =

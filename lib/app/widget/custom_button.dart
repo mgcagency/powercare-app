@@ -32,7 +32,7 @@ class CustomButton extends StatelessWidget {
     this.background,
     this.isLoading = false,
     this.height,
-    this.textClr,
+    this.textClr = Colors.white,
     this.fontFamily,
     this.padding,
     this.icon,

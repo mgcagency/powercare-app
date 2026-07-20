@@ -16,5 +16,15 @@ print("login response ---->"+response.data.toString());
     return LoginResponse.fromJson(response.data);
 
   }
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    final response = await ApiClient.postForm(
+      ApiEndpoints.forgotPassword,
+      {
+        "email": email,
+      },
+    );
+    print("Forgot Password Response => ${response.data}");
 
+    return response.data;
+  }
 }

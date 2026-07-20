@@ -21,11 +21,12 @@ void showSuccessDialog(BuildContext context, String message,
           const SizedBox(height: 16),
           CustomButton(
             title: "OK",
+
             onPressed: () {
               Navigator.of(context).pop();
               if (onOk != null) onOk();
             },
-            textClr: AppColors.textColor,
+            textClr: AppColors.textOnPrimary,
           )
         ],
       ),

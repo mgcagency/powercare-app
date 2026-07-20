@@ -299,8 +299,9 @@ class JobImage {
 }*/
 class JobSheet {
   int? id;
+  int? jobId;
+  int? companyId;
   String? clientName;
-  String? company_id;
   String? companyName;
   String? email;
   String? officeNumber;
@@ -309,21 +310,29 @@ class JobSheet {
   String? siteAddress;
   String? description;
   String? serviceRequest;
-  String? notes;
   String? dateOfOrder;
   String? dateRequired;
+  String? purchaseOrderNumber;
+  String? document;
   String? jobStatus;
   String? materialSubTotal;
-  String? purchase_order_number;
   String? purchaseSubTotal;
   String? wageSubTotal;
+  String? invoiceNumber;
+  String? invoiceDate;
+  String? invoiceAmount;
+  String? notes;
+  String? createdAt;
+  String? updatedAt;
   String? documentFullLink;
-  String? dateOfScheduled;
+  List<JobSheetMaterial>? jobSheetRelation;
+  List<PurchaseSheetMaterial>? purchaseSheetRelation;
 
   JobSheet({
     this.id,
+    this.jobId,
+    this.companyId,
     this.clientName,
-    this.company_id,
     this.companyName,
     this.email,
     this.officeNumber,
@@ -332,46 +341,146 @@ class JobSheet {
     this.siteAddress,
     this.description,
     this.serviceRequest,
-    this.notes,
     this.dateOfOrder,
     this.dateRequired,
+    this.purchaseOrderNumber,
+    this.document,
     this.jobStatus,
     this.materialSubTotal,
-    this.purchase_order_number,
     this.purchaseSubTotal,
     this.wageSubTotal,
+    this.invoiceNumber,
+    this.invoiceDate,
+    this.invoiceAmount,
+    this.notes,
+    this.createdAt,
+    this.updatedAt,
     this.documentFullLink,
-    this.dateOfScheduled,
+    this.jobSheetRelation,
+    this.purchaseSheetRelation,
   });
 
   factory JobSheet.fromJson(Map<String, dynamic> json) {
+    print("jobsheet doc--->"+json['id'].toString()+",,,,"+ json['document_full_link']);
     return JobSheet(
-      id: json["id"],
-      clientName: json["client_name"]?.toString(),
-      company_id: json["company_id"]?.toString(),
-      companyName: json["company_name"]?.toString(),
-      email: json["email"]?.toString(),
-      officeNumber: json["office_number"]?.toString(),
-      mobileNumber: json["mobile_number"]?.toString(),
-      officeAddress: json["office_address"]?.toString(),
-      siteAddress: json["site_address"]?.toString(),
-      description: json["description"]?.toString(),
-      serviceRequest: json["service_request"]?.toString(),
-      notes: json["notes"]?.toString(),
-      dateOfOrder: json["date_of_order"]?.toString(),
-      dateRequired: json["date_required"]?.toString(),
-      jobStatus: json["job_status"]?.toString(),
-      materialSubTotal: json["material_sub_total"]?.toString(),
-      purchaseSubTotal: json["purchase_sub_total"]?.toString(),
-      purchase_order_number: json["purchase_order_number"]?.toString(),
-      wageSubTotal: json["wage_sub_total"]?.toString(),
-      documentFullLink: json["document_full_link"]?.toString(),
-      dateOfScheduled:
-      json["date_of_scheduled"]?.toString(),
+      id: json['id'],
+      jobId: json['job_id'],
+      companyId: json['company_id'],
+      clientName: json['client_name']?.toString(),
+      companyName: json['company_name']?.toString(),
+      email: json['email']?.toString(),
+      officeNumber: json['office_number']?.toString(),
+      mobileNumber: json['mobile_number']?.toString(),
+      officeAddress: json['office_address']?.toString(),
+      siteAddress: json['site_address']?.toString(),
+      description: json['description']?.toString(),
+      serviceRequest: json['service_request']?.toString(),
+      dateOfOrder: json['date_of_order']?.toString(),
+      dateRequired: json['date_required']?.toString(),
+      purchaseOrderNumber: json['purchase_order_number']?.toString(),
+      document: json['document']?.toString(),
+      jobStatus: json['job_status']?.toString(),
+      materialSubTotal: json['material_sub_total']?.toString(),
+      purchaseSubTotal: json['purchase_sub_total']?.toString(),
+      wageSubTotal: json['wage_sub_total']?.toString(),
+      invoiceNumber: json['invoice_number']?.toString(),
+      invoiceDate: json['invoice_date']?.toString(),
+      invoiceAmount: json['invoice_amount']?.toString(),
+      notes: json['notes']?.toString(),
+      createdAt: json['created_at']?.toString(),
+      updatedAt: json['updated_at']?.toString(),
+      documentFullLink: json['document_full_link']??"",
+      jobSheetRelation: json['job_sheet_relation'] != null
+          ? (json['job_sheet_relation'] as List)
+          .map((i) => JobSheetMaterial.fromJson(i))
+          .toList()
+          : null,
+      purchaseSheetRelation: json['purchase_sheet_relation'] != null
+          ? (json['purchase_sheet_relation'] as List)
+          .map((i) => PurchaseSheetMaterial.fromJson(i))
+          .toList()
+          : null,
     );
   }
 }
+
+class JobSheetMaterial {
+  int? id;
+  int? jobsheetId;
+  int? materialId;
+  String? materialName;
+  int? orderQty;
+  int? usedQty;
+  String? unitPrice;
+  String? totalPrice;
+  String? isFromWeb;
+
+  JobSheetMaterial({
+    this.id,
+    this.jobsheetId,
+    this.materialId,
+    this.materialName,
+    this.orderQty,
+    this.usedQty,
+    this.unitPrice,
+    this.totalPrice,
+    this.isFromWeb,
+  });
+
+  factory JobSheetMaterial.fromJson(Map<String, dynamic> json) {
+    return JobSheetMaterial(
+      id: json['id'],
+      jobsheetId: json['jobsheet_id'],
+      materialId: json['material_id'],
+      materialName: json['material_name'],
+      orderQty: json['order_qty'],
+      usedQty: json['used_qty'],
+      unitPrice: json['unit_price']?.toString(),
+      totalPrice: json['total_price']?.toString(),
+      isFromWeb: json['is_from_web'],
+    );
+  }
+}
+
+class PurchaseSheetMaterial {
+  int? id;
+  int? jobsheetId;
+  int? materialId;
+  String? purchaseMaterialName;
+  int? purchaseOrderQty;
+  int? purchaseQtyUsed;
+  String? purchaseUnitPrice;
+  String? purchaseTotalPrice;
+
+  PurchaseSheetMaterial({
+    this.id,
+    this.jobsheetId,
+    this.materialId,
+    this.purchaseMaterialName,
+    this.purchaseOrderQty,
+    this.purchaseQtyUsed,
+    this.purchaseUnitPrice,
+    this.purchaseTotalPrice,
+  });
+
+  factory PurchaseSheetMaterial.fromJson(Map<String, dynamic> json) {
+    return PurchaseSheetMaterial(
+      id: json['id'],
+      jobsheetId: json['jobsheet_id'],
+      materialId: json['material_id'],
+      purchaseMaterialName: json['purchase_material_name'],
+      purchaseOrderQty: json['purchase_order_qty'],
+      purchaseQtyUsed: json['purchase_qty_used'],
+      purchaseUnitPrice: json['purchase_unit_price']?.toString(),
+      purchaseTotalPrice: json['purchase_total_price']?.toString(),
+    );
+  }
+}
+
+
 class Quote {
+
+
   int? id;
   String? quoteNumber;
   String? amountDue;

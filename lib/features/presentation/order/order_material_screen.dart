@@ -3,6 +3,7 @@ import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
+import 'package:powercare_flutter/app/widget/custom_response_dialogs.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 
 import '../../../app/widget/helper.dart';
@@ -36,6 +37,7 @@ class _OrderMaterialScreenState
   List<OrderMaterialItem> materials = [];
   bool isLoading = false;
   bool isSubmitting = false;
+  bool isSubmittingEmail = false;
 
   //new code
   List<ContactBookData> supplierList = [];
@@ -355,7 +357,14 @@ class _OrderMaterialScreenState
   }
 */
   Future<void> submitRaisePO() async {
-
+    if (selectedSupplier == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: CustomText("Please select a supplier email."),
+        ),
+      );
+      return;
+    }
     if (materials.isEmpty) {
       return;
     }
@@ -448,6 +457,115 @@ class _OrderMaterialScreenState
       if (mounted) {
         setState(() {
           isSubmitting = false;
+        });
+      }
+
+    }
+  }
+
+  Future<void> submitRaisePOWithEmailSend({bool withEmail = false}) async {
+    if (selectedSupplier == null) {
+      showErrorDialog(context, "Please select a supplier email.");
+      return;
+    }
+    if(materials.isEmpty || materials.first.materialId ==null){
+      showErrorDialog(context, "Please add at least a material.");
+      return;
+    }
+
+
+    setState(() {
+      if(withEmail){
+        isSubmittingEmail = true;
+      }else {
+        isSubmitting = true;
+      }
+    });
+
+    Map<String, dynamic> body = {};
+
+    body["job_id"] = widget.job.id;
+    body["customer_po_number"] = poController.text;
+    body["manual_po_number"] = poController.text;
+    body["customer_name"] = widget.job.siteContactName ?? "";
+    body["email"] = emailController.text;
+
+    for (int i = 0; i < materials.length; i++) {
+
+      body["purchase_material_id[$i]"] =
+          materials[i].materialId;
+
+      body["material_name[$i]"] =
+          materials[i].materialName;
+      body["supplier_name[$i]"] = "";
+
+      body["raispo_costs[$i]"] =
+          materials[i].unitPrice;
+      body["relationdata_id[$i]"] =
+          selectedSupplier?.id.toString();
+
+      body["qty[$i]"] =
+          materials[i].qtyController.text;
+
+      body["markup[$i]"] =
+          materials[i].markup;
+    }
+
+    // ================= DEBUG =================
+    print("========== RAISE PO REQUEST ==========");
+    print("JOB ID => ${widget.job.id}");
+    print("JOB NUMBER => ${widget.job.jobNumber}");
+    print("JOB NAME => ${widget.job.jobName}");
+    print("CUSTOMER => ${widget.job.siteContactName}");
+    print("EMAIL => ${emailController.text}");
+    print("BODY => $body");
+    print("======================================");
+    // ========================================
+
+    try {
+      var response;
+if(withEmail) {
+  response =  await materialRepository.createRaisePOWithOutEmail(body);
+}else{
+  response =  await materialRepository.createRaisePOWithEmail(body);
+}
+      print("========== RAISE PO RESPONSE ==========");
+      print(response);
+      print("=======================================");
+
+      if (!mounted) return;
+
+      if (response["success"] == true) {
+showSuccessDialog(context, response["message"] ?? "Success",onOk: (){
+  Navigator.pop(context, true);
+});
+
+      } else {
+        showErrorDialog(context,  response["message"] ?? "Something went wrong");
+
+      }
+
+    } catch (e) {
+
+      print("========== RAISE PO ERROR ==========");
+      print(e);
+      print("====================================");
+
+      if (mounted) {
+        showErrorDialog(context, e.toString() ?? "Something went wrong");
+
+
+      }
+
+    } finally {
+
+      if (mounted) {
+        setState(() {
+          if(withEmail){
+            isSubmittingEmail = false;
+          }else {
+            isSubmitting = false;
+          }
         });
       }
 
@@ -576,19 +694,19 @@ class _OrderMaterialScreenState
             const SizedBox(height: 40),
 
             // 5. Final Action Buttons (Not sticky, scrolls with content)
-            Row(
-              children: [
+             CustomButton(
+                title: isSubmitting ? "Processing..." : "Order Material",
+                isLoading: isSubmitting,
+                onPressed: isSubmitting ? null : (){submitRaisePOWithEmailSend(withEmail: false);},
+              ),
+            const SizedBox(height: 20),
+            CustomButton(
+                title: isSubmittingEmail ? "Processing..." : "Order Material & send Email",
+                isLoading: isSubmittingEmail,
+                onPressed: isSubmittingEmail ? null :  (){submitRaisePOWithEmailSend(withEmail: true);},
+              ),
 
-                Expanded(
-                  flex: 2,
-                  child: CustomButton(
-                    title: isSubmitting ? "Processing..." : "Order Material",
-                    isLoading: isSubmitting,
-                    onPressed: isSubmitting ? null : submitRaisePO,
-                  ),
-                ),
-              ],
-            ),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -642,7 +760,21 @@ border: Border.all(color: Colors.black12)
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
+     /*   onPressed: () {
+          setState(() {
+            materials.add(OrderMaterialItem());
+          });
+        },*/
         onPressed: () {
+          if (selectedSupplier == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: CustomText("Please select a supplier email first."),
+              ),
+            );
+            return;
+          }
+
           setState(() {
             materials.add(OrderMaterialItem());
           });
@@ -803,6 +935,8 @@ border: Border.all(color: Colors.black12)
                     value: selectedSupplier,
                     isExpanded: true,
                     decoration: InputDecoration(
+                      hintText: "Select Supplier Email",
+
                       prefixIcon: const Icon(Icons.email_outlined),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),

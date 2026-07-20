@@ -820,14 +820,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // (Time Log / Request Holiday) in DashboardScreen.
   Widget _buildQuickActionsScroll() {
     final items = [
+      // _QuickAction(
+      //   title: "Create job",
+      //   icon: Icons.add_task_rounded,
+      //   color: Colors.orange,
+      //   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateJobScreen())),
+      // ),
       _QuickAction(
-        title: "Create job",
-        icon: Icons.add_task_rounded,
-        color: Colors.orange,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateJobScreen())),
-      ),
-      _QuickAction(
-        title: "Order material",
+        title: "Material",
         icon: Icons.inventory_2_rounded,
         color: Colors.teal,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MaterialScreen())),
@@ -864,6 +864,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 TextButton(
                   onPressed: () async {
                     await AppPreferences.setLoggedIn(false);
+                    //await AppPreferences.setLoggedIn(false);
+                   // await AppPreferences.clear();
                     if (!mounted) return;
                     Navigator.pushAndRemoveUntil(
                       context,

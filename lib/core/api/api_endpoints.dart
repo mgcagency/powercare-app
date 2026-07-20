@@ -19,13 +19,13 @@ class ApiEndpoints {
   static const String readNotification = '/user/read-notification';
   static const String leaveCreate = '/holiday/leaveCreate';
   static const String timeLogList = '/timesheets/get';
-  static const String timeSheetCreate =
-      '/timesheets/create';
+  static const String timeSheetCreate = '/timesheets/create';
   static const archiveJobList = "/archives/list";
   static const String createPlantUsage = "/plant-usage/create";
   static const String createRaisePO = "/raispos/create";
-  static const changeEngineerStatus =
-      "/job/change-engineer-status";
+  static const String createRaisePOWithEmail = "/raispos/update-raispo-send-email";
+  static const String createRaisePOWithOutEmail = "/raispos/raispo-send-email";
+  static const changeEngineerStatus = "/job/change-engineer-status";
   static const String dashboard = "/dashboard";
-
+  static const String forgotPassword = "/forgotpassword";
 }

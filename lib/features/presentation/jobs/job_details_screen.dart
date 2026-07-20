@@ -606,7 +606,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           job: job,
                           jobSheet: sheet,
 
-                          title: sheet.purchase_order_number ?? "Sheet #${sheet.id}",
+                          title: sheet.purchaseOrderNumber ?? "Sheet #${sheet.id}",
                           url: sheet.documentFullLink ?? "",
                           isLast: index == job.jobSheets!.length - 1,
                           isJobSheet: true,
@@ -622,19 +622,19 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                     title: "Job Management",
                     child: Column(
                       children: [
-                        _actionTile(
-                          isAccepted: isAccepted,
-                          icon: Icons.more_time_rounded,
-                          title: "Add Timesheet",
-                          subtitle: "Track engineer hours",
-                          onTap: () {
-                            if(_currentUserId.toString() == job.leadEngineer?.id.toString()) {
-                              AppNavigator.push(
-                                TimeSheetScreen(jobId: job!.id.toString()),
-                              );
-                            }
-                          },
-                        ),
+                        // _actionTile(
+                        //   isAccepted: isAccepted,
+                        //   icon: Icons.more_time_rounded,
+                        //   title: "Add Timesheet",
+                        //   subtitle: "Track engineer hours",
+                        //   onTap: () {
+                        //     if(_currentUserId.toString() == job.leadEngineer?.id.toString()) {
+                        //       AppNavigator.push(
+                        //         TimeSheetScreen(jobId: job!.id.toString()),
+                        //       );
+                        //     }
+                        //   },
+                        // ),
                         _actionTile(
                           isAccepted: isAccepted,
                           icon: Icons.local_shipping_outlined,
@@ -809,14 +809,44 @@ class _DocumentRow extends StatelessWidget {
             children: [
               // ── DOWNLOAD ICON ──
               GestureDetector(
-                onTap: () async {
+             /*   onTap: () async {
+                  print("DOCUMENT URL => $url");
+                  print(job.documentFullLink);
+                  print("JOB DOC = ${job.documentFullLink}");
+                  print("SHEET DOC = ${jobSheet?.documentFullLink}");
                   if (await canLaunchUrl(Uri.parse(url))) {
                     await launchUrl(
                       Uri.parse(url),
+
                       mode: LaunchMode.externalApplication,
                     );
                   }
-                },
+                },*/
+              onTap: () async {
+    if (url.isEmpty ||
+    url == "https://powercare.resolveddevelopment.co.uk/storage") {
+
+    ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+    content: Text("Document is not available for download."),
+    ),
+    );
+    return;
+    }
+
+    if (await canLaunchUrl(Uri.parse(url))) {
+    await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+    );
+    } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+    content: Text("Unable to open document."),
+    ),
+    );
+    }
+    },
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -842,7 +872,7 @@ class _DocumentRow extends StatelessWidget {
                       ),
                     );
                   } else {
-                    AppNavigator.push(JobSheetScreen(job: job, isView: true));
+                    AppNavigator.push(JobSheetScreen(job: job,jobSheetId: jobSheet?.id.toString(), isView: true));
                   }
                 },
                 child: Container(

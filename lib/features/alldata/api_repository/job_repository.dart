@@ -29,13 +29,8 @@ class JobRepository {
       response.data.toString(),
       wrapWidth: 1024,
     );
-    print(response.data["jobDetails"]["job_sheet"]);
-    //print(jsonEncode(response.data["jobDetails"]["job_sheet"][0]));
-    print("FULL RESPONSE => ${response.data}");
-    print(response.data);
-    print("JOB DATE => ${response.data["jobDetails"]["job_date"]}");
-    print("CREATED => ${response.data["jobDetails"]["created_at"]}");
-    print("UPDATED => ${response.data["jobDetails"]["updated_at"]}");
+
+
     print("getJobDetails response ---->" + response.data.toString());
     return JobDetailsResponse.fromJson(response.data);
   }
