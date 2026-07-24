@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../features/alldata/api_repository/notification_repository.dart';
 import '../../firebase_options_dev.dart';
 
 
@@ -17,7 +18,22 @@ class NotificationService {
 
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final NotificationRepository _notificationRepository = NotificationRepository();
+  static final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
+  // 2. Create the refresh logic
+  Future<void> refreshNotificationCount() async {
+    try {
+      final response = await _notificationRepository.getNotifications(1);
+      final list = response.notification?.data ?? [];
+      int count = list.where((e) => e.isRead == 0).length;
 
+      // Update the notifier value
+      unreadCountNotifier.value = count;
+      debugPrint("Notification Count Updated: $count");
+    } catch (e) {
+      debugPrint("Error refreshing count: $e");
+    }
+  }
   Future<void> init() async {
     // 1. Request Permission
     await _fcm.requestPermission(
@@ -25,6 +41,8 @@ class NotificationService {
       badge: true,
       sound: true,
     );
+
+
 
     // 2. Initialize Local Notifications for Foreground
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -66,13 +84,12 @@ class NotificationService {
     // 4. Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       debugPrint("Foreground message received: ${message.notification?.title}");
-      debugPrint("Foreground message received: ${message.data['chatId']}");
-      debugPrint("Foreground message received: ${message.data['messageId']}");
-      _showLocalNotification(message, channel);
 
+      _showLocalNotification(message, channel);
+      await refreshNotificationCount();
 
     });
-
+    await refreshNotificationCount();
     // 5. Handle Background/Terminated Click
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint("App opened from notification: ${message.notification?.title}");
@@ -87,6 +104,7 @@ class NotificationService {
   }
 
   void _handleNotificationClick(Map<String, dynamic> data) {
+    refreshNotificationCount();
     if (data['type'] == 'message' && data['chatId'] != null) {
 
 

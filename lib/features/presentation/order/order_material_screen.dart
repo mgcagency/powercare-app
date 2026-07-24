@@ -17,18 +17,13 @@ import 'order_material_row.dart';
 
 class OrderMaterialScreen extends StatefulWidget {
   final JobModel job;
-  const OrderMaterialScreen({
-    super.key,
-    required this.job,
-  });
+  const OrderMaterialScreen({super.key, required this.job});
 
   @override
-  State<OrderMaterialScreen> createState() =>
-      _OrderMaterialScreenState();
+  State<OrderMaterialScreen> createState() => _OrderMaterialScreenState();
 }
 
-class _OrderMaterialScreenState
-    extends State<OrderMaterialScreen> {
+class _OrderMaterialScreenState extends State<OrderMaterialScreen> {
   List<MaterialData> materialStockList = [];
   final emailController = TextEditingController();
   final jobController = TextEditingController();
@@ -49,13 +44,13 @@ class _OrderMaterialScreenState
       final response = await contactRepository.getContactList(
         page: 1,
         search: "",
+        paginate: 0,
       );
 
-      final data = response["contactLists"]["data"] as List;
+      final data = response["contactLists"] as List;
 
-      supplierList =
-          data.map((e) => ContactBookData.fromJson(e)).toList();
-
+      supplierList = data.map((e) => ContactBookData.fromJson(e)).toList();
+      selectedSupplier = supplierList.where((e) => e.email == widget.job.email).firstOrNull;
       if (mounted) {
         setState(() {});
       }
@@ -63,10 +58,9 @@ class _OrderMaterialScreenState
       debugPrint(e.toString());
     }
   }
+
   Future<void> loadMaterials() async {
-
     try {
-
       final response = await materialRepository.getStockList();
 
       print("FULL RESPONSE = $response");
@@ -84,13 +78,9 @@ class _OrderMaterialScreenState
       print("DATA LENGTH = ${data.length}");
 
       for (final item in data) {
-
         print(item);
 
-        materialStockList.add(
-          MaterialData.fromJson(item),
-        );
-
+        materialStockList.add(MaterialData.fromJson(item));
       }
 
       print("Material Count = ${materialStockList.length}");
@@ -102,12 +92,12 @@ class _OrderMaterialScreenState
       if (mounted) {
         setState(() {});
       }
-
     } catch (e) {
       print(e);
     }
   }
-/*
+
+  /*
   Future<void> submitRaisePO() async {
     if (materials.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -186,7 +176,7 @@ class _OrderMaterialScreenState
     }
   }
 */
-/*
+  /*
   Future<void> submitRaisePO() async {
     setState(() {
       isSubmitting = true;
@@ -269,7 +259,7 @@ class _OrderMaterialScreenState
 
   }
 */
-/*
+  /*
   Future<void> submitRaisePO() async {
 
     if (materials.isEmpty) {
@@ -302,10 +292,10 @@ class _OrderMaterialScreenState
           materials[i].markup;
 
    */
-/*   if (materials[i].raisePoId != null) {
+  /*   if (materials[i].raisePoId != null) {
         body["relationdata_id[$i]"] =
             materials[i].raisePoId.toString();
-      }*//*
+      }*/ /*
 
     }
 
@@ -359,9 +349,7 @@ class _OrderMaterialScreenState
   Future<void> submitRaisePO() async {
     if (selectedSupplier == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: CustomText("Please select a supplier email."),
-        ),
+        const SnackBar(content: CustomText("Please select a supplier email.")),
       );
       return;
     }
@@ -381,18 +369,13 @@ class _OrderMaterialScreenState
     body["email"] = emailController.text;
 
     for (int i = 0; i < materials.length; i++) {
+      body["purchase_material_id[$i]"] = materials[i].materialId;
 
-      body["purchase_material_id[$i]"] =
-          materials[i].materialId;
+      body["material_name[$i]"] = materials[i].materialName;
 
-      body["material_name[$i]"] =
-          materials[i].materialName;
+      body["qty[$i]"] = materials[i].qtyController.text;
 
-      body["qty[$i]"] =
-          materials[i].qtyController.text;
-
-      body["markup[$i]"] =
-          materials[i].markup;
+      body["markup[$i]"] = materials[i].markup;
     }
 
     // ================= DEBUG =================
@@ -407,9 +390,7 @@ class _OrderMaterialScreenState
     // ========================================
 
     try {
-
-      final response =
-      await materialRepository.createRaisePO(body);
+      final response = await materialRepository.createRaisePO(body);
 
       print("========== RAISE PO RESPONSE ==========");
       print(response);
@@ -418,48 +399,34 @@ class _OrderMaterialScreenState
       if (!mounted) return;
 
       if (response["success"] == true) {
-
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: CustomText(response["message"] ?? "Success"),
-          ),
+          SnackBar(content: CustomText(response["message"] ?? "Success")),
         );
 
         Navigator.pop(context, true);
-
       } else {
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: CustomText(
-              response["message"] ?? "Something went wrong",
-            ),
+            content: CustomText(response["message"] ?? "Something went wrong"),
           ),
         );
       }
-
     } catch (e) {
-
       print("========== RAISE PO ERROR ==========");
       print(e);
       print("====================================");
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: CustomText(e.toString()),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: CustomText(e.toString())));
       }
-
     } finally {
-
       if (mounted) {
         setState(() {
           isSubmitting = false;
         });
       }
-
     }
   }
 
@@ -468,16 +435,15 @@ class _OrderMaterialScreenState
       showErrorDialog(context, "Please select a supplier email.");
       return;
     }
-    if(materials.isEmpty || materials.first.materialId ==null){
+    if (materials.isEmpty || materials.first.materialId == null) {
       showErrorDialog(context, "Please add at least a material.");
       return;
     }
 
-
     setState(() {
-      if(withEmail){
+      if (withEmail) {
         isSubmittingEmail = true;
-      }else {
+      } else {
         isSubmitting = true;
       }
     });
@@ -491,24 +457,17 @@ class _OrderMaterialScreenState
     body["email"] = emailController.text;
 
     for (int i = 0; i < materials.length; i++) {
+      body["purchase_material_id[$i]"] = materials[i].materialId;
 
-      body["purchase_material_id[$i]"] =
-          materials[i].materialId;
-
-      body["material_name[$i]"] =
-          materials[i].materialName;
+      body["material_name[$i]"] = materials[i].materialName;
       body["supplier_name[$i]"] = "";
 
-      body["raispo_costs[$i]"] =
-          materials[i].unitPrice;
-      body["relationdata_id[$i]"] =
-          selectedSupplier?.id.toString();
+      body["raispo_costs[$i]"] = materials[i].unitPrice;
+      body["relationdata_id[$i]"] = selectedSupplier?.id.toString();
 
-      body["qty[$i]"] =
-          materials[i].qtyController.text;
+      body["qty[$i]"] = materials[i].qtyController.text;
 
-      body["markup[$i]"] =
-          materials[i].markup;
+      body["markup[$i]"] = materials[i].markup;
     }
 
     // ================= DEBUG =================
@@ -524,11 +483,11 @@ class _OrderMaterialScreenState
 
     try {
       var response;
-if(withEmail) {
-  response =  await materialRepository.createRaisePOWithOutEmail(body);
-}else{
-  response =  await materialRepository.createRaisePOWithEmail(body);
-}
+      if (withEmail) {
+        response = await materialRepository.createRaisePOWithOutEmail(body);
+      } else {
+        response = await materialRepository.createRaisePOWithEmail(body);
+      }
       print("========== RAISE PO RESPONSE ==========");
       print(response);
       print("=======================================");
@@ -536,56 +495,48 @@ if(withEmail) {
       if (!mounted) return;
 
       if (response["success"] == true) {
-showSuccessDialog(context, response["message"] ?? "Success",onOk: (){
-  Navigator.pop(context, true);
-});
-
+        showSuccessDialog(
+          context,
+          response["message"] ?? "Success",
+          onOk: () {
+            Navigator.pop(context, true);
+          },
+        );
       } else {
-        showErrorDialog(context,  response["message"] ?? "Something went wrong");
-
+        showErrorDialog(context, response["message"] ?? "Something went wrong");
       }
-
     } catch (e) {
-
       print("========== RAISE PO ERROR ==========");
       print(e);
       print("====================================");
 
       if (mounted) {
         showErrorDialog(context, e.toString() ?? "Something went wrong");
-
-
       }
-
     } finally {
-
       if (mounted) {
         setState(() {
-          if(withEmail){
+          if (withEmail) {
             isSubmittingEmail = false;
-          }else {
+          } else {
             isSubmitting = false;
           }
         });
       }
-
     }
   }
+
   @override
   void initState() {
     super.initState();
 
     emailController.text = widget.job.email ?? "";
     jobController.text = widget.job.jobName ?? "";
-   // poController.text = widget.job.quote?.quoteNumber ?? "";
-    poController.text =
-        widget.job.customerPoNumber ?? "";
-    materials.add(
-      OrderMaterialItem(),
-    );
+    // poController.text = widget.job.quote?.quoteNumber ?? "";
+    poController.text = widget.job.customerPoNumber ?? "";
+    materials.add(OrderMaterialItem());
     loadMaterials();
     loadSuppliers(); // <-- Add this
-
   }
 
   @override
@@ -603,15 +554,10 @@ showSuccessDialog(context, response["message"] ?? "Success",onOk: (){
 
   Widget buildLabel(String title) {
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 18,
-        bottom: 8,
-      ),
+      padding: const EdgeInsets.only(top: 18, bottom: 8),
       child: CustomText(
         title,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -637,10 +583,8 @@ showSuccessDialog(context, response["message"] ?? "Success",onOk: (){
               title: "Order Materials",
               child: Column(
                 children: [
-
                   Row(
                     children: [
-
                       Expanded(
                         child: CustomText(
                           "Select materials required for this job.",
@@ -683,29 +627,38 @@ showSuccessDialog(context, response["message"] ?? "Success",onOk: (){
 
                   const SizedBox(height: 10),
 
-                 Container(
-                     margin: EdgeInsets.symmetric(horizontal: 30),
-                     child:_buildAddMaterialCard()),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 30),
+                    child: _buildAddMaterialCard(),
+                  ),
                 ],
               ),
             ),
 
-
             const SizedBox(height: 40),
 
             // 5. Final Action Buttons (Not sticky, scrolls with content)
-             CustomButton(
-                title: isSubmitting ? "Processing..." : "Order Material",
-                isLoading: isSubmitting,
-                onPressed: isSubmitting ? null : (){submitRaisePOWithEmailSend(withEmail: false);},
-              ),
+            CustomButton(
+              title: isSubmitting ? "Processing..." : "Order Material",
+              isLoading: isSubmitting,
+              onPressed: isSubmitting
+                  ? null
+                  : () {
+                      submitRaisePOWithEmailSend(withEmail: false);
+                    },
+            ),
             const SizedBox(height: 20),
             CustomButton(
-                title: isSubmittingEmail ? "Processing..." : "Order Material & send Email",
-                isLoading: isSubmittingEmail,
-                onPressed: isSubmittingEmail ? null :  (){submitRaisePOWithEmailSend(withEmail: true);},
-              ),
-
+              title: isSubmittingEmail
+                  ? "Processing..."
+                  : "Order Material & send Email",
+              isLoading: isSubmittingEmail,
+              onPressed: isSubmittingEmail
+                  ? null
+                  : () {
+                      submitRaisePOWithEmailSend(withEmail: true);
+                    },
+            ),
 
             const SizedBox(height: 40),
           ],
@@ -714,53 +667,49 @@ showSuccessDialog(context, response["message"] ?? "Success",onOk: (){
     );
   }
 
-// ── MODERN MATERIAL ENTRY CARD ──────────────────────────────────────
+  // ── MODERN MATERIAL ENTRY CARD ──────────────────────────────────────
   Widget _buildMaterialEntryCard(int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.all( 10),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
-borderRadius: BorderRadius.circular(20),
-border: Border.all(color: Colors.black12)
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black12),
       ),
-      child:
-
-          OrderMaterialRow(
-            item: materials[index],
-            materials: materialStockList,
-            showDivider: false,
-            selectedMaterialIds: materials
-                .where((e) => e.materialId != null && e.materialId!.isNotEmpty)
-                .map((e) => e.materialId!)
-                .toList(),
-            onDelete: materials.length > 1
-                ? () {
-              setState(() {
-                materials[index].dispose();
-                materials.removeAt(index);
-              });
-            }
-                : null,
-            onMaterialChanged: (value) {
-              setState(() {
-                materials[index].materialId = value?.id.toString();
-                materials[index].materialName = value?.materialName;
-                materials[index].availableQty =
-                    value?.totalQty ?? 0;
-              });
-            },
-            onQtyChanged: (value) {},
-          ),
-
+      child: OrderMaterialRow(
+        item: materials[index],
+        materials: materialStockList,
+        showDivider: false,
+        selectedMaterialIds: materials
+            .where((e) => e.materialId != null && e.materialId!.isNotEmpty)
+            .map((e) => e.materialId!)
+            .toList(),
+        onDelete: materials.length > 1
+            ? () {
+                setState(() {
+                  materials[index].dispose();
+                  materials.removeAt(index);
+                });
+              }
+            : null,
+        onMaterialChanged: (value) {
+          setState(() {
+            materials[index].materialId = value?.id.toString();
+            materials[index].materialName = value?.materialName;
+            materials[index].availableQty = value?.totalQty ?? 0;
+          });
+        },
+        onQtyChanged: (value) {},
+      ),
     );
   }
-  Widget _buildAddMaterialCard() {
 
+  Widget _buildAddMaterialCard() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-     /*   onPressed: () {
+        /*   onPressed: () {
           setState(() {
             materials.add(OrderMaterialItem());
           });
@@ -779,11 +728,7 @@ border: Border.all(color: Colors.black12)
             materials.add(OrderMaterialItem());
           });
         },
-        icon: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 20,
-        ),
+        icon: const Icon(Icons.add, color: Colors.white, size: 20),
         label: const CustomText(
           "Add Material",
           style: TextStyle(
@@ -803,13 +748,14 @@ border: Border.all(color: Colors.black12)
       ),
     );
   }
+
   Widget _buildHeroCard() {
     return Container(
       padding: const EdgeInsets.only(top: 4, left: 1, right: 1, bottom: 1),
       decoration: BoxDecoration(
         color: Color(
           int.parse(
-           widget.job.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
+            widget.job.jobTypeStatus?.colorCode?.replaceAll("#", "0xFF") ??
                 "0xFF000000",
           ),
         ),
@@ -825,16 +771,13 @@ border: Border.all(color: Colors.black12)
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         CustomText(
                           widget.job.jobName ?? "",
                           style: AppTextStyles.bodyLarge.copyWith(
@@ -866,7 +809,6 @@ border: Border.all(color: Colors.black12)
                     ),
                     child: Row(
                       children: [
-
                         const Icon(
                           Icons.inventory_2_outlined,
                           size: 15,
@@ -892,22 +834,18 @@ border: Border.all(color: Colors.black12)
 
               Row(
                 children: [
-
                   Expanded(
                     child: _miniInfo(
                       Icons.tag,
                       "Customer PO",
-                      poController.text.isEmpty
-                          ? "-"
-                          : poController.text,
+                      poController.text.isEmpty ? "-" : poController.text,
                     ),
                   ),
 
                   const SizedBox(width: 12),
 
                   Expanded(
-                    child:
-                    _miniInfo(
+                    child: _miniInfo(
                       Icons.location_on_outlined,
                       "Site",
                       widget.job.jobLocation ?? "-",
@@ -917,11 +855,10 @@ border: Border.all(color: Colors.black12)
               ),
 
               const SizedBox(height: 12),
-        //new code
+              //new code
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Text(
                     "Supplier Email",
                     style: AppTextStyles.bodyExtraSmall.copyWith(
@@ -946,7 +883,7 @@ border: Border.all(color: Colors.black12)
                     items: supplierList.map((supplier) {
                       return DropdownMenuItem<ContactBookData>(
                         value: supplier,
-                        child: Text(
+                        child: CustomText(
                           supplier.email ?? "",
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -963,40 +900,32 @@ border: Border.all(color: Colors.black12)
                   ),
                 ],
               ),
-        /*      _miniInfo(
+
+              /*      _miniInfo(
                 Icons.email_outlined,
                 "Email",
                 emailController.text.isEmpty
                     ? "-"
                     : emailController.text,
               ),*/
-
             ],
           ),
         ),
       ),
     );
   }
-  Widget _miniInfo(
-      IconData icon,
-      String title,
-      String value,
-      ) {
+
+  Widget _miniInfo(IconData icon, String title, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppColors.primary.withOpacity(.08),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 18,
-          ),
+          child: Icon(icon, color: AppColors.primary, size: 18),
         ),
 
         const SizedBox(width: 10),
@@ -1005,7 +934,6 @@ border: Border.all(color: Colors.black12)
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               CustomText(
                 title,
                 style: AppTextStyles.bodyExtraSmall.copyWith(
@@ -1028,6 +956,7 @@ border: Border.all(color: Colors.black12)
       ],
     );
   }
+
   Widget _buildInfoRow({
     required IconData icon,
     required String label,

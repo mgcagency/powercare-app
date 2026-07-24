@@ -9,6 +9,7 @@ import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../core/navigation/app_navigator.dart';
 import '../../../app/widget/custom_button.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../../alldata/api_repository/notification_repository.dart';
@@ -166,62 +167,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(
               Icons.add_circle_outline_rounded, // A more modern 'plus' icon
               color: Colors.white,
-              size: 26,
+              size: 30,
             ),
             onPressed: () => showAddOptions(),
           ),
 
           // 2. Notification Button with a refined badge
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_none_rounded, // Outlined looks cleaner
-                  color: Colors.white,
-                  size: 26,
+        // In your Dashboard actions/AppBar
+        ValueListenableBuilder<int>(
+          valueListenable: NotificationService.unreadCountNotifier,
+          builder: (context, count, child) {
+            return Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications, color: Colors.white,size: 30,),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                    ).then((_) {
+                      // Refresh count when coming back from notification screen
+                      NotificationService().refreshNotificationCount();
+                    });
+                  },
                 ),
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationScreen(),
+                if (count > 0)
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.navyBlue,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                      child: CustomText(
+                        txtColor: Colors.white,
+                        count > 9 ? "9+" : "$count",
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  );
-
-                  loadNotificationCount();
-                },
-          /*      onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NotificationScreen()),
-                  );
-                },*/
-              ),
-              if (unreadCount > 0)
-                Positioned(
-                right: 5,
-                top: 5,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5), // Matches AppBar color
                   ),
-                  constraints: const BoxConstraints(
-                    minWidth: 14,
-                    minHeight: 14,
-                  ),
-                  child:  CustomText(
-                    unreadCount > 99 ? "99+" : unreadCount.toString(),
-                    style:  AppTextStyles.bodyExtraSmall.copyWith(color: AppColors.navyBlue),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
+        ),
 
           // 3. Profile Avatar with a subtle border
           Padding(
