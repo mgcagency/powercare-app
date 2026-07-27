@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:powercare_flutter/app/theme/colors.dart';
@@ -8,6 +9,8 @@ import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 import 'package:powercare_flutter/core/storage/app_preferences.dart';
 
+import '../../../core/api/api_client.dart';
+import '../../../core/api/api_endpoints.dart';
 import '../../alldata/api_repository/dashboard_repository.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -306,6 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+/*
   Future<void> _handleUpdate() async {
     setState(() => isLoading = true);
     if (selectedImage != null) await AppPreferences.saveUserImage(selectedImage!.path);
@@ -322,6 +326,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
+    }
+  }
+*/
+  Future<Map<String, dynamic>> updateProfile({
+    required String userId,
+    required String firstName,
+    required String lastName,
+    required String role,
+    required String email,
+    required String contactNumber,
+    File? image,
+  }) async {
+
+    final formData = FormData.fromMap({
+      "first_name": firstName,
+      "last_name": lastName,
+      "role": role,
+      "email": email,
+      "contact_number": contactNumber,
+    });
+
+    if (image != null) {
+      formData.files.add(
+        MapEntry(
+          "image",
+          await MultipartFile.fromFile(
+            image.path,
+            filename: image.path.split("/").last,
+          ),
+        ),
+      );
+    }
+
+    final response = await ApiClient.postMultipart(
+      "${ApiEndpoints.userEdit}?user_id=$userId",
+      formData,
+    );
+
+    return response.data;
+  }
+  Future<void> _handleUpdate() async {
+    try {
+      setState(() => isLoading = true);
+
+      final response = await DashboardRepository().updateProfile(
+        userId: userId,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        role: _roleController.text.trim(),
+        email: _emailController.text.trim(),
+        contactNumber: _phoneController.text.trim(),
+        image: selectedImage,
+      );
+
+      if (response["status_code"] == 200) {
+
+        if (response["data"] != null &&
+            response["data"]["user_image"] != null) {
+          await AppPreferences.saveUserImage(
+            response["data"]["user_image"],
+          );
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("User data updated successfully"),
+            ),
+          );
+
+          Navigator.pop(context, true);
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response["message"] ?? "Update failed"),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 }
