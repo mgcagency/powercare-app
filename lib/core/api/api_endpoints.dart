@@ -28,4 +28,6 @@ class ApiEndpoints {
   static const changeEngineerStatus = "/job/change-engineer-status";
   static const String dashboard = "/dashboard";
   static const String forgotPassword = "/forgotpassword";
+  static const String userEdit = "/user/edit";
+
 }
