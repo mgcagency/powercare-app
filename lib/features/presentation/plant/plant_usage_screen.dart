@@ -221,7 +221,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: CustomText(
-            "Please select Cherry Picker Used",
+            "Please select Cherry Picker Used",style: TextStyle(color: Colors.white)
           ),
         ),
       );
@@ -232,7 +232,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: CustomText(
-            "Please select Off Hired",
+            "Please select Off Hired",style: TextStyle(color: Colors.white)
           ),
         ),
       );
@@ -264,7 +264,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: CustomText(
-              response.message ?? "Plant ordered successfully",
+              response.message ?? "Plant ordered successfully",style: TextStyle(color: Colors.white)
             ),
           ),
         );
@@ -276,7 +276,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: CustomText(
-              response.message ?? "Something went wrong",
+              response.message ?? "Something went wrong",style: TextStyle(color: Colors.white)
             ),
           ),
         );
@@ -290,7 +290,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: CustomText(
-            e.toString(),
+            e.toString(),style: TextStyle(color: Colors.white)
           ),
         ),
       );

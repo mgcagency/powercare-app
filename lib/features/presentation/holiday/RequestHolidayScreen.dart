@@ -92,7 +92,7 @@ class _RequestHolidayScreenState extends State<RequestHolidayScreen> {
 
       if (response["statusCode"] == 200 || response["success"] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: CustomText("Holiday request submitted successfully"), backgroundColor: Colors.green),
+          const SnackBar(content: CustomText("Holiday request submitted successfully",style: TextStyle(color: Colors.white))),
         );
         Navigator.pop(context);
       } else {

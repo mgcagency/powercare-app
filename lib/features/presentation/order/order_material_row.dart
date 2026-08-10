@@ -195,7 +195,7 @@ Row(children: [
                       if (value.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: CustomText("Quantity must be greater than 0"),
+                            content: CustomText("Quantity must be greater than 0",style: TextStyle(color: Colors.white)),
                           ),
                         );
                         return;
@@ -206,7 +206,7 @@ Row(children: [
                       if (qty == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: CustomText("Quantity must be greater than 0"),
+                            content: CustomText("Quantity must be greater than 0",style: TextStyle(color: Colors.white)),
                           ),
                         );
                         return;
@@ -217,7 +217,7 @@ Row(children: [
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: CustomText("Quantity must be greater than 0"),
+                            content: CustomText("Quantity must be greater than 0",style: TextStyle(color: Colors.white)),
                           ),
                         );
                         return;
@@ -227,7 +227,7 @@ Row(children: [
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: CustomText(
-                              "Maximum available quantity is ${item.availableQty}",
+                              "Maximum available quantity is ${item.availableQty}",style: TextStyle(color: Colors.white)
                             ),
                           ),
                         );
@@ -286,7 +286,7 @@ Row(children: [
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: CustomText(
-                              "Used quantity cannot be greater than ordered quantity ($orderQty).",
+                              "Used quantity cannot be greater than ordered quantity ($orderQty).",style: TextStyle(color: Colors.white)
                             ),
                           ),
                         );

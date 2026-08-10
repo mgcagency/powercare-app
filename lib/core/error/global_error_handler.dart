@@ -11,7 +11,7 @@ class GlobalErrorHandler {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: CustomText(message)),
+      SnackBar(content: CustomText(message,style: TextStyle(color: Colors.white))),
     );
   }
 }

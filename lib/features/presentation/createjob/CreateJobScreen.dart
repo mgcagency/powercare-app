@@ -76,7 +76,7 @@ class _CreateJobScreenState extends State<CreateJobScreen> {
   void showToast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: CustomText(message),
+        content: CustomText(message,style: TextStyle(color: Colors.white)),
       ),
     );
   }

@@ -44,14 +44,96 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: isLoading == true ? null : onPressed,
+      child: Container(
+        height: height ?? 48,
+        width: double.infinity,
+
+        constraints: BoxConstraints(
+          minHeight: size?.height ?? 48,
+        ),
+
+        decoration: BoxDecoration(
+          color: isOutlined
+              ? Colors.transparent
+              : (background ?? AppColors.primary),
+
+          borderRadius: BorderRadius.circular(999),
+
+          border: isOutlined
+              ? Border.all(
+            color: borderColor ?? AppColors.primary,
+            width: 1.5,
+          )
+              : null,
+
+          boxShadow: showShadow
+              ? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 8,
+              spreadRadius: 1,
+              offset: const Offset(0, 4),
+            ),
+          ]
+              : [],
+        ),
+
+        padding: padding ??
+            EdgeInsets.symmetric(
+              horizontal: icon != null ? 12 : 20,
+              vertical: 12,
+            ),
+
+        child: Center(
+          child: isLoading == true
+              ? SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: isOutlined
+                  ? (borderColor ?? AppColors.primary)
+                  : Colors.white,
+            ),
+          )
+              : Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                icon!,
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: CustomText(
+                  title ?? "",
+                  style: AppTextStyles.button,
+                  txtColor: textClr ??
+                      (isOutlined
+                          ? (borderColor ?? AppColors.primary)
+                          : AppColors.textOnPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+/*
+    return GestureDetector(
       onTap: onPressed,
 
-      /*style: ElevatedButton.styleFrom(
+      */
+/*style: ElevatedButton.styleFrom(
         minimumSize: size,
         shape: const StadiumBorder(),
         backgroundColor: primary ?? ColorConstant.appOrange,
         foregroundColor: onPrimary ?? ColorConstant.appOrange,
-      ),*/
+      ),*//*
+
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [Container(
@@ -122,5 +204,6 @@ class CustomButton extends StatelessWidget {
               ),
       )]),
     );
+*/
   }
 }
