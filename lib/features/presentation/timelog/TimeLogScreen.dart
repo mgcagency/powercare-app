@@ -25,9 +25,11 @@ class TimeLogScreen extends StatefulWidget {
 class TimeLogScreenState extends State<TimeLogScreen> {
   final TimeLogRepository repository = TimeLogRepository();
   DateTime selectedDate = DateTime.now();
+  // bool isIn = true;
   DateTime selectedWeekDate = DateTime.now();
   List<DateTime> currentWeek = [];
   List<TimeLogJob> jobs = [];
+  List<TimeLogJob> Alljobs = [];
 
   bool isLoading = false;
   String selectedTab = "Day";
@@ -36,6 +38,7 @@ class TimeLogScreenState extends State<TimeLogScreen> {
   void initState() {
     super.initState();
     generateWeek();
+    callAllTimeLogApi();
     callTimeLogApi();
   }
 
@@ -47,8 +50,31 @@ class TimeLogScreenState extends State<TimeLogScreen> {
       (index) => startOfWeek.add(Duration(days: index)),
     );
   }
+  Future<void> callAllTimeLogApi() async {
+    // print("isIn--->"+isIn.toString());
+    try {
+      setState(() => isLoading = true);
+      final userId = await AppPreferences.getUserID();
+      String apiDateKey = selectedTab.toUpperCase();
+
+      final response = await repository.getTimeLogs(
+        date: DateFormat("dd-MM-yyyy").format(DateTime.now()),
+        engineerId: userId,
+        dateKey: apiDateKey,
+        specificDate: "",
+      );
+
+      setState(() {
+        Alljobs = response.jobs;
+
+      });
+    } catch (e) {
+
+    }
+  }
 
   Future<void> callTimeLogApi() async {
+    // print("isIn--->"+isIn.toString());
     try {
       setState(() => isLoading = true);
       final userId = await AppPreferences.getUserID();
@@ -59,7 +85,7 @@ class TimeLogScreenState extends State<TimeLogScreen> {
         engineerId: userId,
         dateKey: apiDateKey,
         specificDate: selectedTab == "Month"
-            ? DateFormat("yyyy-MM-dd").format(selectedDate)
+            ?/* isIn?"":*/DateFormat("yyyy-MM-dd").format(selectedDate)
             : selectedTab == "Week"
                 ? DateFormat("yyyy-MM-dd").format(selectedWeekDate)
                 : DateFormat("yyyy-MM-dd").format(selectedDate),
@@ -232,7 +258,7 @@ class TimeLogScreenState extends State<TimeLogScreen> {
                 ),
               ),
               IconButton(
-                onPressed: () => _selectDate(context),
+                onPressed: isLoading?(){}: () => _selectDate(context),
                 icon: const Icon(Icons.calendar_month_rounded, color: AppColors.navyBlue, size: 24),
                 visualDensity: VisualDensity.compact,
               ),
@@ -263,6 +289,7 @@ class TimeLogScreenState extends State<TimeLogScreen> {
       },
     );
     if (picked != null && picked != selectedDate) {
+      // isIn = false;
       setState(() => selectedDate = picked);
       callTimeLogApi();
     }
@@ -281,9 +308,10 @@ class TimeLogScreenState extends State<TimeLogScreen> {
           final isToday = isSameDay(day, DateTime.now());
 
           return GestureDetector(
-            onTap: () {
+            onTap:isLoading?(){}: () {
               HapticFeedback.lightImpact();
               setState(() => selectedWeekDate = day);
+              // isIn = false;
               callTimeLogApi();
             },
             child: AnimatedContainer(
@@ -346,20 +374,42 @@ class TimeLogScreenState extends State<TimeLogScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10))
+        ],
       ),
       child: TableCalendar(
         firstDay: DateTime.utc(2024, 1, 1),
         lastDay: DateTime.utc(2035, 12, 31),
         focusedDay: selectedDate,
         selectedDayPredicate: (day) => isSameDay(selectedDate, day),
-        onDaySelected: (selectedDay, focusedDay) {
+
+        // 1. ADD EVENT LOADER
+        // This checks if any job exists for the given 'day'
+        eventLoader: (day) {
+          return jobs.where((job) {
+            try {
+              // Assuming item.jobDate is in a format like "yyyy-MM-dd" or "dd-MM-yyyy"
+              // Adjust the parsing based on your actual API string format
+              DateTime jobDate = DateFormat("yyyy-MM-dd").parse(job.jobDate!);
+              return isSameDay(jobDate, day);
+            } catch (e) {
+              return false;
+            }
+          }).toList();
+        },
+
+        onDaySelected: isLoading ? (selectedDay, focusedDay) {} : (selectedDay, focusedDay) {
           HapticFeedback.lightImpact();
           setState(() => selectedDate = selectedDay);
-          callTimeLogApi();
+          if (!isLoading) callTimeLogApi();
         },
         headerStyle: const HeaderStyle(
-          titleCentered: true, formatButtonVisible: false,
+          titleCentered: true,
+          formatButtonVisible: false,
           titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.navyBlue),
           leftChevronIcon: Icon(Icons.chevron_left, color: AppColors.primary),
           rightChevronIcon: Icon(Icons.chevron_right, color: AppColors.primary),
@@ -371,14 +421,74 @@ class TimeLogScreenState extends State<TimeLogScreen> {
         calendarBuilders: CalendarBuilders(
           selectedBuilder: (context, day, focusedDay) => Container(
             margin: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: AppColors.navyBlue, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: AppColors.navyBlue.withOpacity(0.3), blurRadius: 8)]),
+            decoration: BoxDecoration(
+                color: AppColors.navyBlue,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [BoxShadow(color: AppColors.navyBlue.withOpacity(0.3), blurRadius: 8)]),
             child: Center(child: CustomText('${day.day}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
           ),
+          defaultBuilder: (context, day, focusedDay) {
+            final hasEvents = Alljobs.any((job) {
+              try {
+                return isSameDay(DateFormat("yyyy-MM-dd").parse(job.jobDate!), day);
+              } catch (_) { return false; }
+            });
+            bool isSelected = isSameDay(day, selectedDate);
+
+            return  Container(
+                margin: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.transparent, width: 1)),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // The Date Number
+                 Center(child: CustomText('${day.day}', style: const TextStyle(color: AppColors.navyBlue, fontWeight: FontWeight.bold))),
+                  // The Indicator Dot
+                  if (hasEvents && !isSelected)
+                    Positioned(
+                      bottom: 5, // Adjust this to move the dot up or down
+                      child: Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
           todayBuilder: (context, day, focusedDay) => Container(
             margin: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.primary, width: 1)),
+            decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary, width: 1)),
             child: Center(child: CustomText('${day.day}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
           ),
+
+          // 2. CUSTOMIZE THE MARKER (THE INDICATOR)
+          markerBuilder: (context, date, events) {
+            if (events.isNotEmpty) {
+              return Positioned(
+                bottom: 2,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary, // Matches your theme orange
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              );
+            }
+            return null;
+          },
         ),
       ),
     );
@@ -434,10 +544,8 @@ class TimeLogScreenState extends State<TimeLogScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.schedule_rounded, size: 12, color: AppColors.primary.withOpacity(0.7)),
-                          const SizedBox(width: 4),
                           CustomText(
-                            "${item.jobTime ?? "--:--"} - ${item.jobEndTime ?? "--:--"}",
+                            "#${item.jobNumber } ● ${item.jobDate }",
                             style: AppTextStyles.bodyExtraSmall.copyWith(color: Colors.grey.shade600, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -478,13 +586,16 @@ class TimeLogScreenState extends State<TimeLogScreen> {
     return Expanded(
       child: InkWell(
         borderRadius: BorderRadius.circular(30),
-        onTap: () {
+        onTap: !isLoading?() {
           if (selectedTab != title) {
             HapticFeedback.selectionClick();
             setState(() => selectedTab = title);
+            selectedDate=DateTime.now();
+            selectedWeekDate=DateTime.now();
+            // isIn = true;
             callTimeLogApi();
           }
-        },
+        }:(){},
         child: Center(
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 250),

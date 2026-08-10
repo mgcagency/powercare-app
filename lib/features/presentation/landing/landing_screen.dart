@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen>
         "email": _emailController.text.trim(),
         "password": _passwordController.text.trim(),
         "deviceId": "123456",
-        "fcmToken": fcmToken,
+        "user_token": fcmToken,
       };
 
       final loginResponse = await _repository.login(payload);

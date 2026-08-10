@@ -8,6 +8,7 @@ import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
 import 'package:powercare_flutter/core/storage/app_preferences.dart';
 
+import '../../alldata/api_repository/auth_repository.dart';
 import '../../alldata/api_repository/dashboard_repository.dart';
 import '../landing/landing_screen.dart';
 class ProfileScreen extends StatefulWidget {
@@ -142,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildFormSection(
                     title: "Contact Details",
                     children: [
-                      _buildField("Email Address", _emailController, Icons.alternate_email_rounded),
+                      _buildField("Email Address", _emailController, Icons.alternate_email_rounded,readOnly: true),
                       _buildField("Mobile Number", _phoneController, Icons.phone_iphone_rounded),
                     ],
                   ),
@@ -313,6 +314,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextButton(
               onPressed: () async {
                 await AppPreferences.setLoggedIn(false);
+                await AppPreferences.clear();
+
                 if (!mounted) return;
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -332,21 +335,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleUpdate() async {
+    // Basic validation
+    if (_firstNameController.text.trim().isEmpty || _lastNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("First and Last name are required")),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
-    if (selectedImage != null) await AppPreferences.saveUserImage(selectedImage!.path);
-    await Future.delayed(const Duration(milliseconds: 800));
-    setState(() => isLoading = false);
-    if (mounted) {
-      Navigator.pop(context, true);
+
+    try {
+      // 1. Get the repository instance
+      final repo = AuthRepository();
+
+      // 2. Call the update API
+      final response = await repo.userEdit(
+        userId: userId,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        role: _roleController.text.trim(),
+        email: _emailController.text.trim(),
+        contactNumber: _phoneController.text.trim(),
+        imageFile: selectedImage, // This is the File? picked from gallery
+      );
+
+      if (response["status_code"] == 200 || response["success"] == true) {
+        // 3. Update local preferences with new image URL from API if provided
+        final userData = response["data"];
+        if (userData != null && userData["user_image"] != null) {
+          await AppPreferences.saveUserImage(userData["user_image"]);
+
+          await AppPreferences.saveUserName(
+            "${ _firstNameController.text.trim() ?? ""} ${_lastNameController.text.trim() ?? ""}",
+          );
+
+          await AppPreferences.saveRole(
+            _roleController.text.trim() ?? "",
+          );
+
+        }
+
+        if (!mounted) return;
+
+        // 4. Show success and exit
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const CustomText("Profile successfully updated", style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        Navigator.pop(context, true); // Return true to refresh previous screen
+      } else {
+        throw response["message"] ?? "Failed to update profile";
+      }
+    } catch (e) {
+      debugPrint("Update Error => $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const CustomText("Profile successfully updated"),
-          backgroundColor: AppColors.navyBlue,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: CustomText("Error: ${e.toString()}", style: const TextStyle(color: Colors.white)),
+          backgroundColor: Colors.redAccent,
         ),
       );
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 }

@@ -217,33 +217,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // 3. Profile Avatar with a subtle border
           Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: GestureDetector(
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-                if (result == true) loadProfileImage();
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
-                ),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.white24,
-                  backgroundImage: profileImage.isNotEmpty
-                      ? FileImage(File(profileImage))
-                      : null,
-                  child: profileImage.isEmpty
-                      ? const Icon(Icons.person, size: 20, color: Colors.white)
-                      : null,
-                ),
+            padding: const EdgeInsets.only(left: 8.0),  child: GestureDetector(
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+
+              print("result---->"+result.toString());
+              // result == true means the user updated their profile
+              if (result == true) {
+                setState(() {
+                  _pages[_selectedIndex] = _recreatePage(_selectedIndex, key: UniqueKey());                });
+              }
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+              ),
+              child: CircleAvatar(
+                radius: 15,
+                backgroundColor: Colors.white24,
+                backgroundImage: profileImage.isNotEmpty
+                    ? (profileImage.startsWith('http')
+                    ? NetworkImage(profileImage) // If it's a URL from the API
+                    : FileImage(File(profileImage))) as ImageProvider // If it's a local path saved in Prefs
+                    : null,
+                child: profileImage.isEmpty
+                    ? const Icon(Icons.person, size: 20, color: Colors.white)
+                    : null,
               ),
             ),
           ),
+          ),
+
 
           const SizedBox(width: 16), // Proper end spacing
         ],),
@@ -309,6 +317,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+  // Add {Key? key} to the parameters
+  Widget _recreatePage(int index, {Key? key}) {
+    print("_recreatePage--->" + index.toString());
+    switch (index) {
+      case 0:
+        return HomeScreen(key: key);
+      case 1:
+        return JobListScreen(key: key, showAppBar: false);
+      case 2:
+        return JobStatusScreen(key: key, showAppBar: false);
+      case 3:
+        return TimeLogScreen(key: key, showAppBar: false);
+      case 4:
+        return ContactBookScreen(key: key, showAppBar: false);
+      default:
+        return HomeScreen(key: key);
+    }
   }
   void showAddOptions() {
 

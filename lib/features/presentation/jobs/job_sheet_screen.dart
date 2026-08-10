@@ -26,13 +26,13 @@ import '../webview_screen/web_view_screen.dart';
 class JobSheetScreen extends StatefulWidget {
   final JobModel? job;
   final String? jobSheetId;
-  final bool? isView;
+  final bool isView;
 
   const JobSheetScreen({
     super.key,
     required this.job,
     this.jobSheetId,
-    required this.isView,
+    this.isView = false,
   });
 
   @override
@@ -217,6 +217,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               detailJob.leadEngineer!.timesheet!.isNotEmpty) {
             for (var ts in detailJob.leadEngineer!.timesheet!) {
               leadTimeSlots.add({
+                "date":DateTime.parse(ts.createdAt??""),
                 "id":ts.id.toString(),
                 "isDeletable": false,
                 "startTime": ts.startTime ?? "",
@@ -224,22 +225,26 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                 "total": calculateTotal(ts.startTime ?? "", ts.endTime ?? ""),
               });
             }
-            leadTimeSlots.add({
+            if(!widget.isView??false) {
+              leadTimeSlots.add({
 
-              "isDeletable": true,
-              "startTime": "",
-              "endTime": "",
-              "total": "00:00",
-            });
+                "isDeletable": true,
+                "startTime": "",
+                "endTime": "",
+                "total": "00:00",
+              });
+            }
           } else {
             // Fallback to one empty slot if no data exists
-            leadTimeSlots.add({
+            if(!widget.isView??false) {
+              leadTimeSlots.add({
 
-              "isDeletable": true,
-              "startTime": "",
-              "endTime": "",
-              "total": "00:00",
-            });
+                "isDeletable": true,
+                "startTime": "",
+                "endTime": "",
+                "total": "00:00",
+              });
+            }
           }
 
           engineers.add({
@@ -262,6 +267,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                   other.user!.timesheet!.isNotEmpty) {
                 for (var ts in other.user!.timesheet!) {
                   otherTimeSlots.add({
+                    "date":DateTime.parse(ts.createdAt??""),
                     "id":ts.id.toString(),
                     "isDeletable": false,
                     "startTime": ts.startTime ?? "",
@@ -272,20 +278,23 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                     ),
                   });
                 }
-                otherTimeSlots.add({
-                  "isDeletable": true,
-                  "startTime": "",
-                  "endTime": "",
-                  "total": "00:00",
-                });
+                if(!widget.isView??false) {
+                  otherTimeSlots.add({
+                    "isDeletable": true,
+                    "startTime": "",
+                    "endTime": "",
+                    "total": "00:00",
+                  });
+                }
               } else {
-                otherTimeSlots.add({
-
-                  "isDeletable": true,
-                  "startTime": "",
-                  "endTime": "",
-                  "total": "00:00",
-                });
+                if (!widget.isView ?? false) {
+                  otherTimeSlots.add({
+                    "isDeletable": true,
+                    "startTime": "",
+                    "endTime": "",
+                    "total": "00:00",
+                  });
+                }
               }
 
               engineers.add({
@@ -1661,9 +1670,33 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
   Widget _buildTimeSlotRow(int engIdx, int slotIdx) {
     final slot = engineers[engIdx]["timeSlots"][slotIdx];
+
+    // 1. Extract the current date string (part before the space)
+    String? currentDate = slot["date"]?.toString().split(" ")[0];
+
+    // 2. Extract the previous date string if slotIdx > 0
+    String? prevDate = slotIdx > 0
+        ? engineers[engIdx]["timeSlots"][slotIdx - 1]["date"]?.toString().split(" ")[0]
+        : null;
+
+    // 3. Determine if we should show the date header
+    // Show if it's the first item OR if the date has changed from the previous row
+    bool showDateHeader = currentDate != null && currentDate != prevDate;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showDateHeader)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+                child: CustomText(
+                  currentDate!,
+                  style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold,color: AppColors.navyBlue)
+                ),
+              ),
+        Row(
         children: [
           Expanded(
             child: _timeField(
@@ -1704,7 +1737,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
               ),
             ),
         ],
-      ),
+      )]),
     );
   }
 

@@ -64,6 +64,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
     NotificationData item,
     String status,
   ) async {
+    setState(() {
+      isFirstLoad = true;
+    });
     try {
       print("CLICKED JOB => ${item.jobId}");
       final userId = await AppPreferences.getUserID();
@@ -81,7 +84,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       await callNotificationApi();
     } catch (e) {
       print("STATUS => $status");
-
+      setState(() {
+        isFirstLoad = false;
+      });
       print(e);
     }
   }
@@ -188,8 +193,39 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotificationCard(NotificationData item) {
-    print("CARD JOB => ${item.body} STATUS => ${item.jobData?.leadEngineerId}");
     bool isUnread = item.isRead == 0;
+
+    // --- ADD THIS LOGIC ---
+    bool isUserPending = false;
+
+    if (item.jobData != null) {
+      // 1. Check if login user is Lead Engineer
+      if (item.jobData?.leadEngineer?.id.toString() == userId) {
+        isUserPending = item.jobData?.leadEngineerStatus == "PENDING";
+print("USER ID => $userId");
+print("leadEngineerStatus ID => ${item.jobData?.leadEngineerStatus}");
+
+      }
+      // 2. Check if login user is in the Other Engineers list
+    if ((item.jobData?.otherEngineers??[]).isNotEmpty) {
+        try {
+          final myEntry = item.jobData?.otherEngineers?.firstWhere(
+                (e) {
+                  print("e.user?.id.toString()====>${e.user}");
+                  return e.other_engineers_id.toString() == userId.toString();
+
+                  },
+          );
+
+          print("myEntry ID => ${myEntry?.status}");
+          isUserPending = myEntry?.status == "PENDING";
+        } catch (_) {
+          print("myEntry ID => ${isUserPending}");
+          isUserPending = false; // User not found in this job
+        }
+      }
+    }
+    // -----------------------
 
     return InkWell(
       onTap: () {
@@ -295,14 +331,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                         ],
                       ),
-                      if (item.type?.toLowerCase() == "job" &&
-                          item.jobData?.leadEngineerId.toString() == userId &&
-                          item.jobData?.leadEngineerStatus == "PENDING")
+                      if (isUserPending)
                         const SizedBox(height: 12),
 
-                      if (item.type?.toLowerCase() == "job" &&
-                          item.jobData?.leadEngineerId.toString() == userId &&
-                          item.jobData?.leadEngineerStatus == "PENDING")
+                      if (isUserPending)
                         Row(
                           children: [
                             Spacer(),

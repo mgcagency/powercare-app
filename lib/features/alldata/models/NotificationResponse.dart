@@ -1,5 +1,7 @@
 // NotificationResponse.dart
 
+import 'package:powercare_flutter/features/alldata/models/job_list_response.dart';
+
 class NotificationResponse {
   final int? statusCode;
   final String? message;
@@ -56,7 +58,7 @@ class NotificationData {
   final String? createdAt;
   final String? jobId;
   final String? type;
-  final NotificationJobData? jobData;
+  final JobModel? jobData;
   final String? status; // ✅ ADD THIS
   final bool? isProcessing; // ✅ ADD THIS
 
@@ -83,7 +85,7 @@ class NotificationData {
       jobId: json["job_id"]?.toString(),
       type: json["type"],
       jobData: json["job_data"] != null
-          ? NotificationJobData.fromJson(json["job_data"])
+          ? JobModel.fromJson(json["job_data"])
           : null,
       status: json["status"], // ✅ ADD THIS
       isProcessing: false, // ✅ ADD THIS
@@ -99,7 +101,7 @@ class NotificationData {
     String? createdAt,
     String? jobId,
     String? type,
-    NotificationJobData? jobData,
+    JobModel? jobData,
     String? status,
     bool? isProcessing,
   }) {

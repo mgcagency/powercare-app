@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:socket_io_client/socket_io_client.dart';
 import 'core/services/notification_service.dart';
-import 'core/socket/socket_manager.dart';
-import 'core/storage/app_preferences.dart';
+
+import 'firebase_options_dev.dart';
 import 'flavor_config.dart';
 import 'main.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'firebase_options_dev_old.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -24,7 +22,7 @@ Future<void> main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(
-   options: DefaultFirebaseOptions.currentPlatform,
+  options: DefaultFirebaseOptions.currentPlatform,
   );
 /*  if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(

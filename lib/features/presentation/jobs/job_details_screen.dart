@@ -290,7 +290,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               Spacer(),
                               CustomButton(
                                 isOutlined: true,
+                                textClr: AppColors.primary,
                                 showShadow: false,
+                                isLoading: _isProcessingStatus,
                                 onPressed: _isProcessingStatus
                                     ? null
                                     : () => _updateJobStatus("REJECT"),
@@ -300,6 +302,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               const SizedBox(width: 12),
                               CustomButton(
                                 showShadow: false,
+                                isLoading: _isProcessingStatus,
                                 onPressed: _isProcessingStatus
                                     ? null
                                     : () => _updateJobStatus("ACCEPT"),

@@ -223,14 +223,16 @@ class JobTypeStatus {
 
 class OtherEngineer {
   int? id;
+  int? other_engineers_id;
   String? status;
   UserModel? user;
 
-  OtherEngineer({this.id, this.status, this.user});
+  OtherEngineer({this.id, this.other_engineers_id, this.status, this.user});
 
   factory OtherEngineer.fromJson(Map<String, dynamic> json) {
     return OtherEngineer(
       id: json['id'],
+      other_engineers_id: json['other_engineers_id'],
       status: json['status'],
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );

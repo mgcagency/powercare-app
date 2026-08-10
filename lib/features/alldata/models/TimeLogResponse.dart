@@ -28,6 +28,7 @@ class TimeLogJob {
   int? id;
   String? jobName;
   String? jobTime;
+  String? jobDate;
   String? jobEndTime;
   String? jobNumber;
   String? jobStatus;
@@ -37,6 +38,7 @@ class TimeLogJob {
     this.id,
     this.jobName,
     this.jobTime,
+    this.jobDate,
     this.jobEndTime,
     this.jobNumber,
     this.jobStatus,
@@ -49,6 +51,7 @@ class TimeLogJob {
     return TimeLogJob(
       id: json["id"],
       jobName: json["job_name"],
+      jobDate: json["job_date"],
       jobTime: json["job_time"],
       jobEndTime: json["job_end_time"],
       jobNumber: json["job_number"],

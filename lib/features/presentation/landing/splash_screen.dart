@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Timer _timer;
 
   final List<Map<String, String>> _introData = [
-    {"type": "logo", "image": "assets/icons/splash_logo.svg"},
+    {"type": "logo", "image": "assets/icons/app_logo_dev.png"},
     {
       "type": "intro",
       "title": "Manage Jobs",
@@ -212,16 +212,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           children: [
                             Hero(
                               tag: 'logo',
-                              child: SvgPicture.asset(
+                              child: Image.asset(
                                 item["image"]!,
                                 height: 140,
                               ),
                             ),
-                            const SizedBox(height: 24),
-                            const CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                            )
+                            // const SizedBox(height: 24),
+                            // const CircularProgressIndicator(
+                            //   strokeWidth: 2,
+                            //   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            // )
                           ],
                         )
                       : Column(

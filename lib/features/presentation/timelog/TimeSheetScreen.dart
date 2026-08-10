@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:powercare_flutter/app/widget/custom_response_dialogs.dart';
+import 'package:powercare_flutter/core/navigation/app_navigator.dart';
 import 'package:powercare_flutter/features/alldata/models/UserModel.dart';
+import 'package:powercare_flutter/features/alldata/models/job_list_response.dart';
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../app/widget/custom_appbar.dart';
 import '../../../app/widget/custom_button.dart';
 import '../../../app/widget/custom_text.dart';
 import '../../../app/widget/custom_textfield.dart';
+import '../../../core/storage/app_preferences.dart';
 import '../../alldata/api_repository/TimeSheetRepository.dart';
 import '../../alldata/api_repository/job_repository.dart';
 import '../jobs/job_list_screen.dart';
@@ -23,18 +28,34 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
   final TextEditingController leadEngineerController = TextEditingController();
   bool isLoading = false;
   String jobName = "";
+  late JobModel detailJob;
   List<UserModel> users = [];
+  String? _currentUserId; // Add this
 
-  // Important: Changed to List<Map> to hold UI state (time slots)
+
+  // Logic: Holds list of engineers, each containing a list of time slots
   List<Map<String, dynamic>> engineers = [];
 
   @override
   void initState() {
     super.initState();
-    loadUsers();
-    callJobDetails();
+    _initialFetch();
   }
-
+  Future<void> _initialFetch() async {
+    setState(() => isLoading = true);
+    await Future.wait([
+      loadUsers(),
+      callJobDetails(),
+      _loadCurrentUserId()
+    ]);
+    setState(() => isLoading = false);
+  }
+  Future<void> _loadCurrentUserId() async {
+    final id = await AppPreferences.getUserID();
+    setState(() {
+      _currentUserId = id;
+    });
+  }
   Future<void> loadUsers() async {
     try {
       users = await repository.getUsers();
@@ -44,48 +65,82 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
     }
   }
 
+
   Future<void> callJobDetails() async {
     try {
-      final response = await JobRepository().getJobDetails(widget.jobId);
-      final job = response.jobDetails;
+      final response = await JobRepository().getJobDetails(
+        widget.jobId.toString(),
+      );
 
-      if (job != null) {
-        setState(() {
-          jobName = job.jobName ?? "";
-          engineers.clear();
+       detailJob = response.jobDetails!;
 
-          // 1. Map Lead Engineer from API
-          if (job.leadEngineer != null) {
-            leadEngineerController.text = job.leadEngineer!.fullName;
-            engineers.add({
-              "name": job.leadEngineer!.fullName,
-              "userId": job.leadEngineer!.id.toString(),
-              "isLead": true,
-              "timeSlots": [
-                {"startTime": "", "endTime": "", "total": "00:00"}
-              ],
-            });
+
+
+
+      setState(() {
+        jobName = detailJob.jobName ?? "";
+
+        engineers.clear();
+        // inside callJobDetails() ...
+
+        if (detailJob.leadEngineer != null) {
+          leadEngineerController.text = detailJob.leadEngineer!.fullName;
+
+          // 1. Map existing timesheets if available, otherwise start with one empty slot
+          List<Map<String, dynamic>> leadTimeSlots = [];
+
+          if (detailJob.leadEngineer!.timesheet != null &&
+              detailJob.leadEngineer!.timesheet!.isNotEmpty) {
+            for (var ts in detailJob.leadEngineer!.timesheet!) {
+              leadTimeSlots.add({
+                "date": DateTime.parse(ts.createdAt ?? ""),
+                "id": ts.id.toString(),
+                "isDeletable": false,
+                "startTime": ts.startTime ?? "",
+                "endTime": ts.endTime ?? "",
+                "total": calculateTotal(ts.startTime ?? "", ts.endTime ?? ""),
+              });
+            }
           }
+        }
+        if (detailJob.otherEngineers != null) {
+          for (final other in detailJob.otherEngineers!) {
+            if (other.user != null) {
+              // 2. Map existing timesheets for other engineers
+              List<Map<String, dynamic>> otherTimeSlots = [];
 
-          // 2. Map Other Engineers from API
-          if (job.otherEngineers != null) {
-            for (var other in job.otherEngineers!) {
-              if (other.user != null) {
+              if (other.user!.timesheet != null &&
+                  other.user!.timesheet!.isNotEmpty) {
+                for (var ts in other.user!.timesheet!) {
+                  otherTimeSlots.add({
+                    "date": DateTime.parse(ts.createdAt ?? ""),
+                    "id": ts.id.toString(),
+                    "isDeletable": false,
+                    "startTime": ts.startTime ?? "",
+                    "endTime": ts.endTime ?? "",
+                    "total": calculateTotal(
+                      ts.startTime ?? "",
+                      ts.endTime ?? "",
+                    ),
+                  });
+                }
+
+
                 engineers.add({
+                  "isDeletable": false,
                   "name": other.user!.fullName,
                   "userId": other.user!.id.toString(),
                   "isLead": false,
-                  "timeSlots": [
-                    {"startTime": "", "endTime": "", "total": "00:00"}
-                  ],
+                  "timeSlots": otherTimeSlots,
                 });
               }
             }
           }
-        });
+        }
       }
+        );
     } catch (e) {
-      debugPrint("Job Details Error => $e");
+      debugPrint(e.toString());
     }
   }
 
@@ -95,29 +150,29 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
         "name": "",
         "userId": "",
         "isLead": false,
+        "isEditable": true,
         "timeSlots": [
-          {"startTime": "", "endTime": "", "total": "00:00"}
+          {"date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
+            "isDeletable": true,
+            "startTime": "", "endTime": ""}
         ],
       });
     });
   }
 
-  void addTimeSlot(int engineerIndex) {
+  void addTimeSlot(int engIdx) {
     setState(() {
-      engineers[engineerIndex]["timeSlots"].add({
+      engineers[engIdx]["timeSlots"].add({
+        "isDeletable": true,
+        "date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
         "startTime": "",
-        "endTime": "",
-        "total": "00:00"
+        "endTime": ""
       });
     });
   }
 
   Future<void> _pickTime(int engIdx, int slotIdx, String key) async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
+    final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
     if (picked != null) {
       setState(() {
         final timeStr = "${picked.hour.toString().padLeft(2, "0")}:${picked.minute.toString().padLeft(2, "0")}";
@@ -128,34 +183,30 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
 
   String calculateTotal(String start, String end) {
     if (start.isEmpty || end.isEmpty) return "00:00";
-    int minutes = _getMinutes(start, end);
-    final hrs = minutes ~/ 60;
-    final mins = minutes % 60;
-    return "${hrs.toString().padLeft(2, "0")}:${mins.toString().padLeft(2, "0")}";
-  }
-
-  int _getMinutes(String start, String end) {
-    if (start.isEmpty || end.isEmpty) return 0;
     try {
       final s = start.split(":");
       final e = end.split(":");
       int diff = (int.parse(e[0]) * 60 + int.parse(e[1])) - (int.parse(s[0]) * 60 + int.parse(s[1]));
-      return diff > 0 ? diff : 0;
-    } catch (e) {
-      return 0;
-    }
+      if (diff < 0) return "00:00";
+      return "${(diff ~/ 60).toString().padLeft(2, "0")}:${(diff % 60).toString().padLeft(2, "0")}";
+    } catch (_) { return "00:00"; }
   }
 
   String calculateGrandTotal() {
     int totalMinutes = 0;
     for (var eng in engineers) {
       for (var slot in eng["timeSlots"]) {
-        totalMinutes += _getMinutes(slot["startTime"], slot["endTime"]);
+        String start = slot["startTime"];
+        String end = slot["endTime"];
+        if (start.isNotEmpty && end.isNotEmpty) {
+          final s = start.split(":");
+          final e = end.split(":");
+          int diff = (int.parse(e[0]) * 60 + int.parse(e[1])) - (int.parse(s[0]) * 60 + int.parse(s[1]));
+          if (diff > 0) totalMinutes += diff;
+        }
       }
     }
-    final hrs = totalMinutes ~/ 60;
-    final mins = totalMinutes % 60;
-    return "${hrs.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')} hrs";
+    return "${(totalMinutes ~/ 60).toString().padLeft(2, '0')}:${(totalMinutes % 60).toString().padLeft(2, '0')} hrs";
   }
 
   Future<void> saveTimeSheet() async {
@@ -165,35 +216,28 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
       int apiIndex = 0;
 
       for (var engineer in engineers) {
+        if (engineer["userId"].toString().isEmpty) continue;
         for (var slot in engineer["timeSlots"]) {
           if (slot["startTime"].isNotEmpty && slot["endTime"].isNotEmpty) {
             payload["engineer_id[$apiIndex]"] = engineer["userId"];
+                       payload["time_sheet_id[$apiIndex]"] = slot["id"];
+
             payload["start_time[$apiIndex]"] = slot["startTime"];
             payload["end_time[$apiIndex]"] = slot["endTime"];
-
             apiIndex++;
           }
         }
       }
 
       if (apiIndex == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: CustomText("Please add at least one time log")));
-        setState(() => isLoading = false);
+showErrorDialog(context, "Please add at least one complete time log");
+setState(() => isLoading = false);
         return;
       }
 
       final response = await repository.addTimeSheet(payload);
       if (response["success"] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: CustomText("success time sheet ")));
-
-        //Navigator.pop(context);
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const JobListScreen(),
-          ),
-              (route) => false,
-        );
+        showSuccessDialog(context, "Timesheet saved successfully",onOk: (){AppNavigator.pop();   });
 
       }
     } catch (e) {
@@ -208,7 +252,9 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const CustomAppBar(title: "Time Sheet Entry"),
-      body: Column(
+      body: isLoading && engineers.isEmpty
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          :Column(
         children: [
           _buildGrandTotalHeader(),
           Expanded(
@@ -222,9 +268,9 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                     itemCount: engineers.length,
                     itemBuilder: (context, engIdx) => _buildEngineerSection(engIdx),
                   ),
-                  const SizedBox(height: 20),
-                  _buildAddEngineerButton(),
-                  const SizedBox(height: 100),
+                  // const SizedBox(height: 20),
+                  // _buildAddEngineerButton(),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
@@ -252,6 +298,7 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
   Widget _buildEngineerSection(int engIdx) {
     final engineer = engineers[engIdx];
     final bool isLead = engineer["isLead"] == true;
+    final bool isEditable = engineer["isEditable"] == true;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -262,7 +309,6 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
       ),
       child: Column(
         children: [
-          // --- SECTION HEADER ---
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -279,49 +325,42 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
                     style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
-                // Only show delete button for non-lead engineers
-                if (!isLead)
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => setState(() => engineers.removeAt(engIdx)),
-                  ),
               ],
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // --- SELECTION LOGIC ---
-                if (isLead)
-                // Lead is READ ONLY
+                if (!isEditable)
                   CustomTextField(
                     controller: TextEditingController(text: engineer["name"]),
                     label: "Engineer Name",
                     readOnly: true,
-                    // fillColor: Colors.grey.shade100,
                   )
                 else
-                // Added engineers get the BottomSheet Dropdown
                   _buildEngineerPicker(engIdx),
 
                 const SizedBox(height: 16),
 
-                // --- TIME SLOTS ---
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: engineer["timeSlots"].length,
                   itemBuilder: (context, slotIdx) => _buildTimeSlotRow(engIdx, slotIdx),
                 ),
-
-                const Divider(),
-                TextButton.icon(
-                  onPressed: () => addTimeSlot(engIdx),
-                  icon: const Icon(Icons.add_alarm, size: 18),
-                  label: const CustomText("Add Shift/Slot"),
-                )
+                // if(_currentUserId == detailJob?.leadEngineer?.id.toString())
+                //
+                // const Divider(),
+                // if(_currentUserId == detailJob?.leadEngineer?.id.toString())
+                //
+                //   TextButton.icon(
+                //   onPressed: () {
+                //
+                //     addTimeSlot(engIdx);},
+                //   icon: const Icon(Icons.add_alarm, size: 18),
+                //   label: const CustomText("Add Shift/Slot"),
+                // )
               ],
             ),
           ),
@@ -332,40 +371,101 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
 
   Widget _buildTimeSlotRow(int engIdx, int slotIdx) {
     final slot = engineers[engIdx]["timeSlots"][slotIdx];
+
+    // 1. Extract the current date string (part before the space)
+    String? currentDate = slot["date"]?.toString().split(" ")[0];
+
+    // 2. Extract the previous date string if slotIdx > 0
+    String? prevDate = slotIdx > 0
+        ? engineers[engIdx]["timeSlots"][slotIdx - 1]["date"]?.toString().split(" ")[0]
+        : null;
+
+    // 3. Determine if we should show the date header
+    // Show if it's the first item OR if the date has changed from the previous row
+    bool showDateHeader = currentDate != null && currentDate != prevDate;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(child: _timeField("In", slot["startTime"], () => _pickTime(engIdx, slotIdx, "startTime"))),
-          const SizedBox(width: 8),
-          Expanded(child: _timeField("Out", slot["endTime"], () => _pickTime(engIdx, slotIdx, "endTime"))),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-            child: CustomText(calculateTotal(slot["startTime"], slot["endTime"]), style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          if (engineers[engIdx]["timeSlots"].length > 1)
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
-              onPressed: () => setState(() => engineers[engIdx]["timeSlots"].removeAt(slotIdx)),
-            )
-        ],
-      ),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showDateHeader)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+                child: CustomText(
+                    currentDate!,
+                    style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold,color: AppColors.navyBlue)
+                ),
+              ),
+            Row(
+              children: [
+                Expanded(
+                  child: _timeField(
+                    "In",
+                    slot["startTime"],
+                    !(slot["isDeletable"]??false)
+                        ? null
+                        : () => _pickTime(engIdx, slotIdx, "startTime"),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _timeField(
+                    "Out",
+                    slot["endTime"],
+                    !(slot["isDeletable"]??false)
+                        ? null
+                        : () => _pickTime(engIdx, slotIdx, "endTime"),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: CustomText(
+                    calculateTotal(slot["startTime"], slot["endTime"]),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                if (slot["isDeletable"] &&  _currentUserId == detailJob?.leadEngineer?.id.toString())
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, color: Colors.grey),
+                    onPressed: () => setState(
+                          () => engineers[engIdx]["timeSlots"].removeAt(slotIdx),
+                    ),
+                  ),
+              ],
+            )]),
     );
   }
 
-  Widget _timeField(String label, String value, VoidCallback onTap) {
+  Widget _timeField(String label, String value, VoidCallback? onTap) {
     return InkWell(
-      onTap: onTap,
+      onTap:
+
+          _currentUserId != detailJob?.leadEngineer?.id.toString()
+          ? null
+          : onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomText(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-            CustomText(value.isEmpty ? "--:--" : value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            CustomText(
+              label,
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+            CustomText(
+              value.isEmpty ? "--:--" : value,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -411,10 +511,8 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: CustomText(
-                engineer["name"].isEmpty ? "Select Engineer from List" : engineer["name"],
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: engineer["name"].isEmpty ? Colors.grey : Colors.black87,
-                ),
+                engineer["name"].isEmpty ? "Select Engineer" : engineer["name"],
+                style: AppTextStyles.bodyMedium.copyWith(color: engineer["name"].isEmpty ? Colors.grey : Colors.black87),
               ),
             ),
             const Icon(Icons.arrow_drop_down_circle_outlined, color: Colors.grey),
@@ -426,46 +524,15 @@ class _TimeSheetScreenState extends State<TimeSheetScreen> {
 
   Widget _buildBottomActions() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
       decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
-      child:
-      Row(
+      child: Row(
         children: [
-          Flexible(
-            flex: 1,
-            child:
-            CustomButton(
-              background: AppColors.primary,
-              title: "Cancel",
-              onPressed: () {
-                Navigator.pop(context);
-              },
-
-            ),
-        /*    CustomButton(
-              title: "Cancel",textClr: Colors.black,
-              background: Colors.grey.shade200,
-              onPressed: () => Navigator.pop(context),
-            ),*/
-          ),
-          const SizedBox(width: 10),
-          Flexible(
-            flex: 2,
-            child: CustomButton(
-              title: "Submit Timesheet",
-              isLoading: isLoading,
-              onPressed: () => saveTimeSheet(),
-            ),
-          ),
+          Expanded(child: CustomButton(title: "Cancel", background: Colors.grey.shade200, textClr: Colors.black87, onPressed: () => Navigator.pop(context))),
+          const SizedBox(width: 15),
+          Expanded(flex: 2, child: CustomButton(title: "Ok", isLoading: isLoading, onPressed: () => AppNavigator.pop())),
         ],
       ),
-      /*Row(
-        children: [
-          Expanded(child: CustomButton(title: "Cancel", background: Colors.grey.shade200, onPressed: () => Navigator.pop(context))),
-          const SizedBox(width: 15),
-          Expanded(flex: 2, child: CustomButton(title: "Submit Timesheet", isLoading: isLoading, onPressed: () => saveTimeSheet())),
-        ],
-      ),*/
     );
   }
 
