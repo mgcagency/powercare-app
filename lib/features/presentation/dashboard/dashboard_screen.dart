@@ -467,13 +467,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
 
                 // Footer section
-                 CustomButton(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: CustomButton(
                     background: AppColors.primary,
                     title: "Close",
                     onPressed: () {
                       Navigator.pop(context);
                     },
-
+                  ),
+                ),
 
              /*       OutlinedButton(
                       style: OutlinedButton.styleFrom(
@@ -493,7 +496,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),*/
                   
-                ),
+
               ],
             ),
           ),
