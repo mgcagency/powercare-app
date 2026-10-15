@@ -530,7 +530,24 @@ setState(() => isLoading = false);
         children: [
           Expanded(child: CustomButton(title: "Cancel", background: Colors.grey.shade200, textClr: Colors.black87, onPressed: () => Navigator.pop(context))),
           const SizedBox(width: 15),
-          Expanded(flex: 2, child: CustomButton(title: "Ok", isLoading: isLoading, onPressed: () => AppNavigator.pop())),
+         // Expanded(flex: 2, child: CustomButton(title: "Ok", isLoading: isLoading, onPressed: () => AppNavigator.pop())),
+          Expanded(
+            flex: 2,
+            child: CustomButton(
+              title: "Ok",
+              isLoading: isLoading,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Time Sheet Added successfully"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                AppNavigator.pop();
+              },
+            ),
+          ),
         ],
       ),
     );

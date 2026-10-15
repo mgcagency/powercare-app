@@ -55,12 +55,12 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       // For now, we simulate success and refresh details
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: CustomText("Job $status successfully")));
+      ).showSnackBar(SnackBar(content: CustomText("Job $status successfully",style: TextStyle(color: Colors.white))));
       _fetchJobDetails();
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: CustomText("Error: ${e.toString()}")));
+      ).showSnackBar(SnackBar(content: CustomText("Error: ${e.toString()}",style: TextStyle(color: Colors.white))));
     } finally {
       setState(() => _isProcessingStatus = false);
     }
@@ -87,13 +87,13 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       final response = await _repository.deleteJobImage(imageId);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: CustomText("Image deleted successfully")),
+          const SnackBar(content: CustomText("Image deleted successfully",style: TextStyle(color: Colors.white))),
         );
         _fetchJobDetails(); // Refresh the UI
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: CustomText("Delete failed: ${e.toString()}")),
+        SnackBar(content: CustomText("Delete failed: ${e.toString()}",style: TextStyle(color: Colors.white))),
       );
     } finally {
       setState(() {
@@ -174,14 +174,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: CustomText("Image uploaded successfully")),
+          const SnackBar(content: CustomText("Image uploaded successfully",style: TextStyle(color: Colors.white))),
         );
         _fetchJobDetails(); // Refresh details after upload
         // Note: You might want to refresh the job data here to show the new image
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: CustomText("Upload failed: ${e.toString()}")),
+        SnackBar(content: CustomText("Upload failed: ${e.toString()}",style: TextStyle(color: Colors.white))),
       );
     } finally {
       setState(() => _isUploading = false);
@@ -831,7 +831,7 @@ class _DocumentRow extends StatelessWidget {
 
     ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(
-    content: Text("Document is not available for download."),
+    content: Text("Document is not available for download.",style: TextStyle(color: Colors.white)),
     ),
     );
     return;
@@ -845,7 +845,7 @@ class _DocumentRow extends StatelessWidget {
     } else {
     ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(
-    content: Text("Unable to open document."),
+    content: Text("Unable to open document.",style: TextStyle(color: Colors.white)),
     ),
     );
     }
@@ -899,7 +899,7 @@ class _DocumentRow extends StatelessWidget {
                     // Check Job Sheet exists or not
                     if (job.jobSheets == null || job.jobSheets!.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("No Job Sheet found")),
+                        const SnackBar(content: Text("No Job Sheet found",style: TextStyle(color: Colors.white))),
                       );
                       return;
                     }

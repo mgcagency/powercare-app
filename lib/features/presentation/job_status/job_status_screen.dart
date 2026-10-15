@@ -68,13 +68,13 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
       final response = await _repository.deleteJobImage(imageId);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: CustomText("Image deleted successfully")),
+          const SnackBar(content: CustomText("Image deleted successfully",style: TextStyle(color: Colors.white),)),
         );
         _fetchMyJobs(showLoading: false); // Refresh the UI
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: CustomText("Delete failed: ${e.toString()}")),
+        SnackBar(content: CustomText("Delete failed: ${e.toString()}",style: TextStyle(color: Colors.white))),
       );
     } finally {
       setState(() {
@@ -87,7 +87,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     if (_selectedJobModel == null || _selectedStatusModel == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please select Job and Status"),
+          content: Text("Please select Job and Status",style: TextStyle(color: Colors.white)),
         ),
       );
       return;
@@ -105,7 +105,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: CustomText("Job status updated successfully."),
+          content: CustomText("Job status updated successfully.",style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.green,
         ),
 
@@ -264,7 +264,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   Future<void> _uploadImage(String path) async {
     if (_selectedJobModel == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: CustomText("Please select a job first")),
+        const SnackBar(content: CustomText("Please select a job first",style: TextStyle(color: Colors.white))),
       );
       return;
     }
@@ -279,13 +279,13 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: CustomText("Image uploaded successfully")),
+          const SnackBar(content: CustomText("Image uploaded successfully",style: TextStyle(color: Colors.white))),
         );
         _fetchMyJobs(showLoading: false);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: CustomText("Upload failed: ${e.toString()}")),
+        SnackBar(content: CustomText("Upload failed: ${e.toString()}",style: TextStyle(color: Colors.white))),
       );
     } finally {
       setState(() => _isUploading = false);

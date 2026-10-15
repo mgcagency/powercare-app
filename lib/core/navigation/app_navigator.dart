@@ -76,7 +76,7 @@ class AppNavigator {
       onConfirm: () {
         if (kIsWeb) {
           ScaffoldMessenger.of(ctx).showSnackBar(
-             SnackBar(content: CustomText('Please close the tab manually.')),
+             SnackBar(content: CustomText('Please close the tab manually.',style: TextStyle(color: Colors.white))),
           );
         } else if (Platform.isAndroid) {
           SystemNavigator.pop();

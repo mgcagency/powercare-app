@@ -338,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Basic validation
     if (_firstNameController.text.trim().isEmpty || _lastNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("First and Last name are required")),
+        const SnackBar(content: Text("First and Last name are required",style: TextStyle(color: Colors.white))),
       );
       return;
     }
