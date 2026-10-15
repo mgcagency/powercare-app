@@ -49,7 +49,7 @@ extension ApiExceptionFromDio on DioError {
         case 400:
           return BadRequestException(response?.data['message'] ?? 'Bad Request');
         case 401:
-          return UnauthorizedException(response?.data['message'] ?? 'Unauthorized');
+          return UnauthorizedException(response?.data['message'] ?? 'Unauthorised');
         case 403:
           return ForbiddenException(response?.data['message'] ?? 'Forbidden');
         case 404:

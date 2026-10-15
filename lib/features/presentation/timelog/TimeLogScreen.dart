@@ -472,7 +472,7 @@ class TimeLogScreenState extends State<TimeLogScreen> {
             child: Center(child: CustomText('${day.day}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
           ),
 
-          // 2. CUSTOMIZE THE MARKER (THE INDICATOR)
+          // 2. CUSTOMISE THE MARKER (THE INDICATOR)
           markerBuilder: (context, date, events) {
             if (events.isNotEmpty) {
               return Positioned(

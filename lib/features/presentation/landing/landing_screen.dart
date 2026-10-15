@@ -439,7 +439,7 @@ await AppPreferences.saveUserName(
             : Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomText('AUTHORIZE ACCESS', style: AppTextStyles.button.copyWith(letterSpacing: 1.5, fontWeight: FontWeight.w900)),
+            CustomText('AUTHORISE ACCESS', style: AppTextStyles.button.copyWith(letterSpacing: 1.5, fontWeight: FontWeight.w900)),
             const SizedBox(width: 10),
             const Icon(Icons.arrow_forward_rounded),
           ],

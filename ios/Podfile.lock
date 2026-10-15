@@ -161,7 +161,7 @@ SPEC CHECKSUMS:
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
-  webview_flutter_wkwebview: 29eb20d43355b48fe7d07113835b9128f84e3af4
+  webview_flutter_wkwebview: 146d3df374b50d91b53b0ac786652d155792e7d0
 
 PODFILE CHECKSUM: 781e1d41c76589d41e690e1cfde1b5a10f14bab5
 

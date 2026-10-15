@@ -77,7 +77,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen>
   Future<void> authenticateWithBiometric() async {
     try {
       // bool authenticated = await auth.authenticate(
-      //   localizedReason: 'Authorize to access PowerCare Terminal',
+      //   localizedReason: 'Authorise to access PowerCare Terminal',
       //   options: const AuthenticationOptions(
       //     stickyAuth: true,
       //     biometricOnly: true,

@@ -33,7 +33,7 @@ class ApiClient {
       // 2. Some servers reject empty/null user-agents during handshake
       client.userAgent = 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36';
 
-      // 3. This bypasses the certificate check, but UNRECOGNIZED_NAME
+      // 3. This bypasses the certificate check, but UNRECOGNISED_NAME
       // often happens before this callback.
       client.badCertificateCallback = (cert, host, port) => true;
 

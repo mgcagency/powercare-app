@@ -6,6 +6,11 @@ import 'app_frame.dart';
 import 'core/navigation/app_navigator.dart';
 import 'features/presentation/landing/splash_screen.dart';
 import 'flavor_config.dart';
+import 'main_dev.dart' as dev;
+
+Future<void> main() async {
+  await dev.main();
+}
 
 
 var userRole = [ "admin", "teacher", "student", "parent" ];
