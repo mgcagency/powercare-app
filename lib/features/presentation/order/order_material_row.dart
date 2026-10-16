@@ -3,6 +3,7 @@ import 'package:powercare_flutter/app/theme/colors.dart';
 import 'package:powercare_flutter/app/theme/text_styles.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
+import '../../../app/widget/custom_dropdown.dart';
 
 import '../../alldata/models/material_response.dart';
 import 'order_material_item.dart';
@@ -47,56 +48,27 @@ Row(children: [
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
         /// Material
-        CustomText(
-          "Material",
-        //txtColor: AppColors.navyBlue,
-          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
-        ),
-
-        const SizedBox(height: 8),
-
-        DropdownButtonFormField<MaterialData>(
+        CustomDropdown<MaterialData>(
+          label: "Material",
+          hintText: "Select Material",
           value: availableMaterials.any(
-                (e) => e.id.toString() == item.materialId,
+            (e) => e.id.toString() == item.materialId,
           )
               ? availableMaterials.firstWhere(
-                (e) => e.id.toString() == item.materialId,
-          )
+                  (e) => e.id.toString() == item.materialId,
+                )
               : null,
-
-          isExpanded: true,
-
-          decoration: InputDecoration(
-            hintText: "Select Material",
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.grey.shade300,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.grey.shade300,
-              ),
-            ),
-          ),
-
+          readOnly: !item.isEditable,
           items: availableMaterials.map(
-                (e) => DropdownMenuItem<MaterialData>(
+            (e) => DropdownMenuItem<MaterialData>(
               value: e,
               child: CustomText(e.materialName ?? ""),
             ),
           ).toList(),
-
-          onChanged: !item.isEditable?null:(value) {
-            onMaterialChanged(value);
+          onChanged: !item.isEditable
+              ? null
+              : (value) {
+                  onMaterialChanged(value);
 
             if (value != null) {
               item.availableQty = value.totalQty ?? 0;

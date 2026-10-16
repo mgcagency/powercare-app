@@ -46,7 +46,7 @@ void showErrorDialog(BuildContext context, String message,
         children: [
           const Icon(Icons.error, color: Colors.red, size: 60),
           const SizedBox(height: 12),
-          CustomText(message, style: const TextStyle(color: Colors.red)),
+          CustomText(message),
           const SizedBox(height: 16),
           CustomButton(
             title: "OK",
@@ -54,7 +54,7 @@ void showErrorDialog(BuildContext context, String message,
               Navigator.of(context).pop();
               if (onOk != null) onOk();
             },
-            textClr: AppColors.textColor,
+            textClr: AppColors.pureWhite,
           )
         ],
       ),

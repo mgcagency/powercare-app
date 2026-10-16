@@ -5,6 +5,7 @@ import 'package:powercare_flutter/app/widget/custom_appbar.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_response_dialogs.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
+import '../../../app/widget/custom_dropdown.dart';
 
 import '../../../app/widget/helper.dart';
 import '../../alldata/api_repository/contact_repository.dart';
@@ -859,27 +860,11 @@ class _OrderMaterialScreenState extends State<OrderMaterialScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Supplier Email",
-                    style: AppTextStyles.bodyExtraSmall.copyWith(
-                      color: Colors.grey,
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  DropdownButtonFormField<ContactBookData>(
+                  CustomDropdown<ContactBookData>(
+                    label: "Supplier Email",
                     value: selectedSupplier,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      hintText: "Select Supplier Email",
-
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-
+                    hintText: "Select Supplier Email",
+                    prefixIcon: Icons.email_outlined,
                     items: supplierList.map((supplier) {
                       return DropdownMenuItem<ContactBookData>(
                         value: supplier,
@@ -889,11 +874,9 @@ class _OrderMaterialScreenState extends State<OrderMaterialScreen> {
                         ),
                       );
                     }).toList(),
-
                     onChanged: (value) {
                       setState(() {
                         selectedSupplier = value;
-
                         emailController.text = value?.email ?? "";
                       });
                     },

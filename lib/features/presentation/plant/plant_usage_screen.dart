@@ -111,19 +111,6 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
 
 
               buildLabel(
-                "Has the PowerCare Cherrypicker been used?",
-              ),
-
-              buildRadio(
-                groupValue: cherryPickerUsed,
-                onChanged: (value) {
-                  setState(() {
-                    cherryPickerUsed = value;
-                  });
-                },
-              ),
-
-              buildLabel(
                 "List any hired plant & supplier name",
               ),
 
@@ -156,7 +143,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
                 },
               ),
 
-              buildLabel("Quantity Purchased"),
+            /*  buildLabel("Quantity Purchased"),
 
               CustomTextField(
                 controller: purchasedController,
@@ -186,7 +173,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
 
                   return null;
                 },
-              ),
+              ),*/
 
               const SizedBox(height: 40),
                     Row(
@@ -217,16 +204,16 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
       return;
     }
 
-    if (cherryPickerUsed == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: CustomText(
-            "Please select Cherry Picker Used",style: TextStyle(color: Colors.white)
-          ),
-        ),
-      );
-      return;
-    }
+    // if (cherryPickerUsed == null) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: CustomText(
+    //         "Please select Cherry Picker Used",style: TextStyle(color: Colors.white)
+    //       ),
+    //     ),
+    //   );
+    //   return;
+    // }
 
     if (offHired == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -247,7 +234,7 @@ class _PlantUsageScreenState extends State<PlantUsageScreen> {
 
       final request = PlantUsageRequest(
         jobId: widget.job.id.toString(),
-        cherrypickerUsed: cherryPickerUsed! ? "1" : "0",
+        cherrypickerUsed: /*cherryPickerUsed! ? "1" :*/ "0",
         hiredPlantSupplierName: supplierController.text.trim(),
         hirePlantQtyPurchased: purchasedController.text.trim(),
         hirePlantQtyUsed: usedController.text.trim(),

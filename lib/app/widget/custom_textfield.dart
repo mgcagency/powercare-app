@@ -87,17 +87,17 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   )
                 : null,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(widget.maxLines > 1 ? 16 : 30),
+              borderRadius: BorderRadius.circular(12),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(widget.maxLines > 1 ? 16 : 30),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
                 color: widget.readOnly ? AppColors.border : AppColors.primary,
                 width: widget.readOnly ? 1 : 1.5,
               ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(widget.maxLines > 1 ? 16 : 30),
+              borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.border, width: 1),
             ),
             suffixIcon: widget.obscureText

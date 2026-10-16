@@ -53,14 +53,24 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       );
 
       // For now, we simulate success and refresh details
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: CustomText("Job $status successfully",style: TextStyle(color: Colors.white))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: CustomText(
+            "Job $status successfully",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
       _fetchJobDetails();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: CustomText("Error: ${e.toString()}",style: TextStyle(color: Colors.white))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: CustomText(
+            "Error: ${e.toString()}",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
     } finally {
       setState(() => _isProcessingStatus = false);
     }
@@ -87,13 +97,23 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       final response = await _repository.deleteJobImage(imageId);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: CustomText("Image deleted successfully",style: TextStyle(color: Colors.white))),
+          const SnackBar(
+            content: CustomText(
+              "Image deleted successfully",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         );
         _fetchJobDetails(); // Refresh the UI
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: CustomText("Delete failed: ${e.toString()}",style: TextStyle(color: Colors.white))),
+        SnackBar(
+          content: CustomText(
+            "Delete failed: ${e.toString()}",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       );
     } finally {
       setState(() {
@@ -174,14 +194,24 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: CustomText("Image uploaded successfully",style: TextStyle(color: Colors.white))),
+          const SnackBar(
+            content: CustomText(
+              "Image uploaded successfully",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         );
         _fetchJobDetails(); // Refresh details after upload
         // Note: You might want to refresh the job data here to show the new image
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: CustomText("Upload failed: ${e.toString()}",style: TextStyle(color: Colors.white))),
+        SnackBar(
+          content: CustomText(
+            "Upload failed: ${e.toString()}",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       );
     } finally {
       setState(() => _isUploading = false);
@@ -608,8 +638,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                         return _DocumentRow(
                           job: job,
                           jobSheet: sheet,
-
-                          title: sheet.purchaseOrderNumber ?? "Sheet #${sheet.id}",
+                          title:
+                              sheet.purchaseOrderNumber ?? "Sheet #${sheet.id}",
                           url: sheet.documentFullLink ?? "",
                           isLast: index == job.jobSheets!.length - 1,
                           isJobSheet: true,
@@ -622,7 +652,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   const SizedBox(height: 20),
                   SectionCard(
                     icon: Icons.settings_suggest_outlined,
-                    title: "Job Management",
+                    title: "Material & Plant Orders",
                     child: Column(
                       children: [
                         // _actionTile(
@@ -812,7 +842,7 @@ class _DocumentRow extends StatelessWidget {
             children: [
               // ── DOWNLOAD ICON ──
               GestureDetector(
-             /*   onTap: () async {
+                /*   onTap: () async {
                   print("DOCUMENT URL => $url");
                   print(job.documentFullLink);
                   print("JOB DOC = ${job.documentFullLink}");
@@ -825,31 +855,37 @@ class _DocumentRow extends StatelessWidget {
                     );
                   }
                 },*/
-              onTap: () async {
-    if (url.isEmpty ||
-    url == "https://powercare.resolveddevelopment.co.uk/storage") {
+                onTap: () async {
+                  if (url.isEmpty ||
+                      url ==
+                          "https://powercare.resolveddevelopment.co.uk/storage") {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Document is not available for download.",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    );
+                    return;
+                  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-    content: Text("Document is not available for download.",style: TextStyle(color: Colors.white)),
-    ),
-    );
-    return;
-    }
-
-    if (await canLaunchUrl(Uri.parse(url))) {
-    await launchUrl(
-    Uri.parse(url),
-    mode: LaunchMode.externalApplication,
-    );
-    } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-    content: Text("Unable to open document.",style: TextStyle(color: Colors.white)),
-    ),
-    );
-    }
-    },
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    await launchUrl(
+                      Uri.parse(url),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Unable to open document.",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    );
+                  }
+                },
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -875,7 +911,13 @@ class _DocumentRow extends StatelessWidget {
                       ),
                     );
                   } else {
-                    AppNavigator.push(JobSheetScreen(job: job,jobSheetId: jobSheet?.id.toString(), isView: true));
+                    AppNavigator.push(
+                      JobSheetScreen(
+                        job: job,
+                        jobSheetId: jobSheet?.id.toString(),
+                        isView: true,
+                      ),
+                    );
                   }
                 },
                 child: Container(
@@ -893,21 +935,28 @@ class _DocumentRow extends StatelessWidget {
               ),
               if (isJobSheet) const SizedBox(width: 10),
               // ── VIEW ICON ──
-              if (isJobSheet && isAccepted)
+              if (isJobSheet && isAccepted && !jobSheet!.jobStatus.toString().contains("AHEAD"))
                 GestureDetector(
                   onTap: () async {
                     // Check Job Sheet exists or not
                     if (job.jobSheets == null || job.jobSheets!.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("No Job Sheet found",style: TextStyle(color: Colors.white))),
+                        const SnackBar(
+                          content: Text(
+                            "No Job Sheet found",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                       );
                       return;
                     }
 
-
-
                     AppNavigator.push(
-                      JobSheetScreen(job: job, jobSheetId: jobSheet?.id.toString(), isView: false),
+                      JobSheetScreen(
+                        job: job,
+                        jobSheetId: jobSheet?.id.toString(),
+                        isView: false,
+                      ),
                     );
                   },
                   /*     onTap: () async {

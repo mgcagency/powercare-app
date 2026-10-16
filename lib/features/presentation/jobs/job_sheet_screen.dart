@@ -6,6 +6,7 @@ import 'package:powercare_flutter/app/widget/custom_response_dialogs.dart';
 import 'package:powercare_flutter/app/widget/custom_text.dart';
 import 'package:powercare_flutter/app/widget/custom_button.dart';
 import 'package:powercare_flutter/app/widget/custom_textfield.dart';
+import '../../../app/widget/custom_dropdown.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/widget/helper.dart';
@@ -42,6 +43,7 @@ class JobSheetScreen extends StatefulWidget {
 class _JobSheetScreenState extends State<JobSheetScreen> {
   // Controllers for text fields
   String? _currentUserId; // Add this
+  bool? cherryPickerUsed;
 
   final _clientNameController = TextEditingController();
   final _companyNameController = TextEditingController();
@@ -75,7 +77,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   String _scheduledDate = "";
   String _orderDate = "";
   String _requiredDate = "";
-  String selectedStatus = "";
+  String selectedStatus = "CALL_BACK_REQUIRED";
 
   // Dummy list for Materials
   List<OrderMaterialItem> materials = [];
@@ -557,7 +559,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const CustomAppBar(title: "Job Sheet"),
+      appBar: const CustomAppBar(title: "Fill in job sheet"),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
@@ -636,33 +638,19 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                       width: double.infinity,
                       child: CustomButton(
                         title: "Save Job Sheet",
-                        onPressed: () async {
-                          // Show the confirmation popup
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const CustomText("Confirm Save", style: TextStyle(fontWeight: FontWeight.bold)),
-                              content: const CustomText("Are you sure you want to save this Job Sheet and its Timesheet?"),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context), // Close the popup
-                                  child: const CustomText("Cancel", txtColor: Colors.grey),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    Navigator.pop(context); // Close the popup
-                                    // Call the save functions
-                                    await saveJobSheet();
-                                    await saveTimeSheet();
-                                  },
-                                  child: const CustomText(
-                                      "Yes, Save",
-                                      txtColor: AppColors.primary,
-                                      style: TextStyle(fontWeight: FontWeight.bold)
-                                  ),
-                                ),
-                              ],
-                            ),
+                        onPressed: () {
+                          showConfirmDialog(
+                            context,
+                            title: "Confirm Save",
+                            message: "Are you sure you want to save this Job Sheet and its Timesheet?",
+                            confirmText: "Yes, Save",
+                            cancelText: "Cancel",
+                            icon: Icons.save_rounded,
+                            iconColor: AppColors.primary,
+                            confirmBtnColor: AppColors.primary,
+                            onConfirm: () async {
+                              await saveJobSheet();
+                            },
                           );
                         },
                       ),
@@ -691,6 +679,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
     body["notes"] = _noteController.text.trim();
 
     body["service_request"] = _serviceReqController.text.trim();
+    body["cherrypickerUsed"] =  /*cherryPickerUsed! ? "1" :*/ "0";
 
     /* body["date_of_scheduled"] = */ /*_scheduledDate*/ /*"10/07/2026";
     body["date_of_order"] = */ /*_orderDate*/ /*"10/07/2026";
@@ -752,14 +741,14 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
       if (response["success"] == true) {
         print("kskdlsdksldksd11------>" );
-
+        await saveTimeSheet();
         // showSuccessDialog(context,  response["message"] ?? "Job Sheet Saved Successfully", onOk: () {
         // });
 
       } else {
         print("kskdlsdksldksd222------>" );
 
-        // showErrorDialog(context,  response["message"] ?? "Something went wrong");
+        showErrorDialog(context,  response["message"] ?? "Something went wrong");
 
       }
     } catch (e) {
@@ -776,27 +765,61 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _fieldLabel("Specification"),
+          _fieldLabel("Additional works requested, if any?"),
           CustomTextField(
-            readOnly: widget.isView ?? true,
-            controller: _specController,
-            hintText: "Enter specification",
+            readOnly: true,
+            controller: _serviceReqController,
+            hintText: "Enter work requested",
             maxLines: 4,
           ),
+          SizedBox(height: 10,),
+          _fieldLabel(
+            "Has the PowerCare Cherrypicker been used?",
+          ),
 
-          const SizedBox(height: 16),
-
-          _fieldLabel("Service Requested by the Client"),
-          CustomTextField(
-            readOnly: widget.isView ?? true,
-            controller: _serviceReqController,
-            hintText: "Enter service requested",
-            maxLines: 4,
+          buildRadio(
+            groupValue: cherryPickerUsed,
+            onChanged: (value) {
+              setState(() {
+                cherryPickerUsed = value;
+              });
+            },
           ),
         ],
       ),
     );
   }
+
+  Widget buildRadio({
+    required bool? groupValue,
+    required Function(bool?) onChanged,
+  }) {
+    return Row(
+      children: [
+
+        Radio<bool>(
+          value: true,
+          groupValue: groupValue,
+          activeColor: AppColors.primary,
+          onChanged: onChanged,
+        ),
+
+        const CustomText("Yes"),
+
+        const SizedBox(width: 30),
+
+        Radio<bool>(
+          value: false,
+          groupValue: groupValue,
+          activeColor: AppColors.primary,
+          onChanged: onChanged,
+        ),
+
+        const CustomText("No"),
+      ],
+    );
+  }
+
   /*  Widget _buildjobNotes() {
     return SectionHeaderCard(
       icon: Icons.description_outlined,
@@ -826,21 +849,21 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
 
       child: Column(
         children: [
-          _modernDateField(
-            title: "Scheduled Date",
-
-            value: _scheduledDate,
-
-            onChanged: (v) {
-              setState(() {
-                if (!(widget.isView ?? true)) {
-                  _scheduledDate = v;
-                }
-              });
-            },
-          ),
-
-          const SizedBox(height: 15),
+          // _modernDateField(
+          //   title: "Scheduled Date",
+          //
+          //   value: _scheduledDate,
+          //
+          //   onChanged: (v) {
+          //     setState(() {
+          //       if (!(widget.isView ?? true)) {
+          //         _scheduledDate = v;
+          //       }
+          //     });
+          //   },
+          // ),
+          //
+          // const SizedBox(height: 15),
 
           _modernDateField(
             title: "Date of Order",
@@ -1027,38 +1050,27 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   Widget _buildStatusCard() {
     return SectionHeaderCard(
       icon: Icons.flag_outlined,
-
       title: "Job Status",
-
-      child: DropdownButtonFormField<String>(
+      child: CustomDropdown<String>(
         value: (selectedStatus != "") ? selectedStatus : "CALL_BACK_REQUIRED",
-
-        decoration: InputDecoration(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-
+        readOnly: widget.isView ?? true,
         items: const [
           DropdownMenuItem(
             value: "GO_AHEAD_WITH_WORK",
             child: CustomText("GO AHEAD WITH WORK"),
           ),
-
           DropdownMenuItem(
             value: "QUOTE_REQUIRED",
             child: CustomText("QUOTE REQUIRED"),
           ),
-
           DropdownMenuItem(
             value: "CALL_BACK_REQUIRED",
             child: CustomText("CALL BACK REQUIRED"),
           ),
         ],
-
-        onChanged: (widget.isView ?? true)
-            ? null
-            : (v) {
-                selectedStatus = v ?? "";
-              },
+        onChanged: (v) {
+          selectedStatus = v ?? "";
+        },
       ),
     );
   }
@@ -1396,6 +1408,9 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
   }
 
   Widget _buildClientInformationCard() {
+    final bool isContactReadOnly =
+        widget.jobSheetId != null || (widget.isView ?? true);
+
     return SectionHeaderCard(
       icon: Icons.person_outline,
       title: "Client Information",
@@ -1403,26 +1418,21 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _fieldLabel("Select a contact", true),
-          DropdownButtonFormField<ContactBookData>(
-            isExpanded: true,
-            hint: const CustomText("Select a contact"),
-            // Find current selection in the list or set null
+          CustomDropdown<ContactBookData>(
+            hintText: "Select a contact",
             value: selectedCon,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              fillColor: (widget.isView ?? true)
-                  ? Colors.grey.shade50
-                  : Colors.white,
-              filled: true,
-            ),
-            // Disable if in view mode
-            onChanged: (widget.isView ?? true)
+            readOnly: isContactReadOnly,
+            items: contactList.map((contact) {
+              return DropdownMenuItem<ContactBookData>(
+                value: contact,
+                child: CustomText(
+                  (contact.companyName != null && contact.companyName!.isNotEmpty)
+                      ? contact.companyName!
+                      : (contact.name ?? "Contact #${contact.id}"),
+                ),
+              );
+            }).toList(),
+            onChanged: isContactReadOnly
                 ? null
                 : (ContactBookData? selectedContact) {
                     if (selectedContact != null) {
@@ -1439,12 +1449,6 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
                       });
                     }
                   },
-            items: contactList.map((contact) {
-              return DropdownMenuItem<ContactBookData>(
-                value: contact,
-                child: CustomText(contact.companyName ?? ""),
-              );
-            }).toList(),
           ),
           const SizedBox(height: 16),
           _fieldLabel("Client Name", true),
@@ -1530,7 +1534,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
         children: [
           _fieldLabel("Office Address"),
           CustomTextField(
-            readOnly: widget.isView ?? true,
+            readOnly: true,
             controller: _officeAddrController,
             hintText: "Enter office address",
             maxLines: 2,
@@ -1539,7 +1543,7 @@ class _JobSheetScreenState extends State<JobSheetScreen> {
           const SizedBox(height: 16),
           _fieldLabel("Office Number"),
           CustomTextField(
-            readOnly: widget.isView ?? true,
+            readOnly: true,
             controller: _officeNumController,
             hintText: "Office number",
           ),
